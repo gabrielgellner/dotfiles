@@ -1,9 +1,19 @@
 # Only run this file for interactive shells
 [[ -o interactive ]] || return
 
+# Don't let Ctrl-S freeze the terminal
+stty -ixon
+
+# Logic for uv and fzf
+export FZF_DEFAULT_COMMAND='fd --type f'
+
 # Completion FIRST
 autoload -Uz compinit
-compinit
+if [[ $(find "$HOME/.zcompdump" -mmin +1440 2>/dev/null) ]]; then
+  compinit -u -d "$HOME/.zcompdump"
+else
+  compinit -u -C -d "$HOME/.zcompdump"
+fi
 
 setopt COMPLETE_ALIASES
 
@@ -14,11 +24,7 @@ SAVEHIST=10000
 setopt APPEND_HISTORY INC_APPEND_HISTORY SHARE_HISTORY
 setopt HIST_IGNORE_ALL_DUPS HIST_SAVE_NO_DUPS
 
-# Autosuggestions (after ZLE/interactive is ready)
-if [[ -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
-  source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-fi
-
+# make sure you intall this with brew install zsh-autosuggestions
 if [[ -r $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
   source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
@@ -47,3 +53,6 @@ function zle-line-init zle-keymap-select {
 }
 zle -N zle-line-init
 zle -N zle-keymap-select
+
+# Use fzf to use the command history with C-R for history and C-T for file picker, and Alt-C for cd
+source <(fzf --zsh)

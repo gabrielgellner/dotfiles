@@ -1,6 +1,9 @@
 # timout for commands, defaults to 500
 command_timeout = 1000
 
+[container]
+disabled = true
+
 # Stop showing the global python on PATH
 [python]
 disabled = true
@@ -13,6 +16,9 @@ format = "via [🐍 $output]($style) "
 style = "green"
 
 [character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[❯](bold red)"
-vimcmd_symbol = "[❮](bold green)"
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"
+vimcmd_symbol = "[❮](green)"
+vimcmd_replace_one_symbol = "[❮](purple)"
+vimcmd_replace_symbol = "[❮](purple)"
+vimcmd_visual_symbol = "[❮](yellow)"
