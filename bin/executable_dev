@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# dev - fuzzy-pick an active tmux session or project from ~/dev, connect via sesh
+
+DEV_DIR="$HOME/dev"
+
+# ── Preview (called back by fzf) ──────────────────────────────────────────────
+preview() {
+  local name="$1"
+  local dir="$DEV_DIR/$name"
+
+  if tmux has-session -t "$name" 2>/dev/null; then
+    echo -e "\033[1;32m● active session\033[0m\n"
+    tmux capture-pane -t "$name" -p 2>/dev/null | tail -30
+    return
+  fi
+
+  echo -e "\033[1;34m── Files ──────────────────────────────\033[0m"
+  ls "$dir" | head -20
+
+  if [[ -d "$dir/.git" ]]; then
+    echo -e "\n\033[1;34m── Git log ────────────────────────────\033[0m"
+    git -C "$dir" log --oneline --color=always -7 2>/dev/null
+    local status
+    status=$(git -C "$dir" status --short 2>/dev/null)
+    if [[ -n "$status" ]]; then
+      echo -e "\n\033[1;34m── Git status ─────────────────────────\033[0m"
+      echo "$status"
+    fi
+  fi
+
+  if [[ -f "$dir/pyproject.toml" ]]; then
+    echo -e "\n\033[1;34m── pyproject.toml ─────────────────────\033[0m"
+    head -25 "$dir/pyproject.toml"
+  elif [[ -f "$dir/README.md" ]]; then
+    echo -e "\n\033[1;34m── README ─────────────────────────────\033[0m"
+    head -20 "$dir/README.md"
+  fi
+}
+
+# ── Preview mode ──────────────────────────────────────────────────────────────
+if [[ "${1}" == "--preview" ]]; then
+  preview "$2"
+  exit 0
+fi
+
+# ── Build list: live sessions first, then projects not already a session ──────
+active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+
+{
+  echo "$active" | grep -v '^$' | sed 's/^/● /'
+  comm -23 <(ls -1 "$DEV_DIR" | sort) <(echo "$active" | sort)
+} | fzf \
+  --prompt="dev > " \
+  --ansi \
+  --preview="$0 --preview {-1}" \
+  --preview-window=right:50% \
+  --height=80% \
+  --layout=reverse \
+  --border=rounded \
+  --info=inline \
+  > /tmp/dev_choice || exit 0
+
+choice=$(cat /tmp/dev_choice)
+name=$(echo "$choice" | sed 's/^● //')
+
+if tmux has-session -t "$name" 2>/dev/null; then
+  exec sesh connect "$name"
+else
+  exec sesh connect "$DEV_DIR/$name"
+fi
