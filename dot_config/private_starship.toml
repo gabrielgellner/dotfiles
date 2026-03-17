@@ -12,3 +12,7 @@ command = "uv run python -c \"import sys; print('.'.join(map(str, sys.version_in
 format = "via [🐍 $output]($style) "
 style = "green"
 
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
