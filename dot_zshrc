@@ -47,6 +47,9 @@ eval "$(zoxide init zsh)"
 bindkey -v
 export KEYTIMEOUT=1
 
+bindkey '^P' history-search-backward
+bindkey '^N' history-search-forward
+
 function zle-line-init zle-keymap-select {
     zle reset-prompt
     zle -R
