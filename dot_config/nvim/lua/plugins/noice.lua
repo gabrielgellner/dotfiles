@@ -1,7 +1,7 @@
 return {
-	"folke/noice.nvim",
-	dependencies = {
-		"MunifTanjim/nui.nvim",
-	},
-	opts = {},
+  "folke/noice.nvim",
+  dependencies = {
+    "MunifTanjim/nui.nvim",
+  },
+  opts = {},
 }

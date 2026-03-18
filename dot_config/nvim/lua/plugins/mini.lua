@@ -1,12 +1,8 @@
--- ============================================================================
--- plugins/mini.lua
--- ============================================================================
-
 return {
   "echasnovski/mini.nvim",
   version = false,
-  event   = "VeryLazy",
-  config  = function()
+  event = "VeryLazy",
+  config = function()
     -- ── mini.ai — extended text objects ────────────────────────────────────
     -- adds i/a for: f (function), c (class), a (argument), t (tag) etc.
     require("mini.ai").setup({
@@ -17,12 +13,12 @@ return {
     -- gs prefix to avoid clashing with snacks/default mappings
     require("mini.surround").setup({
       mappings = {
-        add            = "gsa",
-        delete         = "gsd",
-        find           = "gsf",
-        find_left      = "gsF",
-        highlight      = "gsh",
-        replace        = "gsr",
+        add = "gsa",
+        delete = "gsd",
+        find = "gsf",
+        find_left = "gsF",
+        highlight = "gsh",
+        replace = "gsr",
         update_n_lines = "gsn",
       },
     })
@@ -34,10 +30,10 @@ return {
 
     -- ── mini.indentscope — animated indent guides ──────────────────────────
     require("mini.indentscope").setup({
-      symbol  = "│",
+      symbol = "│",
       options = { try_as_border = true },
-      draw    = {
-        delay     = 50,
+      draw = {
+        delay = 50,
         animation = require("mini.indentscope").gen_animation.none(),
       },
     })

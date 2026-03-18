@@ -6,8 +6,8 @@ return {
 
     lint.linters_by_ft = {
       python = { "ruff" }, -- ruff as linter (separate from ruff LSP)
-      yaml   = { "yamllint" },
-      bash   = { "shellcheck" },
+      yaml = { "yamllint" },
+      bash = { "shellcheck" },
       -- markdown = { "markdownlint" }, -- uncomment if you want this
     }
 

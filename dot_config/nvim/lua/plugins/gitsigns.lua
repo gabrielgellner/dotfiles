@@ -1,24 +1,24 @@
 return {
   "lewis6991/gitsigns.nvim",
   event = "BufReadPre",
-  opts  = {
+  opts = {
     signs = {
-      add          = { text = "▎" },
-      change       = { text = "▎" },
-      delete       = { text = "󰍵" },
-      topdelete    = { text = "󰍵" },
+      add = { text = "▎" },
+      change = { text = "▎" },
+      delete = { text = "󰍵" },
+      topdelete = { text = "󰍵" },
       changedelete = { text = "▎" },
-      untracked    = { text = "▎" },
+      untracked = { text = "▎" },
     },
     signs_staged = {
-      add          = { text = "▎" },
-      change       = { text = "▎" },
-      delete       = { text = "󰍵" },
-      topdelete    = { text = "󰍵" },
+      add = { text = "▎" },
+      change = { text = "▎" },
+      delete = { text = "󰍵" },
+      topdelete = { text = "󰍵" },
       changedelete = { text = "▎" },
     },
     on_attach = function(bufnr)
-      local gs  = require("gitsigns")
+      local gs = require("gitsigns")
       local map = function(keys, func, desc, mode)
         vim.keymap.set(mode or "n", keys, func, { buffer = bufnr, desc = "Git: " .. desc })
       end
@@ -68,8 +68,12 @@ return {
       end, "Diff this ~")
 
       -- ── Text object — ih selects the hunk ───────────────────────────────
-      vim.keymap.set({ "o", "x" }, "ih", ":<C-u>Gitsigns select_hunk<CR>",
-        { buffer = bufnr, desc = "Git: select hunk" })
+      vim.keymap.set(
+        { "o", "x" },
+        "ih",
+        ":<C-u>Gitsigns select_hunk<CR>",
+        { buffer = bufnr, desc = "Git: select hunk" }
+      )
     end,
   },
 }

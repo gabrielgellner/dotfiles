@@ -12,8 +12,26 @@ return {
     },
   },
   keys = {
-    { "<leader>cn", function() require("neogen").generate() end,                   desc = "Generate docstring" },
-    { "<leader>cf", function() require("neogen").generate({ type = "func" }) end,  desc = "Generate func docstring" },
-    { "<leader>cc", function() require("neogen").generate({ type = "class" }) end, desc = "Generate class docstring" },
+    {
+      "<leader>cn",
+      function()
+        require("neogen").generate()
+      end,
+      desc = "Generate docstring",
+    },
+    {
+      "<leader>cf",
+      function()
+        require("neogen").generate({ type = "func" })
+      end,
+      desc = "Generate func docstring",
+    },
+    {
+      "<leader>cc",
+      function()
+        require("neogen").generate({ type = "class" })
+      end,
+      desc = "Generate class docstring",
+    },
   },
 }

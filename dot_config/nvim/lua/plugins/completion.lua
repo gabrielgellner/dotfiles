@@ -9,21 +9,21 @@
 return {
   {
     "saghen/blink.cmp",
-    version      = "v0.*",
+    version = "v0.*",
     dependencies = { "L3MON4D3/LuaSnip" },
-    opts         = {
+    opts = {
       -- ── Keymaps ───────────────────────────────────────────────────────────
       keymap = {
-        preset        = "none",                    -- start from scratch, no defaults
-        ["<C-space>"] = { "show", "fallback" },    -- manual trigger
-        ["<C-y>"]     = { "accept", "fallback" },  -- confirm item
-        ["<C-e>"]     = { "hide", "fallback" },    -- dismiss popup
-        ["<C-n>"]     = { "select_next", "show" }, -- next item / open
-        ["<C-p>"]     = { "select_prev", "show" }, -- prev item
-        ["<C-b>"]     = { "scroll_documentation_up", "fallback" },
-        ["<C-f>"]     = { "scroll_documentation_down", "fallback" },
-        ["<Tab>"]     = { "snippet_forward", "fallback" }, -- jump snippet node
-        ["<S-Tab>"]   = { "snippet_backward", "fallback" },
+        preset = "none", -- start from scratch, no defaults
+        ["<C-space>"] = { "show", "fallback" }, -- manual trigger
+        ["<C-y>"] = { "accept", "fallback" }, -- confirm item
+        ["<C-e>"] = { "hide", "fallback" }, -- dismiss popup
+        ["<C-n>"] = { "select_next", "show" }, -- next item / open
+        ["<C-p>"] = { "select_prev", "show" }, -- prev item
+        ["<C-b>"] = { "scroll_documentation_up", "fallback" },
+        ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+        ["<Tab>"] = { "snippet_forward", "fallback" }, -- jump snippet node
+        ["<S-Tab>"] = { "snippet_backward", "fallback" },
       },
 
       -- ── Snippets ──────────────────────────────────────────────────────────
@@ -51,12 +51,12 @@ return {
       completion = {
         trigger = {
           -- show popup automatically as you type
-          show_on_keyword           = true,
+          show_on_keyword = true,
           show_on_trigger_character = true,
         },
         list = {
           selection = {
-            preselect   = true,
+            preselect = true,
             auto_insert = false, -- typing NEVER modifies buffer from popup
           },
         },
@@ -64,18 +64,18 @@ return {
           auto_brackets = { enabled = true }, -- auto close brackets on accept
         },
         documentation = {
-          auto_show          = true,
+          auto_show = true,
           auto_show_delay_ms = 200,
-          window             = {
+          window = {
             border = "rounded",
           },
         },
         menu = {
           border = "rounded",
-          draw   = {
+          draw = {
             columns = {
-              { "label",      "label_description", gap = 1 },
-              { "kind_icon",  "kind",              gap = 1 },
+              { "label", "label_description", gap = 1 },
+              { "kind_icon", "kind", gap = 1 },
               { "source_name" },
             },
           },
@@ -85,13 +85,13 @@ return {
       -- ── Appearance ────────────────────────────────────────────────────────
       appearance = {
         use_nvim_cmp_as_default = false,
-        nerd_font_variant       = "mono",
+        nerd_font_variant = "mono",
       },
 
       -- ── Signature help ────────────────────────────────────────────────────
       signature = {
         enabled = true,
-        window  = { border = "rounded" },
+        window = { border = "rounded" },
       },
     },
   },
@@ -99,8 +99,8 @@ return {
   -- ── LuaSnip ───────────────────────────────────────────────────────────────
   {
     "L3MON4D3/LuaSnip",
-    lazy    = true,
+    lazy = true,
     version = "v2.*",
-    build   = "make install_jsregexp",
+    build = "make install_jsregexp",
   },
 }

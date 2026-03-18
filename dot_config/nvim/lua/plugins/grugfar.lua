@@ -20,7 +20,7 @@ return {
       function()
         require("grug-far").open({
           transient = true,
-          prefills  = { search = vim.fn.expand("<cword>") },
+          prefills = { search = vim.fn.expand("<cword>") },
         })
       end,
       desc = "Search word under cursor",
@@ -31,9 +31,9 @@ return {
       function()
         require("grug-far").open({
           transient = true,
-          prefills  = {
+          prefills = {
             search = vim.fn.expand("<cword>"),
-            paths  = vim.fn.expand("%"),
+            paths = vim.fn.expand("%"),
           },
         })
       end,

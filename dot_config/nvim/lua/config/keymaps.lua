@@ -1,12 +1,7 @@
--- ============================================================================
--- config/keymaps.lua
--- Non-plugin keymaps only. Plugin keymaps live in their own spec files.
--- ============================================================================
-
-local map            = vim.keymap.set
+local map = vim.keymap.set
 
 -- ── Leader ────────────────────────────────────────────────────────────────────
-vim.g.mapleader      = " "
+vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
 -- ── Better defaults ───────────────────────────────────────────────────────────
@@ -71,9 +66,9 @@ vim.keymap.set("n", "<leader>xR", function()
     if file then
       table.insert(qflist, {
         filename = file,
-        lnum     = tonumber(row),
-        col      = tonumber(col),
-        text     = msg,
+        lnum = tonumber(row),
+        col = tonumber(col),
+        text = msg,
       })
     end
   end
