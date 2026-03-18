@@ -49,6 +49,7 @@ export KEYTIMEOUT=1
 
 bindkey '^P' history-search-backward
 bindkey '^N' history-search-forward
+bindkey '^Y' autosuggest-accept
 
 function zle-line-init zle-keymap-select {
     zle reset-prompt
