@@ -56,3 +56,6 @@ zle -N zle-keymap-select
 
 # Use fzf to use the command history with C-R for history and C-T for file picker, and Alt-C for cd
 source <(fzf --zsh)
+
+# Make sure we don't mess up tmux titles
+DISABLE_AUTO_TITLE=true
