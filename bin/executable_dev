@@ -13,11 +13,11 @@ preview() {
     return
   fi
 
-  echo -e "\033[1;34m── Files ──────────────────────────────\033[0m"
-  eza --icons --group-directories-first "$dir" 2>/dev/null | head -20
+  echo -e       "\033[1;34m── Files ──────────────────────────────\033[0m"
+  COLUMNS=$FZF_PREVIEW_COLUMNS eza --icons --grid --group-directories-first "$dir" 2>/dev/null | head -20
 
   if [[ -d "$dir/.git" ]]; then
-    echo -e "\n\033[1;34m── Git log ────────────────────────────\033[0m"
+    echo -e   "\n\033[1;34m── Git log ────────────────────────────\033[0m"
     git -C "$dir" log --oneline --color=always -7 2>/dev/null
     local status
     status=$(git -C "$dir" status --short 2>/dev/null)
@@ -28,10 +28,15 @@ preview() {
   fi
 
   if [[ -f "$dir/pyproject.toml" ]]; then
-    echo -e "\n\033[1;34m── pyproject.toml ─────────────────────\033[0m"
+    echo -e   "\n\033[1;34m── pyproject.toml ─────────────────────\033[0m"
     bat --color=always --line-range=:25 "$dir/pyproject.toml" 2>/dev/null
-  elif [[ -f "$dir/README.md" ]]; then
-    echo -e "\n\033[1;34m── README ─────────────────────────────\033[0m"
+  fi
+  if [[ -f "$dir/Cargo.toml" ]]; then
+    echo -e   "\n\033[1;34m── Cargo.toml ─────────────────────────\033[0m"
+    bat --color=always --line-range=:25 "$dir/Cargo.toml" 2>/dev/null
+  fi
+  if [[ -f "$dir/README.md" ]]; then
+    echo -e   "\n\033[1;34m── README ─────────────────────────────\033[0m"
     bat --color=always --line-range=:20 "$dir/README.md" 2>/dev/null
   fi
 }
@@ -53,10 +58,12 @@ choice=$(
     --prompt="dev > " \
     --ansi \
     --preview="$0 --preview {-1}" \
-    --preview-window=right:50% \
-    --height=80% \
+    --preview-window=right:70% \
+    --no-height \
     --layout=reverse \
     --border=rounded \
+    --bind='ctrl-f:preview-down' \
+    --bind='ctrl-b:preview-up' \
     --info=inline
 ) || exit 0
 
