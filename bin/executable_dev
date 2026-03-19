@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# dev - fuzzy-pick an active tmux session or project from ~/dev, connect via sesh
+# dev - fuzzy-pick an active tmux session or project from ~/dev
 
 DEV_DIR="$HOME/dev"
 
-# ── Preview (called back by fzf) ──────────────────────────────────────────────
 preview() {
   local name="$1"
   local dir="$DEV_DIR/$name"
@@ -15,7 +14,7 @@ preview() {
   fi
 
   echo -e "\033[1;34m── Files ──────────────────────────────\033[0m"
-  ls "$dir" | head -20
+  eza --icons --group-directories-first "$dir" 2>/dev/null | head -20
 
   if [[ -d "$dir/.git" ]]; then
     echo -e "\n\033[1;34m── Git log ────────────────────────────\033[0m"
@@ -30,41 +29,45 @@ preview() {
 
   if [[ -f "$dir/pyproject.toml" ]]; then
     echo -e "\n\033[1;34m── pyproject.toml ─────────────────────\033[0m"
-    head -25 "$dir/pyproject.toml"
+    bat --color=always --line-range=:25 "$dir/pyproject.toml" 2>/dev/null
   elif [[ -f "$dir/README.md" ]]; then
     echo -e "\n\033[1;34m── README ─────────────────────────────\033[0m"
-    head -20 "$dir/README.md"
+    bat --color=always --line-range=:20 "$dir/README.md" 2>/dev/null
   fi
 }
 
-# ── Preview mode ──────────────────────────────────────────────────────────────
 if [[ "${1}" == "--preview" ]]; then
   preview "$2"
   exit 0
 fi
 
-# ── Build list: live sessions first, then projects not already a session ──────
 active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
 
-{
-  echo "$active" | grep -v '^$' | sed 's/^/● /'
-  comm -23 <(ls -1 "$DEV_DIR" | sort) <(echo "$active" | sort)
-} | fzf \
-  --prompt="dev > " \
-  --ansi \
-  --preview="$0 --preview {-1}" \
-  --preview-window=right:50% \
-  --height=80% \
-  --layout=reverse \
-  --border=rounded \
-  --info=inline \
-  > /tmp/dev_choice || exit 0
+choice=$(
+  {
+    echo "$active" | grep -v '^$' | sed 's/^/● /'
+    ls -1 "$DEV_DIR" | while IFS= read -r proj; do
+      echo "$active" | grep -qx "$proj" || echo "$proj"
+    done
+  } | fzf \
+    --prompt="dev > " \
+    --ansi \
+    --preview="$0 --preview {-1}" \
+    --preview-window=right:50% \
+    --height=80% \
+    --layout=reverse \
+    --border=rounded \
+    --info=inline
+) || exit 0
 
-choice=$(cat /tmp/dev_choice)
 name=$(echo "$choice" | sed 's/^● //')
 
 if tmux has-session -t "$name" 2>/dev/null; then
-  exec sesh connect "$name"
+  if [[ -n "$TMUX" ]]; then
+    tmux switch-client -t "$name"
+  else
+    tmux attach -t "$name"
+  fi
 else
-  exec sesh connect "$DEV_DIR/$name"
+  new-session "$name" "$DEV_DIR/$name"
 fi
