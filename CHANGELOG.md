@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
+## [v0.2.0] — 2026-03-25
+
+### Bug Fixes
+
+- Use correct neogen annotation convention name for google docstrings
+
+
+### Features
+
+- Add ctrl-x to kill tmux session and colored pane preview
+
+
 ## [v0.1.1] — 2026-03-25
 
 ### Bug Fixes
@@ -10,6 +22,11 @@ All notable changes to this dotfiles repository are documented here.
 - Add dotfiles (~/.local/share/chezmoi) as an extra project entry
 - Inline EXTRA_PROJECTS lookup in preview() to avoid subshell scoping issues
 - Rename local `status` to `git_status` to avoid zsh readonly variable conflict
+
+
+### Chores
+
+- V0.1.1
 
 
 ## [v0.1.0] — 2026-03-25
