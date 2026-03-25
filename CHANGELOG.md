@@ -1,9 +1,13 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
-## [Unreleased]
+## [v0.1.0] — 2026-03-25
 
 ### Bug Fixes
+
+- Auto-bump version in justfile using git-cliff — Use git-cliff --bumped-version to derive the next semver tag automatically.
+Falls back to v0.1.0 on first release (no prior tags). Manual override
+still available via: just release v1.2.3
 
 - Add missing accept to completions.
 
@@ -11,6 +15,8 @@ All notable changes to this dotfiles repository are documented here.
 
 
 ### Chores
+
+- Add MIT license
 
 - Clean up some cruft in the nvim config.
 
@@ -20,6 +26,11 @@ All notable changes to this dotfiles repository are documented here.
 
 
 ### Features
+
+- Add README, CHANGELOG, justfile, and git-cliff config — - README covers what is configured, new machine setup, and dotfiles workflow
+- cliff.toml configures git-cliff for conventional commit changelogs
+- justfile provides chezmoi (diff/apply/update) and release (changelog/release) recipes
+- bootstrap.sh now installs just and git-cliff
 
 - Add bootstrap script for tool installation — Idempotent script that installs all tools assumed by the dotfiles:
 brew packages (shell, prompt, file tools, editor, formatters, linters,
