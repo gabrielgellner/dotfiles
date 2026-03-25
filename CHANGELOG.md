@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
+## [v0.1.1] — 2026-03-25
+
+### Bug Fixes
+
+- Switch dev and new-session scripts to zsh — - Change shebang from bash to zsh for consistency with the user's shell
+- Use zsh native typeset -A for EXTRA_PROJECTS associative array
+- Add dotfiles (~/.local/share/chezmoi) as an extra project entry
+- Inline EXTRA_PROJECTS lookup in preview() to avoid subshell scoping issues
+- Rename local `status` to `git_status` to avoid zsh readonly variable conflict
+
+
 ## [v0.1.0] — 2026-03-25
 
 ### Bug Fixes
@@ -15,6 +26,8 @@ still available via: just release v1.2.3
 
 
 ### Chores
+
+- V0.1.0
 
 - Add MIT license
 
