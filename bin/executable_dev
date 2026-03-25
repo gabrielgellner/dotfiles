@@ -1,11 +1,22 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 # dev - fuzzy-pick an active tmux session or project from ~/dev
 
 DEV_DIR="$HOME/dev"
 
+# Extra projects outside DEV_DIR: display_name -> absolute path
+typeset -A EXTRA_PROJECTS
+EXTRA_PROJECTS=(
+  dotfiles "$HOME/.local/share/chezmoi"
+)
+
+resolve_dir() {
+  local name="$1"
+  echo "${EXTRA_PROJECTS[$name]:-$DEV_DIR/$name}"
+}
+
 preview() {
   local name="$1"
-  local dir="$DEV_DIR/$name"
+  local dir="${EXTRA_PROJECTS[$name]:-$DEV_DIR/$name}"
 
   if tmux has-session -t "$name" 2>/dev/null; then
     echo -e "\033[1;32m● active session\033[0m\n"
@@ -19,11 +30,11 @@ preview() {
   if [[ -d "$dir/.git" ]]; then
     echo -e   "\n\033[1;34m── Git log ────────────────────────────\033[0m"
     git -C "$dir" log --oneline --color=always -7 2>/dev/null
-    local status
-    status=$(git -C "$dir" status --short 2>/dev/null)
-    if [[ -n "$status" ]]; then
+    local git_status
+    git_status=$(git -C "$dir" status --short 2>/dev/null)
+    if [[ -n "$git_status" ]]; then
       echo -e "\n\033[1;34m── Git status ─────────────────────────\033[0m"
-      echo "$status"
+      echo "$git_status"
     fi
   fi
 
@@ -54,6 +65,9 @@ choice=$(
     ls -1 "$DEV_DIR" | while IFS= read -r proj; do
       echo "$active" | grep -qx "$proj" || echo "$proj"
     done
+    for proj in ${(k)EXTRA_PROJECTS}; do
+      echo "$active" | grep -qx "$proj" || echo "$proj"
+    done
   } | fzf \
     --prompt="dev > " \
     --ansi \
@@ -76,5 +90,5 @@ if tmux has-session -t "$name" 2>/dev/null; then
     tmux attach -t "$name"
   fi
 else
-  new-session "$name" "$DEV_DIR/$name"
+  new-session "$name" "$(resolve_dir "$name")"
 fi
