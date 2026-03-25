@@ -39,9 +39,7 @@ opt.timeoutlen = 300
 -- ── Completion ────────────────────────────────────────────────────────────────
 opt.completeopt = { "menu", "menuone", "noselect" }
 
--- ── Folding (treesitter-powered) ──────────────────────────────────────────────
-opt.foldmethod = "expr"
-opt.foldexpr = "nvim_treesitter#foldexpr()"
+-- ── Folding (overridden per-buffer by treesitter.lua) ─────────────────────────
 opt.foldenable = false -- open all folds by default
 
 -- ── Misc ──────────────────────────────────────────────────────────────────────

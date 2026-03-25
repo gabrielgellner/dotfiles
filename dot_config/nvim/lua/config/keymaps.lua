@@ -25,7 +25,7 @@ map("n", "<leader>wd", "<C-w>c", { desc = "Close window" })
 -- ── Buffers ───────────────────────────────────────────────────────────────────
 map("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Prev buffer" })
 map("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next buffer" })
-map("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Delete buffer" })
+-- <leader>bd is bound by mini.bufremove in plugins/mini.lua (keeps window layout)
 vim.keymap.set("n", "<leader>bo", function()
   local current = vim.api.nvim_get_current_buf()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do

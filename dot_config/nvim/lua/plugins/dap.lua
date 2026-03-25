@@ -78,11 +78,10 @@ return {
     config = function()
       local dap_python = require("dap-python")
 
-      -- use the nvim-tools venv python which has debugpy installed:
-      --   uv tool install debugpy  (or pip install debugpy in ~/.venvs/nvim-tools)
+      -- default: debugpy installed via `uv tool install debugpy` (~/.local/bin/python)
       local python_path = vim.fn.expand("~/.local/bin/python")
 
-      -- fallback: prefer project venv if it exists
+      -- prefer project venv if it exists
       local project_venv = vim.fn.getcwd() .. "/.venv/bin/python"
       if vim.fn.filereadable(project_venv) == 1 then
         python_path = project_venv
