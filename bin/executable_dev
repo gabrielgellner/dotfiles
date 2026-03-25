@@ -20,7 +20,7 @@ preview() {
 
   if tmux has-session -t "$name" 2>/dev/null; then
     echo -e "\033[1;32m● active session\033[0m\n"
-    tmux capture-pane -t "$name" -p 2>/dev/null | tail -30
+    tmux capture-pane -t "$name" -p -e 2>/dev/null | tail -30
     return
   fi
 
@@ -52,32 +52,43 @@ preview() {
   fi
 }
 
+list_items() {
+  local active
+  active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+  echo "$active" | grep -v '^$' | sed 's/^/● /'
+  ls -1 "$DEV_DIR" | while IFS= read -r proj; do
+    echo "$active" | grep -qx "$proj" || echo "$proj"
+  done
+  for proj in ${(k)EXTRA_PROJECTS}; do
+    echo "$active" | grep -qx "$proj" || echo "$proj"
+  done
+}
+
 if [[ "${1}" == "--preview" ]]; then
   preview "$2"
   exit 0
 fi
 
-active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+if [[ "${1}" == "--list" ]]; then
+  list_items
+  exit 0
+fi
+
+SELF="$0"
 
 choice=$(
-  {
-    echo "$active" | grep -v '^$' | sed 's/^/● /'
-    ls -1 "$DEV_DIR" | while IFS= read -r proj; do
-      echo "$active" | grep -qx "$proj" || echo "$proj"
-    done
-    for proj in ${(k)EXTRA_PROJECTS}; do
-      echo "$active" | grep -qx "$proj" || echo "$proj"
-    done
-  } | fzf \
+  list_items | fzf \
     --prompt="dev > " \
     --ansi \
-    --preview="$0 --preview {-1}" \
+    --preview="$SELF --preview {-1}" \
     --preview-window=right:70% \
     --no-height \
     --layout=reverse \
     --border=rounded \
+    --header='ctrl-x: kill session' \
     --bind='ctrl-f:preview-down' \
     --bind='ctrl-b:preview-up' \
+    --bind="ctrl-x:execute-silent(tmux kill-session -t {-1} 2>/dev/null)+reload($SELF --list)" \
     --info=inline
 ) || exit 0
 
