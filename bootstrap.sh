@@ -79,6 +79,10 @@ brew_install shellcheck
 # git ui
 brew_install lazygit
 
+# dev tooling
+brew_install just
+brew_install git-cliff
+
 # ── uv itself ─────────────────────────────────────────────────────────────────
 
 blue "\nChecking uv..."
