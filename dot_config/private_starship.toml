@@ -10,20 +10,15 @@ disabled = true
 
 # Show the uv environment python version when in a uv project
 [custom.uv_python]
-when = "test -f pyproject.toml"
-command = "test -f .python-version && cat .python-version || uv run python --version 2>/dev/null | cut -d' ' -f2"
+when = "test -f uv.lock"
+command = "test -f .python-version && cat .python-version || rg -m1 'requires-python' pyproject.toml 2>/dev/null | rg -o '[0-9]+\\.[0-9]+'"
 format = "via [🐍 $output]($style) "
 style = "green"
-# [custom.uv_python]
-# when = "test -f .python-version || test -f pyproject.toml"
-# command = "uv run python --version 2>/dev/null | cut -d' ' -f2"
-# format = "via [🐍 $output]($style) "
-# style = "green"
 
 [character]
 success_symbol = "[❯](bold green)"
 error_symbol = "[❯](bold red)"
 vimcmd_symbol = "[❮](bold green)"
-vimcmd_replace_one_symbol = "[❮](purple)"
-vimcmd_replace_symbol = "[❮](purple)"
+vimcmd_replace_one_symbol = "[❮](#cba6f7)"
+vimcmd_replace_symbol = "[❮](#cba6f7)"
 vimcmd_visual_symbol = "[❮](yellow)"
