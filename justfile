@@ -30,12 +30,28 @@ changelog-preview:
 
 # ── release ───────────────────────────────────────────────────────────────────
 
-# tag a new release: just release v1.2.3
-release version:
-    @echo "Releasing {{ version }}..."
-    git-cliff --tag {{ version }} --output CHANGELOG.md
+# show what version git-cliff would bump to next
+next-version:
+    #!/usr/bin/env bash
+    ver=$(git-cliff --bumped-version)
+    [[ "$ver" == v* ]] || ver="v$ver"
+    echo "$ver"
+
+# tag a release — version auto-determined from commits, or pass one explicitly: just release v1.2.3
+release version="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ -z "{{ version }}" ]]; then
+        ver=$(git-cliff --bumped-version)
+        # ensure v prefix (git-cliff omits it when there are no prior tags)
+        [[ "$ver" == v* ]] || ver="v$ver"
+    else
+        ver="{{ version }}"
+    fi
+    echo "Releasing $ver..."
+    git-cliff --tag "$ver" --output CHANGELOG.md
     git add CHANGELOG.md
-    git commit -m "chore(release): {{ version }}"
-    git tag -a {{ version }} -m "Release {{ version }}"
+    git commit -m "chore(release): $ver"
+    git tag -a "$ver" -m "Release $ver"
     git push && git push --tags
-    @echo "Done — {{ version }} tagged and pushed."
+    echo "Done — $ver tagged and pushed."
