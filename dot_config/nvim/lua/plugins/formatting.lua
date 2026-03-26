@@ -11,9 +11,14 @@ return {
       jsonc = { "prettier" },
       markdown = { "prettier" },
       toml = { "taplo" }, -- toml has its own formatter
+      javascript = { "prettier" },
+      typescript = { "prettier" },
+      javascriptreact = { "prettier" },
+      typescriptreact = { "prettier" },
+      rust = { "rustfmt" },
     },
     format_on_save = {
-      timeout_ms = 500,
+      timeout_ms = 2000,
       lsp_fallback = true,
     },
   },

@@ -60,6 +60,9 @@ bindkey '^P' history-search-backward
 bindkey '^N' history-search-forward
 bindkey '^Y' autosuggest-accept
 
+# use direnv for automatic .env loading
+eval "$(direnv hook zsh)"
+
 # zsh-syntax-highlighting (must be last)
 [[ -r "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] &&
   source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
