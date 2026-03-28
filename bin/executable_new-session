@@ -9,7 +9,8 @@ tmux new-session -d -s "$SESSION" -c "$DIR"
 # rename the first window to nvim
 tmux rename-window -t "$SESSION:1" nvim
 
-# create console window
+# create console windows
+tmux new-window -t "$SESSION" -n console -c "$DIR"
 tmux new-window -t "$SESSION" -n console -c "$DIR"
 
 # send nvim command to nvim window
