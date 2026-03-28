@@ -40,6 +40,11 @@ return {
       { "]l", desc = "Next loop" },
       { "[l", desc = "Prev loop" },
 
+      -- ── Git diffview ────────────────────────────────────────────────────
+      { "<leader>gv", desc = "Diff view (working tree)" },
+      { "<leader>gh", desc = "File history" },
+      { "<leader>gH", desc = "Repo history" },
+
       -- ── Git hunk motions ────────────────────────────────────────────────
       { "]h", desc = "Next hunk" },
       { "[h", desc = "Prev hunk" },
