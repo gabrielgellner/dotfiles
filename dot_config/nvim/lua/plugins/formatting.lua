@@ -5,21 +5,27 @@ return {
     formatters_by_ft = {
       python = { "ruff_format", "ruff_organize_imports" },
       lua = { "stylua" },
-      -- add these:
-      yaml = { "prettier" },
-      json = { "prettier" },
-      jsonc = { "prettier" },
       markdown = { "prettier" },
-      toml = { "taplo" }, -- toml has its own formatter
-      javascript = { "prettier" },
-      typescript = { "prettier" },
-      javascriptreact = { "prettier" },
-      typescriptreact = { "prettier" },
+      json = { "biome" },
+      jsonc = { "biome" },
+      yaml = { "yamlfmt" },
+      toml = { "taplo" },
+      css = { "biome" },
+      html = { "prettier" },
+      sh = { "shfmt" },
+      bash = { "shfmt" },
+      jinja = { "djlint" },
+      jinja2 = { "djlint" },
+      htmldjango = { "djlint" },
+      javascript = { "biome" },
+      typescript = { "biome" },
+      javascriptreact = { "biome" },
+      typescriptreact = { "biome" },
       rust = { "rustfmt" },
     },
-    format_on_save = {
-      timeout_ms = 2000,
-      lsp_fallback = true,
-    },
+    format_on_save = function(bufnr)
+      local timeout = vim.bo[bufnr].filetype == "markdown" and 3000 or 500
+      return { timeout_ms = timeout, lsp_fallback = true }
+    end,
   },
 }
