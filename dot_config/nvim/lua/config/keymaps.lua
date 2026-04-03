@@ -56,6 +56,26 @@ map("n", "<leader>w", "<cmd>write<CR>", { desc = "Save" })
 -- paste without losing register
 map("v", "p", '"_dP', { desc = "Paste without yank" })
 
+-- ── Base64 ────────────────────────────────────────────────────────────────────
+map("v", "<leader>cB", function()
+  vim.cmd('noautocmd normal! "zy')
+  local text = vim.fn.getreg("z")
+  vim.fn.setreg("z", vim.base64.encode(text))
+  vim.cmd('noautocmd normal! gv"zp')
+end, { desc = "Base64 encode" })
+
+map("v", "<leader>cb", function()
+  vim.cmd('noautocmd normal! "zy')
+  local text = vim.fn.getreg("z")
+  local ok, result = pcall(vim.base64.decode, text)
+  if not ok then
+    vim.notify("base64: invalid input", vim.log.levels.ERROR)
+    return
+  end
+  vim.fn.setreg("z", result)
+  vim.cmd('noautocmd normal! gv"zp')
+end, { desc = "Base64 decode" })
+
 -- ── Ruff QF ───────────────────────────────────────────────────────────────────
 vim.keymap.set("n", "<leader>xR", function()
   local results = vim.fn.systemlist("ruff check " .. vim.fn.getcwd() .. " --output-format=concise 2>/dev/null")
