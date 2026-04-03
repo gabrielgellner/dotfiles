@@ -10,8 +10,8 @@ map("n", "j", "gj", { desc = "Visual line down" })
 map("n", "k", "gk", { desc = "Visual line up" })
 map("n", "n", "nzzzv", { desc = "Next match (centred)" })
 map("n", "N", "Nzzzv", { desc = "Prev match (centred)" })
-map("n", "<C-d>", "<C-d>zz", { desc = "Scroll down (centred)" })
-map("n", "<C-u>", "<C-u>zz", { desc = "Scroll up (centred)" })
+map("n", "<C-d>", "<C-d>", { desc = "Scroll down" })
+map("n", "<C-u>", "<C-u>", { desc = "Scroll up" })
 
 -- ── Windows ───────────────────────────────────────────────────────────────────
 map("n", "<C-h>", "<C-w>h", { desc = "Window left" })
