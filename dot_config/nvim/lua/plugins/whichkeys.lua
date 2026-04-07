@@ -14,6 +14,7 @@ return {
       { "<leader>b", group = "buffer" },
       { "<leader>s", group = "search/replace" },
       { "<leader>t", group = "test" },
+      { "<leader>m", group = "markdown" },
       { "<leader>u", group = "ui" },
       { "<leader>w", group = "window" },
       { "<leader>x", group = "diagnostics/quickfix" },
