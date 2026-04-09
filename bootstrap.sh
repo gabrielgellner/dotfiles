@@ -58,9 +58,6 @@ brew_install ripgrep
 brew_install eza
 brew_install bat
 
-# terminal multiplexer
-brew_install tmux
-
 # editor
 brew_install neovim
 
@@ -71,6 +68,9 @@ brew_install stylua
 # formatters
 brew_install prettier
 brew_install taplo
+brew_install shfmt
+brew_install biome
+brew_install yamlfmt
 
 # linters
 brew_install yamllint
@@ -78,6 +78,9 @@ brew_install shellcheck
 
 # git ui
 brew_install lazygit
+
+# shell environment
+brew_install direnv
 
 # dev tooling
 brew_install just
@@ -99,6 +102,7 @@ blue "\nInstalling uv tools..."
 uv_tool_install basedpyright
 uv_tool_install ruff
 uv_tool_install debugpy
+uv_tool_install djlint
 
 # ── Rust / rustup ─────────────────────────────────────────────────────────────
 
@@ -111,12 +115,14 @@ else
   yellow "rustup already installed, skipping"
 fi
 
-if rustup component list --installed | grep -q '^rust-analyzer'; then
-  yellow "rust-analyzer already installed, skipping"
-else
-  green "Installing rust-analyzer..."
-  rustup component add rust-analyzer
-fi
+for component in rust-analyzer clippy rustfmt; do
+  if rustup component list --installed | grep -q "^${component}"; then
+    yellow "$component already installed, skipping"
+  else
+    green "Installing $component..."
+    rustup component add "$component"
+  fi
+done
 
 # ── tmux plugin manager ───────────────────────────────────────────────────────
 
