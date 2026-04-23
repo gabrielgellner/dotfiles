@@ -70,3 +70,7 @@ eval "$(direnv hook zsh)"
 # zsh-syntax-highlighting (must be last)
 [[ -r "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] &&
   source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+# Setup personal path
+path=($HOME/bin $path)
+typeset -U path   # dedupe, keeps first occurrence, repeated sourcing .zshrc won't stack
