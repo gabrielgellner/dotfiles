@@ -88,6 +88,7 @@ brew_install direnv
 # dev tooling
 brew_install just
 brew_install git-cliff
+brew_install tree-sitter
 
 # ── uv itself ─────────────────────────────────────────────────────────────────
 
