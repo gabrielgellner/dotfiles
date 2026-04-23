@@ -6,42 +6,45 @@ set -euo pipefail
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-green()  { printf '\033[1;32m%b\033[0m\n' "$*"; }
+green() { printf '\033[1;32m%b\033[0m\n' "$*"; }
 yellow() { printf '\033[1;33m%b\033[0m\n' "$*"; }
-blue()   { printf '\033[1;34m%b\033[0m\n' "$*"; }
+blue() { printf '\033[1;34m%b\033[0m\n' "$*"; }
 
 brew_install() {
-  local pkg="$1"
-  if brew list --formula "$pkg" &>/dev/null; then
-    yellow "  brew: $pkg already installed, skipping"
-  else
-    green "  brew: installing $pkg"
-    brew install "$pkg"
-  fi
+    local pkg="$1"
+    if brew list --formula "$pkg" &>/dev/null; then
+        yellow "  brew: $pkg already installed, skipping"
+    else
+        green "  brew: installing $pkg"
+        brew install "$pkg"
+    fi
 }
 
 uv_tool_install() {
-  local pkg="$1"
-  if uv tool list 2>/dev/null | grep -q "^$pkg "; then
-    yellow "  uv tool: $pkg already installed, skipping"
-  else
-    green "  uv tool: installing $pkg"
-    uv tool install "$pkg"
-  fi
+    local pkg="$1"
+    if uv tool list 2>/dev/null | grep -q "^$pkg "; then
+        yellow "  uv tool: $pkg already installed, skipping"
+    else
+        green "  uv tool: installing $pkg"
+        uv tool install "$pkg"
+    fi
 }
 
 # ── Homebrew itself ───────────────────────────────────────────────────────────
 
 if ! command -v brew &>/dev/null; then
-  green "Installing Homebrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    green "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 else
-  yellow "brew already installed, skipping"
+    yellow "brew already installed, skipping"
 fi
 
 # ── Brew packages ─────────────────────────────────────────────────────────────
 
 blue "\nInstalling brew packages..."
+
+# fonts
+brew install --cask font-fira-code-nerd-font
 
 # shell
 brew_install zsh-autosuggestions
@@ -90,10 +93,10 @@ brew_install git-cliff
 
 blue "\nChecking uv..."
 if ! command -v uv &>/dev/null; then
-  green "Installing uv..."
-  brew_install uv
+    green "Installing uv..."
+    brew_install uv
 else
-  yellow "uv already installed, skipping"
+    yellow "uv already installed, skipping"
 fi
 
 # ── uv tools (Python LSP / debug) ─────────────────────────────────────────────
@@ -108,20 +111,20 @@ uv_tool_install djlint
 
 blue "\nChecking Rust toolchain..."
 if ! command -v rustup &>/dev/null; then
-  green "Installing rustup..."
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-  source "$HOME/.cargo/env"
+    green "Installing rustup..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+    source "$HOME/.cargo/env"
 else
-  yellow "rustup already installed, skipping"
+    yellow "rustup already installed, skipping"
 fi
 
 for component in rust-analyzer clippy rustfmt; do
-  if rustup component list --installed | grep -q "^${component}"; then
-    yellow "$component already installed, skipping"
-  else
-    green "Installing $component..."
-    rustup component add "$component"
-  fi
+    if rustup component list --installed | grep -q "^${component}"; then
+        yellow "$component already installed, skipping"
+    else
+        green "Installing $component..."
+        rustup component add "$component"
+    fi
 done
 
 # ── tmux plugin manager ───────────────────────────────────────────────────────
@@ -129,10 +132,10 @@ done
 blue "\nChecking tmux plugin manager (tpm)..."
 TPM_DIR="$HOME/.tmux/plugins/tpm"
 if [[ -d "$TPM_DIR" ]]; then
-  yellow "tpm already present, skipping"
+    yellow "tpm already present, skipping"
 else
-  green "Cloning tpm..."
-  git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+    green "Cloning tpm..."
+    git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
