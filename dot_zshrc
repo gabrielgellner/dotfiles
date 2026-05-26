@@ -1,6 +1,15 @@
 # Only run this file for interactive shells
 [[ -o interactive ]] || return
 
+# Brew shellenv (Linux, macOS ARM, macOS Intel)
+for _brew in /home/linuxbrew/.linuxbrew/bin/brew /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  if [[ -x "$_brew" ]]; then
+    eval "$("$_brew" shellenv)"
+    break
+  fi
+done
+unset _brew
+
 # Cache brew prefix
 BREW_PREFIX=$(brew --prefix)
 

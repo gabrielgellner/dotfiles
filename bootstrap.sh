@@ -60,6 +60,7 @@ brew_install fzf
 brew_install ripgrep
 brew_install eza
 brew_install bat
+brew_install yazi
 
 # editor
 brew_install neovim
@@ -137,6 +138,17 @@ if [[ -d "$TPM_DIR" ]]; then
 else
     green "Cloning tpm..."
     git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+fi
+
+# ── yazi flavors ──────────────────────────────────────────────────────────────
+
+blue "\nChecking yazi catppuccin flavor..."
+YAZI_FLAVOR_DIR="$HOME/.config/yazi/flavors/catppuccin-frappe.yazi"
+if [[ -d "$YAZI_FLAVOR_DIR" ]]; then
+    yellow "catppuccin-frappe.yazi already installed, skipping"
+else
+    green "Installing catppuccin-frappe flavor via ya pkg..."
+    ya pkg add yazi-rs/flavors:catppuccin-frappe
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────

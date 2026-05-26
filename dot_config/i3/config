@@ -1,0 +1,157 @@
+# i3 config — terminal-first, optimized for xrdp/Xvnc
+# Reload: Mod+Shift+c    Restart i3: Mod+Shift+r
+
+# ── Mod key ──────────────────────────────────────────────────────────────────
+# Mod1 = Alt (default, works reliably over RDP without extra mstsc config)
+# Mod4 = Super/Win (cleaner, but needs mstsc Local Resources → Keyboard set to
+#                   "On the remote computer" to forward Win key)
+set $mod Mod1
+
+# ── Font (also used for window titles when borders shown) ────────────────────
+font pango:FiraCode Nerd Font Mono 12
+
+# ── Catppuccin Frappe palette ────────────────────────────────────────────────
+set $base     #303446
+set $mantle   #292c3c
+set $crust    #232634
+set $text     #c6d0f5
+set $subtext1 #b5bfe2
+set $surface0 #414559
+set $surface1 #51576d
+set $surface2 #626880
+set $blue     #8caaee
+set $lavender #babbf1
+set $red      #e78284
+set $green    #a6d189
+set $yellow   #e5c890
+set $peach    #ef9f76
+
+# class                 border       backgr.      text     indicator   child_border
+client.focused          $lavender    $lavender    $crust   $peach      $lavender
+client.focused_inactive $surface0    $surface0    $text    $surface0   $surface0
+client.unfocused        $mantle      $mantle      $subtext1 $mantle    $mantle
+client.urgent           $red         $red         $crust   $red        $red
+client.placeholder      $base        $base        $text    $base       $base
+client.background       $base
+
+# ── Apps ─────────────────────────────────────────────────────────────────────
+set $term xfce4-terminal
+set $launcher rofi -show drun -theme glue_pro_blue
+set $browser google-chrome
+
+bindsym $mod+Return exec $term
+bindsym $mod+d      exec $launcher
+bindsym $mod+b      exec $browser
+
+# ── Window management ────────────────────────────────────────────────────────
+floating_modifier $mod
+default_border pixel 2
+hide_edge_borders smart
+focus_follows_mouse no
+
+bindsym $mod+Shift+q kill
+bindsym $mod+f       fullscreen toggle
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+space   focus mode_toggle
+
+# split direction
+bindsym $mod+v       split v
+bindsym $mod+s       split h
+
+# layout
+bindsym $mod+e       layout toggle split
+bindsym $mod+w       layout tabbed
+bindsym $mod+t       layout stacking
+
+# focus (vi-style, matches tmux config)
+bindsym $mod+h       focus left
+bindsym $mod+j       focus down
+bindsym $mod+k       focus up
+bindsym $mod+l       focus right
+
+# move
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+
+# resize mode
+bindsym $mod+r mode "resize"
+mode "resize" {
+    bindsym h resize shrink width  20 px or 2 ppt
+    bindsym j resize grow   height 20 px or 2 ppt
+    bindsym k resize shrink height 20 px or 2 ppt
+    bindsym l resize grow   width  20 px or 2 ppt
+    bindsym Escape mode "default"
+    bindsym Return mode "default"
+}
+
+# ── Workspaces ───────────────────────────────────────────────────────────────
+set $ws1 "1:term"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9:web"
+
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+bindsym $mod+4 workspace $ws4
+bindsym $mod+5 workspace $ws5
+bindsym $mod+6 workspace $ws6
+bindsym $mod+7 workspace $ws7
+bindsym $mod+8 workspace $ws8
+bindsym $mod+9 workspace $ws9
+
+bindsym $mod+Shift+1 move container to workspace $ws1; workspace $ws1
+bindsym $mod+Shift+2 move container to workspace $ws2; workspace $ws2
+bindsym $mod+Shift+3 move container to workspace $ws3; workspace $ws3
+bindsym $mod+Shift+4 move container to workspace $ws4; workspace $ws4
+bindsym $mod+Shift+5 move container to workspace $ws5; workspace $ws5
+bindsym $mod+Shift+6 move container to workspace $ws6; workspace $ws6
+bindsym $mod+Shift+7 move container to workspace $ws7; workspace $ws7
+bindsym $mod+Shift+8 move container to workspace $ws8; workspace $ws8
+bindsym $mod+Shift+9 move container to workspace $ws9; workspace $ws9
+
+# Pin Chrome to web workspace
+assign [class="Google-chrome"]   $ws9
+assign [class="Chromium-browser"] $ws9
+assign [class="firefox"]         $ws9
+
+# ── i3 control ───────────────────────────────────────────────────────────────
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+r restart
+bindsym $mod+Shift+e exec --no-startup-id "i3-nagbar -t warning -m 'Exit i3?' -B 'Yes' 'i3-msg exit'"
+
+# ── Autostart ────────────────────────────────────────────────────────────────
+# Open terminal+tmux on workspace 1 at session start
+exec --no-startup-id $term --command "tmux new-session -A -s main"
+# Disable XFCE notification daemon etc. — we're not in XFCE anymore
+exec --no-startup-id xset s off -dpms
+
+# ── Status bar ───────────────────────────────────────────────────────────────
+bar {
+    position bottom
+    status_command i3status
+    font pango:FiraCode Nerd Font Mono 12
+    tray_output none
+    workspace_min_width 30
+    separator_symbol "│"
+
+    colors {
+        background $base
+        statusline $text
+        separator  $surface2
+
+        #                  border   bg        text
+        focused_workspace  $lavender $lavender $crust
+        active_workspace   $surface1 $surface1 $text
+        inactive_workspace $base     $base     $subtext1
+        urgent_workspace   $red      $red      $crust
+        binding_mode       $peach    $peach    $crust
+    }
+}
