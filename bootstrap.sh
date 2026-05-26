@@ -87,6 +87,7 @@ brew_install lazygit
 brew_install direnv
 
 # dev tooling
+brew_install git
 brew_install just
 brew_install git-cliff
 brew_install tree-sitter
