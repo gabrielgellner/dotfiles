@@ -35,7 +35,7 @@ client.placeholder      $base        $base        $text    $base       $base
 client.background       $base
 
 # ── Apps ─────────────────────────────────────────────────────────────────────
-set $term xfce4-terminal
+set $term kitty
 set $launcher rofi -show drun -theme glue_pro_blue
 set $browser google-chrome
 
