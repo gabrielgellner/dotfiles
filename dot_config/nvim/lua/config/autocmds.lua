@@ -79,6 +79,21 @@ vim.api.nvim_create_autocmd("FileType", {
 --   end,
 -- })
 
+-- ── Markdown: soft wrap + gq reflow to 80, prettier owns hard-wrap on save ──
+vim.api.nvim_create_autocmd("FileType", {
+  group = augroup("markdown_wrap"),
+  pattern = "markdown",
+  callback = function()
+    vim.opt_local.wrap = true
+    vim.opt_local.linebreak = true
+    vim.opt_local.breakindent = true
+    vim.opt_local.textwidth = 80
+    vim.opt_local.formatoptions:remove("t")
+    vim.opt_local.formatoptions:append("qjn")
+    vim.opt_local.colorcolumn = ""
+  end,
+})
+
 -- ── Auto-resize splits on window resize ──────────────────────────────────────
 vim.api.nvim_create_autocmd("VimResized", {
   group = augroup("resize_splits"),
