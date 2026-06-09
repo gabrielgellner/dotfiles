@@ -5,3 +5,4 @@ justfile
 LICENSE
 README.md
 bootstrap.sh
+homebrew-taps/**
