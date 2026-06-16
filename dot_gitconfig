@@ -2,11 +2,7 @@
 	name = Gabriel Gellner
 	email = gabriel.gellner@proton.me
 
-# Per-remote identity overrides (needs git >= 2.36)
-[includeIf "hasconfig:remote.*.url:https://REDACTED_HOST/**"]
-	path = ~/.gitconfig-work
-
-# Machine-local extras (credential helpers, GPG keys, etc.) — not in chezmoi
+# Machine-local extras (credential helpers, work identity overrides, GPG keys, etc.) — not in chezmoi
 [include]
 	path = ~/.gitconfig.local
 
