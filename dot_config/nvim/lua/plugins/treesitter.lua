@@ -22,6 +22,8 @@ return {
         "diff",
         "just",
         "rust",
+        "scheme",
+        "racket",
       },
       matchup = {
         enable = true,
