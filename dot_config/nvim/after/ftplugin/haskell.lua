@@ -4,6 +4,15 @@
 -- from the global LspAttach handler in lua/plugins/lsp.lua and apply here too.
 local ht = require("haskell-tools")
 local bufnr = vim.api.nvim_get_current_buf()
+
+-- Indentation: 2-space, spaces-not-tabs (Haskell layout is whitespace-sensitive).
+-- This only affects manual typing comfort; ormolu via format-on-save is the
+-- source of truth for final layout.
+vim.bo[bufnr].expandtab = true
+vim.bo[bufnr].shiftwidth = 2
+vim.bo[bufnr].tabstop = 2
+vim.bo[bufnr].softtabstop = 2
+
 local map = function(keys, func, desc)
   vim.keymap.set("n", keys, func, { buffer = bufnr, silent = true, desc = "Haskell: " .. desc })
 end
