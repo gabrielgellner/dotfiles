@@ -76,6 +76,9 @@ bindkey '^Y' autosuggest-accept
 # use direnv for automatic .env loading
 eval "$(direnv hook zsh)"
 
+# ghcup (Haskell toolchain: ghc, cabal, hls)
+[ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env"
+
 # zsh-syntax-highlighting (must be last)
 [[ -r "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] &&
   source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"

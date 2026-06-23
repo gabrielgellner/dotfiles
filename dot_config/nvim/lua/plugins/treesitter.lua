@@ -24,6 +24,7 @@ return {
         "rust",
         "scheme",
         "racket",
+        "haskell",
       },
       matchup = {
         enable = true,
