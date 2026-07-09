@@ -18,6 +18,7 @@ return {
       { "<leader>u", group = "ui" },
       { "<leader>w", group = "window" },
       { "<leader>x", group = "diagnostics/quickfix" },
+      { "<leader>z", group = "zettelkasten" },
 
       -- ── Navigation groups ───────────────────────────────────────────────
       { "[", group = "prev" },
