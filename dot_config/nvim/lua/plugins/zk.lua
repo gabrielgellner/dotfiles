@@ -11,18 +11,44 @@
 --
 -- zk ships its own language server (`zk lsp`); this config auto-attaches it to
 -- markdown buffers inside a notebook, giving link/tag completion via blink.cmp.
+
+-- Walk up from `start` looking for a `.zk/` directory (a notebook root).
+local function notebook_root(start)
+  local marker = vim.fs.find(".zk", { upward = true, type = "directory", path = start })[1]
+  return marker and vim.fs.dirname(marker) or nil
+end
+
+-- Incrementally reindex the notebook that contains `bufpath` (async, silent).
+-- zk keeps its own index and doesn't notice notes added outside this session
+-- (git pull, scripts, another tool) until it reindexes — so links to them read
+-- as dead and pickers don't list them. No-op for markdown outside any notebook.
+local function reindex(bufpath)
+  local root = notebook_root(bufpath and bufpath ~= "" and vim.fs.dirname(bufpath) or nil)
+    or notebook_root(vim.uv.cwd())
+  if root then
+    vim.system({ "zk", "index" }, { cwd = root })
+  end
+end
+
 return {
   "zk-org/zk-nvim",
   main = "zk",
   ft = "markdown",
   cmd = { "ZkNotes", "ZkNew", "ZkTags", "ZkNewFromTitleSelection", "ZkNewFromContentSelection" },
+  -- Keep zk's index fresh: reindex the notebook whenever a markdown note is
+  -- opened, so notes created outside this session (git pull, scripts) are picked
+  -- up and their links resolve. Runs from startup (not lazy) since it only
+  -- shells out to `zk`, and is a no-op outside a notebook.
+  init = function()
+    vim.api.nvim_create_autocmd("BufReadPost", {
+      pattern = "*.md",
+      callback = function(args)
+        reindex(vim.api.nvim_buf_get_name(args.buf))
+      end,
+      desc = "zk: reindex notebook on note open",
+    })
+  end,
   opts = function()
-    -- Walk up from `start` looking for a `.zk/` directory (a notebook root).
-    local function notebook_root(start)
-      local marker = vim.fs.find(".zk", { upward = true, type = "directory", path = start })[1]
-      return marker and vim.fs.dirname(marker) or nil
-    end
-
     -- Resolve the notebook for this session, most-specific first:
     --   1. the notebook containing the file being opened (lazy loads on `ft`,
     --      so buffer 0 is that file);
@@ -82,6 +108,14 @@ return {
       "<leader>zt",
       "<cmd>ZkTags<CR>",
       desc = "Browse tags",
+    },
+    {
+      "<leader>zi",
+      function()
+        reindex(vim.api.nvim_buf_get_name(0))
+        vim.notify("zk: reindexing notebook", vim.log.levels.INFO)
+      end,
+      desc = "Reindex notebook",
     },
     -- ── Buffer-local note actions ─────────────────────────────────────────
     {
