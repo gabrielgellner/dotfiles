@@ -30,6 +30,46 @@ local function reindex(bufpath)
   end
 end
 
+-- Normal go-to-definition (matches the global `gd` — snacks picker if present).
+local function lsp_def()
+  local ok, snacks = pcall(require, "snacks")
+  if ok and snacks.picker then snacks.picker.lsp_definitions() else vim.lsp.buf.definition() end
+end
+
+-- Follow the [[wikilink]] under the cursor, honoring a `#heading` anchor. zk's LSP
+-- opens the note but never moves to the header (zk-nvim#193), so for anchored links
+-- we resolve the file ourselves and search for the heading. Bare links (no anchor)
+-- fall through to the normal LSP definition, which handles zk's own resolution.
+local function follow_link()
+  local line, col = vim.api.nvim_get_current_line(), vim.fn.col(".")
+  local target, init = nil, 1
+  while true do -- find the [[...]] span under the cursor
+    local s, e, inner = line:find("%[%[(.-)%]%]", init)
+    if not s then break end
+    if col >= s and col <= e then target = inner break end
+    init = e + 1
+  end
+  if not target then return lsp_def() end
+  target = target:gsub("|.*$", "") -- strip |display alias
+  local file, anchor = target:match("^(.-)#(.+)$")
+  if not anchor then return lsp_def() end -- no anchor: let the LSP resolve it
+
+  local root = notebook_root(vim.fs.dirname(vim.api.nvim_buf_get_name(0)))
+  local path
+  if file == "" then
+    path = vim.api.nvim_buf_get_name(0) -- [[#heading]] — same file
+  elseif file:find("/") then
+    path = root and (root .. "/" .. file .. ".md") -- path-qualified target
+  elseif root then
+    path = vim.fn.globpath(root, "**/" .. file .. ".md", false, true)[1] -- bare filename
+  end
+  if not path or vim.fn.filereadable(path) == 0 then return lsp_def() end
+  vim.cmd.edit(vim.fn.fnameescape(path))
+  vim.fn.cursor(1, 1)
+  vim.fn.search([[\c^#\+\s\+]] .. vim.fn.escape(anchor, [[\.*$^~[]/]]), "cw")
+  vim.cmd("normal! zz")
+end
+
 return {
   "zk-org/zk-nvim",
   main = "zk",
@@ -43,9 +83,14 @@ return {
     vim.api.nvim_create_autocmd("BufReadPost", {
       pattern = "*.md",
       callback = function(args)
-        reindex(vim.api.nvim_buf_get_name(args.buf))
+        local name = vim.api.nvim_buf_get_name(args.buf)
+        if name == "" or not notebook_root(vim.fs.dirname(name)) then return end
+        reindex(name)
+        -- anchor-aware follow: gd jumps to a [[note#heading]] section (zk-nvim#193).
+        vim.keymap.set("n", "gd", follow_link,
+          { buffer = args.buf, desc = "zk: follow link (jump to #heading)" })
       end,
-      desc = "zk: reindex notebook on note open",
+      desc = "zk: reindex + anchor-aware gd in notebook notes",
     })
   end,
   opts = function()
