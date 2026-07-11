@@ -39,7 +39,7 @@ end
 -- Typed rules-reference links: [Display](type:slug) -> rules/<dir>/<slug>.md.
 local RULES_DIRS = {
   spell = "spells", condition = "conditions", action = "actions",
-  feat = "feats", creature = "creatures",
+  feat = "feats", creature = "creatures", item = "items",
 }
 
 -- Lazily read spell_aliases.toml (legacy slug -> remaster slug) from the repo

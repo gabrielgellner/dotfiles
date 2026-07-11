@@ -24,6 +24,7 @@ return {
           action = { pattern = "^action:", icon = "\u{f0e7} ", highlight = "Function" }, -- bolt
           creature = { pattern = "^creature:", icon = "\u{f1b0} ", highlight = "Type" }, -- paw
           room = { pattern = "^room:", icon = "\u{f041} ", highlight = "Identifier" }, -- map marker
+          item = { pattern = "^item:", icon = "\u{f02b} ", highlight = "WarningMsg" }, -- tag
         },
       },
     },
