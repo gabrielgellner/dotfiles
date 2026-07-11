@@ -113,6 +113,10 @@ local function follow_typed_link(line, col, root)
       if vim.fn.filereadable(path) == 0 and typ == "spell" then
         local alias = load_spell_aliases(root)[slug]
         if alias then path = root .. "/rules/spells/" .. alias .. ".md" end
+      elseif vim.fn.filereadable(path) == 0 and typ == "item" then
+        -- custom shop items aren't in the rules DB; look under campaign/items/.
+        local hit = vim.fn.globpath(root .. "/items", "**/" .. slug .. ".md", false, true)[1]
+        if hit then path = hit end
       end
       if vim.fn.filereadable(path) == 1 then
         vim.cmd.edit(vim.fn.fnameescape(path))
