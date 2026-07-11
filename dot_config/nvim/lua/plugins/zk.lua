@@ -36,12 +36,70 @@ local function lsp_def()
   if ok and snacks.picker then snacks.picker.lsp_definitions() else vim.lsp.buf.definition() end
 end
 
--- Follow the [[wikilink]] under the cursor, honoring a `#heading` anchor. zk's LSP
--- opens the note but never moves to the header (zk-nvim#193), so for anchored links
--- we resolve the file ourselves and search for the heading. Bare links (no anchor)
--- fall through to the normal LSP definition, which handles zk's own resolution.
+-- Typed rules-reference links: [Display](type:slug) -> rules/<dir>/<slug>.md.
+local RULES_DIRS = {
+  spell = "spells", condition = "conditions", action = "actions",
+  feat = "feats", creature = "creatures",
+}
+
+-- Lazily read spell_aliases.toml (legacy slug -> remaster slug) from the repo
+-- root (the parent of the notebook), so a link written with a pre-remaster
+-- spell name still resolves. Cached after first read.
+local spell_aliases
+local function load_spell_aliases(root)
+  if spell_aliases then return spell_aliases end
+  spell_aliases = {}
+  local f = root and io.open(vim.fs.dirname(root) .. "/spell_aliases.toml", "r")
+  if f then
+    for l in f:lines() do
+      local legacy, remaster = l:match('^%s*"([^"]+)"%s*=%s*"([^"]+)"')
+      if legacy then spell_aliases[legacy] = remaster end
+    end
+    f:close()
+  end
+  return spell_aliases
+end
+
+-- If a [Display](type://slug) typed rules link is under the cursor, open the
+-- matching rules/<dir>/<slug>.md and return true; otherwise return false so the
+-- caller falls back to wikilink/LSP handling. The `//` makes zk treat the link
+-- as an external URL, so its dead-link diagnostic leaves it alone (a bare
+-- `type:slug` reads as an internal note ref and gets flagged "not found").
+local function follow_typed_link(line, col, root)
+  local init = 1
+  while true do
+    local s, e, dest = line:find("%[.-%]%((.-)%)", init)
+    if not s then return false end
+    if col >= s and col <= e then
+      local typ, slug = dest:match("^(%a+):/?/?(.+)$")
+      local dir = typ and RULES_DIRS[typ]
+      if not dir or not root then return false end
+      local path = root .. "/rules/" .. dir .. "/" .. slug .. ".md"
+      if vim.fn.filereadable(path) == 0 and typ == "spell" then
+        local alias = load_spell_aliases(root)[slug]
+        if alias then path = root .. "/rules/spells/" .. alias .. ".md" end
+      end
+      if vim.fn.filereadable(path) == 1 then
+        vim.cmd.edit(vim.fn.fnameescape(path))
+        vim.fn.cursor(1, 1)
+      else
+        vim.notify("No rules file for " .. dest, vim.log.levels.WARN)
+      end
+      return true
+    end
+    init = e + 1
+  end
+end
+
+-- Follow the link under the cursor. First a typed rules link [Display](type:slug);
+-- then a [[wikilink]], honoring a `#heading` anchor. zk's LSP opens a note but never
+-- moves to the header (zk-nvim#193), so for anchored links we resolve the file
+-- ourselves and search for the heading. Bare links fall through to the LSP.
 local function follow_link()
   local line, col = vim.api.nvim_get_current_line(), vim.fn.col(".")
+  local root = notebook_root(vim.fs.dirname(vim.api.nvim_buf_get_name(0)))
+  if follow_typed_link(line, col, root) then return end
+
   local target, init = nil, 1
   while true do -- find the [[...]] span under the cursor
     local s, e, inner = line:find("%[%[(.-)%]%]", init)
@@ -53,8 +111,6 @@ local function follow_link()
   target = target:gsub("|.*$", "") -- strip |display alias
   local file, anchor = target:match("^(.-)#(.+)$")
   if not anchor then return lsp_def() end -- no anchor: let the LSP resolve it
-
-  local root = notebook_root(vim.fs.dirname(vim.api.nvim_buf_get_name(0)))
   local path
   if file == "" then
     path = vim.api.nvim_buf_get_name(0) -- [[#heading]] — same file

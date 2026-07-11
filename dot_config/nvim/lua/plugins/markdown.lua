@@ -10,7 +10,21 @@ return {
       dash = { enabled = true },
       bullet = { enabled = true },
       checkbox = { enabled = true },
-      link = { enabled = true },
+      link = {
+        enabled = true,
+        -- Typed rules references: [Display](type:slug) render as an icon + the
+        -- display name, with the (type:slug) concealed. zk ignores them (the
+        -- `type:` scheme makes them external links, not note links). Icons are
+        -- Nerd Font glyphs written as \u{...} so they survive editing; swap the
+        -- codepoint for any that render as tofu.
+        custom = {
+          spell = { pattern = "^spell:", icon = "\u{f0d0} ", highlight = "Special" }, -- magic wand
+          condition = { pattern = "^condition:", icon = "\u{f21e} ", highlight = "DiagnosticWarn" }, -- heartbeat
+          feat = { pattern = "^feat:", icon = "\u{f005} ", highlight = "Constant" }, -- star
+          action = { pattern = "^action:", icon = "\u{f0e7} ", highlight = "Function" }, -- bolt
+          creature = { pattern = "^creature:", icon = "\u{f1b0} ", highlight = "Type" }, -- paw
+        },
+      },
     },
     keys = {
       {
