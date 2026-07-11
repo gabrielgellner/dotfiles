@@ -23,6 +23,7 @@ return {
           feat = { pattern = "^feat:", icon = "\u{f005} ", highlight = "Constant" }, -- star
           action = { pattern = "^action:", icon = "\u{f0e7} ", highlight = "Function" }, -- bolt
           creature = { pattern = "^creature:", icon = "\u{f1b0} ", highlight = "Type" }, -- paw
+          room = { pattern = "^room:", icon = "\u{f041} ", highlight = "Identifier" }, -- map marker
         },
       },
     },

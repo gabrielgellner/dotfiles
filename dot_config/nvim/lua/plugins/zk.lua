@@ -60,6 +60,37 @@ local function load_spell_aliases(root)
   return spell_aliases
 end
 
+-- Read a YAML frontmatter scalar `key:` from a buffer's opening lines.
+local function frontmatter_field(bufnr, key)
+  local head = vim.api.nvim_buf_get_lines(bufnr, 0, 50, false)
+  if head[1] ~= "---" then return nil end
+  for i = 2, #head do
+    if head[i] == "---" then return nil end
+    local v = head[i]:match("^" .. key .. ":%s*(.+)$")
+    if v then return (v:gsub("%s+$", "")) end
+  end
+  return nil
+end
+
+-- Follow a [H21](room://H21) link: jump to that room's key in this note's level
+-- chapter (the buffer's `chapter:` frontmatter), landing on the `## H21 …` heading.
+local function follow_room(anchor, root)
+  local chapter = frontmatter_field(0, "chapter")
+  if not chapter or not root then
+    vim.notify("room link: no `chapter:` in this note's frontmatter", vim.log.levels.WARN)
+    return
+  end
+  local path = root .. "/" .. chapter .. ".md"
+  if vim.fn.filereadable(path) == 0 then
+    vim.notify("room link: chapter not found — " .. chapter, vim.log.levels.WARN)
+    return
+  end
+  vim.cmd.edit(vim.fn.fnameescape(path))
+  vim.fn.cursor(1, 1)
+  vim.fn.search([[\c^#\+\s\+]] .. vim.fn.escape(anchor, [[\.*$^~[]/]]), "cw")
+  vim.cmd("normal! zz")
+end
+
 -- If a [Display](type://slug) typed rules link is under the cursor, open the
 -- matching rules/<dir>/<slug>.md and return true; otherwise return false so the
 -- caller falls back to wikilink/LSP handling. The `//` makes zk treat the link
@@ -72,6 +103,10 @@ local function follow_typed_link(line, col, root)
     if not s then return false end
     if col >= s and col <= e then
       local typ, slug = dest:match("^(%a+):/?/?(.+)$")
+      if typ == "room" then
+        follow_room(slug, root)
+        return true
+      end
       local dir = typ and RULES_DIRS[typ]
       if not dir or not root then return false end
       local path = root .. "/rules/" .. dir .. "/" .. slug .. ".md"
