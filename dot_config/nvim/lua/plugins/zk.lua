@@ -165,6 +165,41 @@ local function follow_link()
   vim.cmd("normal! zz")
 end
 
+-- Turn a visual selection into a wikilink to an existing note, keeping the
+-- selected text as the display alias: `Sceptre of Sorrows` -> `[[sceptre-of-sorrows|Sceptre of Sorrows]]`.
+-- Reads the `'<`/`'>` marks (so invoke via `:<C-u>ZkLinkSelection`, which leaves
+-- visual mode first), filters zk by the selection, then replaces it in place.
+-- The link target is the bare filename stem — the same thing `[[` completion
+-- resolves by name; path-qualify by hand for a stem collision (see CLAUDE.md).
+local function link_selection()
+  local s, e = vim.fn.getpos("'<"), vim.fn.getpos("'>")
+  local srow, scol, erow, ecol = s[2], s[3], e[2], e[3]
+  if srow == 0 then return end
+  -- clamp the inclusive end column to the line (handles `$`/v:maxcol selections)
+  local last = vim.api.nvim_buf_get_lines(0, erow - 1, erow, false)[1] or ""
+  ecol = math.min(ecol, #last)
+  local ok, chunks = pcall(vim.api.nvim_buf_get_text, 0, srow - 1, scol - 1, erow - 1, ecol, {})
+  if not ok then return end
+  local sel = vim.trim(table.concat(chunks, " "):gsub("[%[%]|]", ""))
+  if sel == "" then return end
+
+  require("zk.api").list(nil, { select = { "title", "path" }, match = { sel } }, function(a, b)
+    local notes = (type(a) == "table" and a) or (type(b) == "table" and b) or {}
+    if vim.tbl_isempty(notes) then
+      return vim.notify("zk: no notes match '" .. sel .. "'", vim.log.levels.WARN)
+    end
+    vim.ui.select(notes, {
+      prompt = "Link “" .. sel .. "” → ",
+      format_item = function(n) return n.title and (n.title .. "  ·  " .. n.path) or n.path end,
+    }, function(choice)
+      if not choice then return end
+      local stem = vim.fn.fnamemodify(choice.path, ":t:r")
+      local link = (stem == sel) and ("[[" .. stem .. "]]") or ("[[" .. stem .. "|" .. sel .. "]]")
+      vim.api.nvim_buf_set_text(0, srow - 1, scol - 1, erow - 1, ecol, { link })
+    end)
+  end)
+end
+
 return {
   "zk-org/zk-nvim",
   main = "zk",
@@ -187,6 +222,10 @@ return {
       end,
       desc = "zk: reindex + anchor-aware gd in notebook notes",
     })
+    -- Backs the visual <leader>zl mapping (see keys). A user command so the
+    -- `:<C-u>` invocation leaves visual mode before the `'<`/`'>` marks are read.
+    vim.api.nvim_create_user_command("ZkLinkSelection", function() link_selection() end,
+      { range = true, desc = "zk: link visual selection to a note (alias-preserving)" })
   end,
   opts = function()
     -- Resolve the notebook for this session, most-specific first:
@@ -294,6 +333,14 @@ return {
       mode = "v",
       ft = "markdown",
       desc = "New note (selection as content)",
+    },
+    -- ── Link a visual selection to an existing note ───────────────────────
+    {
+      "<leader>zl",
+      ":<C-u>ZkLinkSelection<CR>",
+      mode = "v",
+      ft = "markdown",
+      desc = "Link selection to a note (alias)",
     },
   },
 }
