@@ -60,7 +60,9 @@ return {
     -- ── large file handling ───────────────────────────────────────────────────
     bigfile = { enabled = true },
     -- ── smooth scrolling ─────────────────────────────────────────────────────
-    scroll = { enabled = true },
+    -- Disabled: animated scroll fights this VM's redraw lag; prefer vim's
+    -- instant jump.
+    scroll = { enabled = false },
     -- ── LSP progress indicator ───────────────────────────────────────────────
     statuscolumn = { enabled = true },
   },
