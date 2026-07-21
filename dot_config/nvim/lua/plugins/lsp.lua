@@ -58,6 +58,24 @@ return {
           vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
         end, "Next error")
         map("<leader>e", vim.diagnostic.open_float, "Show diagnostic")
+        map("<leader>lr", function()
+          -- Restart every server attached to this buffer (config-agnostic;
+          -- works with vim.lsp.enable, no lspconfig commands needed).
+          local names = {}
+          for _, client in ipairs(vim.lsp.get_clients({ bufnr = event.buf })) do
+            names[client.name] = true
+          end
+          for name in pairs(names) do
+            vim.lsp.enable(name, false)
+          end
+          -- Re-enable after a beat so clients fully stop before relaunch.
+          vim.defer_fn(function()
+            for name in pairs(names) do
+              vim.lsp.enable(name)
+            end
+            vim.notify("LSP restarted: " .. table.concat(vim.tbl_keys(names), ", "))
+          end, 300)
+        end, "Restart LSP")
       end,
     })
 
@@ -74,7 +92,12 @@ return {
       filetypes = { "python" },
       root_markers = { "pyrefly.toml", "pyproject.toml", "setup.py", ".git" },
       before_init = function(_, config)
-        local venv = vim.fn.getcwd() .. "/.venv"
+        -- Resolve the interpreter from the LSP root (folder matched by
+        -- root_markers), not nvim's cwd — otherwise opening a file from a
+        -- session rooted elsewhere makes pyrefly miss .venv and fall back to
+        -- system python (which lacks your uv-installed packages).
+        local root = config.root_dir or vim.fn.getcwd()
+        local venv = root .. "/.venv"
         if vim.fn.isdirectory(venv) == 1 then
           config.init_options = config.init_options or {}
           config.init_options.pythonPath = venv .. "/bin/python"
