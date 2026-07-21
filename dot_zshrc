@@ -62,7 +62,7 @@ export VISUAL=nvim
 export ZK_NOTEBOOK_DIR="$HOME/notes"
 
 # Aliases
-alias ls='eza --group-directories-first --icons'
+alias ls='eza --group-directories-first --icons=auto'
 alias ll='eza -lh --git'
 alias la='eza -lha'
 
