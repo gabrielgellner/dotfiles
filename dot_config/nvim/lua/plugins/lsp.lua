@@ -61,35 +61,32 @@ return {
       end,
     })
 
-    -- ── basedpyright ──────────────────────────────────────────────────────
-    vim.lsp.config("basedpyright", {
+    -- ── pyrefly ───────────────────────────────────────────────────────────
+    -- Fast LSP type checking for the editor. basedpyright is kept for
+    -- CI / `just` checks where broader coverage matters. Pyrefly auto-detects
+    -- `.venv`, but we pass the interpreter explicitly via initializationOptions.
+    -- Note: pyrefly has no per-rule severity overrides like basedpyright's
+    -- diagnosticSeverityOverrides; use a pyrefly.toml `[errors]` table per
+    -- project if you need to silence specific checks.
+    vim.lsp.config("pyrefly", {
       capabilities = capabilities,
-      cmd = { "basedpyright-langserver", "--stdio" },
+      cmd = { "pyrefly", "lsp" },
       filetypes = { "python" },
-      root_markers = { "pyproject.toml", "setup.py", ".git" },
+      root_markers = { "pyrefly.toml", "pyproject.toml", "setup.py", ".git" },
       before_init = function(_, config)
         local venv = vim.fn.getcwd() .. "/.venv"
         if vim.fn.isdirectory(venv) == 1 then
-          config.settings = config.settings or {}
-          config.settings.python = { pythonPath = venv .. "/bin/python" }
+          config.init_options = config.init_options or {}
+          config.init_options.pythonPath = venv .. "/bin/python"
         end
       end,
-      settings = {
-        basedpyright = {
-          analysis = {
-            typeCheckingMode = "standard",
-            autoImportCompletions = true,
-            venvPath = ".",
-            venv = ".venv",
-            diagnosticSeverityOverrides = {
-              reportUnknownMemberType = "none",
-              reportUnknownArgumentType = "none",
-            },
-          },
+      init_options = {
+        pyrefly = {
+          typeCheckingMode = "default",
         },
       },
     })
-    vim.lsp.enable("basedpyright")
+    vim.lsp.enable("pyrefly")
 
     -- ── ruff ──────────────────────────────────────────────────────────────
     vim.lsp.config("ruff", {
@@ -98,7 +95,7 @@ return {
       filetypes = { "python" },
       root_markers = { "pyproject.toml", "ruff.toml", ".git" },
       on_attach = function(client)
-        -- basedpyright owns hover; ruff handles diagnostics + formatting only
+        -- pyrefly owns hover; ruff handles diagnostics + formatting only
         client.server_capabilities.hoverProvider = false
       end,
     })
