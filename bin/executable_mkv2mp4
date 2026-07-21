@@ -1,0 +1,50 @@
+#!/usr/bin/env zsh
+
+# Remux one or more MKV files to MP4 without re-encoding the video/audio.
+# Streams are stream-copied (fast, lossless); subtitles are converted to
+# MP4-compatible mov_text so they survive the container change.
+#
+# Usage:
+#   mkv2mp4 input.mkv [input2.mkv ...]
+#   mkv2mp4 *.mkv
+
+set -euo pipefail
+
+if [ "$#" -eq 0 ]; then
+  print -u2 "usage: mkv2mp4 <file.mkv> [more.mkv ...]"
+  exit 1
+fi
+
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  print -u2 "error: ffmpeg not found on PATH"
+  exit 1
+fi
+
+for input in "$@"; do
+  if [ ! -f "$input" ]; then
+    print -u2 "skipping: $input (not a file)"
+    continue
+  fi
+
+  output="${input:r}.mp4"
+
+  if [ -e "$output" ]; then
+    print -u2 "skipping: $output already exists"
+    continue
+  fi
+
+  print "remuxing: $input -> $output"
+
+  # -map 0        take every stream from the input
+  # -c copy       stream-copy audio/video (no re-encode)
+  # -c:s mov_text convert subtitles to an MP4-friendly codec
+  # image-based subtitles (PGS/VOBSUB) can't go in MP4, so drop them if
+  # the copy fails and retry without subtitles.
+  if ! ffmpeg -hide_banner -loglevel warning -stats \
+        -i "$input" -map 0 -c copy -c:s mov_text "$output"; then
+    print -u2 "subtitle conversion failed, retrying without subtitles"
+    rm -f "$output"
+    ffmpeg -hide_banner -loglevel warning -stats \
+      -i "$input" -map 0 -c copy -sn "$output"
+  fi
+done
