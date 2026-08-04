@@ -56,6 +56,13 @@ map("n", "<leader>w", "<cmd>write<CR>", { desc = "Save" })
 -- paste without losing register
 map("v", "p", '"_dP', { desc = "Paste without yank" })
 
+-- toggle soft wrap for the current buffer (markdown defaults to off so wide
+-- tables scroll instead of folding onto the next screen line)
+map("n", "<leader>uw", function()
+  vim.opt_local.wrap = not vim.wo.wrap
+  vim.notify("wrap " .. (vim.wo.wrap and "on" or "off"))
+end, { desc = "Toggle wrap" })
+
 -- ── Base64 ────────────────────────────────────────────────────────────────────
 map("v", "<leader>cB", function()
   vim.cmd('noautocmd normal! "zy')

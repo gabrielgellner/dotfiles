@@ -79,12 +79,13 @@ vim.api.nvim_create_autocmd("FileType", {
 --   end,
 -- })
 
--- ── Markdown: soft wrap + gq reflow to 80, prettier owns hard-wrap on save ──
+-- ── Markdown: no soft wrap (tables scroll), gq reflow to 80, prettier owns ──
+-- ── hard-wrap on save. <leader>uw toggles soft wrap back on when wanted.   ──
 vim.api.nvim_create_autocmd("FileType", {
   group = augroup("markdown_wrap"),
   pattern = "markdown",
   callback = function()
-    vim.opt_local.wrap = true
+    vim.opt_local.wrap = false
     vim.opt_local.linebreak = true
     vim.opt_local.breakindent = true
     vim.opt_local.textwidth = 80
