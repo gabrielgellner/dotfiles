@@ -79,8 +79,12 @@ vim.api.nvim_create_autocmd("FileType", {
 --   end,
 -- })
 
--- ── Markdown: no soft wrap (tables scroll), gq reflow to 80, prettier owns ──
--- ── hard-wrap on save. <leader>uw toggles soft wrap back on when wanted.   ──
+-- ── Markdown: no soft wrap (tables scroll), gq reflow to 120, prettier owns ──
+-- ── hard-wrap on save. <leader>uw toggles soft wrap back on when wanted.    ──
+--
+-- 120 matches prettier: both this project's .prettierrc and the print-width
+-- fallback in plugins/formatting.lua. One number everywhere, so a manual `gq`
+-- and a format-on-save agree instead of fighting.
 vim.api.nvim_create_autocmd("FileType", {
   group = augroup("markdown_wrap"),
   pattern = "markdown",
@@ -88,10 +92,33 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.wrap = false
     vim.opt_local.linebreak = true
     vim.opt_local.breakindent = true
-    vim.opt_local.textwidth = 80
+    vim.opt_local.textwidth = 120
     vim.opt_local.formatoptions:remove("t")
     vim.opt_local.formatoptions:append("qjn")
     vim.opt_local.colorcolumn = ""
+
+    -- Exception: campaign/rules/** is auto-generated from Foundry JSON and is
+    -- listed in .prettierignore, so nothing ever reflows it — some stat-block
+    -- lines run past 400 chars. Hard-wrap can't help there, so soft-wrap these
+    -- buffers instead and let them be readable. <leader>uw still toggles.
+    if vim.api.nvim_buf_get_name(0):find("/campaign/rules/", 1, true) then
+      vim.opt_local.wrap = true
+    end
+
+    -- Rules lookup from bare prose, e.g. "dimension door" in a generated stat
+    -- block -> spells/translocate.md. Buffer-local and set here rather than in
+    -- zk.lua's LspAttach, because the generated rules/ files this is most
+    -- useful in aren't served by that LSP.
+    --   <leader>zr  picker, seeded with every span under the cursor that
+    --               resolves (Flame Strike *and* Strike), fuzzy over all rules
+    --   <leader>zR  jump straight to the longest match, no prompt
+    -- Under the zettelkasten group, not markdown: <leader>mr and <leader>mR are
+    -- already RenderMarkdown toggle and MarkdownPreviewRefresh, and a
+    -- buffer-local map would silently shadow both.
+    local rules = require("config.rules_lookup")
+    vim.keymap.set("n", "<leader>zr", rules.pick, { buffer = true, desc = "Rules: pick (under cursor + fuzzy all)" })
+    vim.keymap.set("n", "<leader>zR", rules.goto_rule, { buffer = true, desc = "Rules: jump to name under cursor" })
+    vim.keymap.set("x", "<leader>zr", rules.goto_rule_visual, { buffer = true, desc = "Rules: go to selection" })
   end,
 })
 

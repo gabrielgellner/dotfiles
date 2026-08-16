@@ -1,0 +1,6 @@
+# Without this file stylua defaults to TABS, so conform's format-on-save
+# silently converts this config's 2-space indentation the first time you :w a
+# lua file. Same failure mode as prettier's cli-override — pin the style.
+indent_type = "Spaces"
+indent_width = 2
+column_width = 120

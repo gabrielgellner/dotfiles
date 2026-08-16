@@ -24,8 +24,17 @@ return {
       rust = { "rustfmt" },
     },
     -- Prettier's default proseWrap is "preserve", so markdown saves left long
-    -- lines untouched. Hard-wrap prose at 80 instead; tables are never wrapped
+    -- lines untouched. Hard-wrap prose at 120 instead; tables are never wrapped
     -- by prettier, they just get aligned.
+    --
+    -- These are *defaults*, not overrides: --config-precedence file-override
+    -- lets a project's .prettierrc win (prettier's default is cli-override,
+    -- which silently reflowed 120-col projects to 80). Projects with no config
+    -- still get always/120.
+    --
+    -- 120 is deliberate and matches `textwidth` for markdown in
+    -- config/autocmds.lua, so `gq` and format-on-save produce the same wrap
+    -- everywhere — including projects that ship no .prettierrc.
     formatters = {
       prettier_markdown = {
         command = "prettier",
@@ -37,7 +46,9 @@ return {
           "--prose-wrap",
           "always",
           "--print-width",
-          "80",
+          "120",
+          "--config-precedence",
+          "file-override",
         },
         stdin = true,
       },

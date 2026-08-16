@@ -130,11 +130,14 @@ return {
     },
     -- lsp
     {
+      -- Dispatches on filetype: markdown has no documentSymbol provider (zk's
+      -- LSP doesn't implement it), so fall back to a treesitter-built heading
+      -- outline. See config/markdown_outline.lua.
       "<leader>fs",
       function()
-        Snacks.picker.lsp_symbols()
+        require("config.markdown_outline").symbols()
       end,
-      desc = "LSP symbols",
+      desc = "Symbols (LSP / markdown outline)",
     },
     {
       "<leader>fS",
