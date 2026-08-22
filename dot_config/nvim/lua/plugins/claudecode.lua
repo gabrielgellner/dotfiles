@@ -77,18 +77,15 @@ local function toggle_width()
   })
 end
 
--- Step in and out of terminal mode with one key.
+-- ── <C-/>: toggle the float ─────────────────────────────────────────────────
 --
--- Normal mode is for scrolling and yanking Claude's output; terminal mode is
--- for typing at it. auto_insert is off, so nothing puts you back at the prompt
--- on its own — this is the way back.
-local function toggle_mode()
-  if vim.api.nvim_get_mode().mode == "t" then
-    vim.cmd.stopinsert()
-  else
-    vim.cmd.startinsert()
-  end
-end
+-- One key, one job, from inside Claude or from any buffer. No timing involved:
+-- the tap acts immediately, so there's no timeoutlen stall and no double-press
+-- to get right.
+--
+-- Getting to normal mode inside the terminal is a separate key, <C-\><C-n> —
+-- Neovim's built-in, which no terminal program consumes. Normal mode is for
+-- scrolling and yanking Claude's output; `i` goes back to typing at it.
 
 return {
   "coder/claudecode.nvim",
@@ -109,6 +106,11 @@ return {
     -- Deferred because WinLeave fires before focus lands: re-check that we
     -- really did end up somewhere else, so transient focus changes don't cause
     -- the float to flicker away underneath you.
+    --
+    -- Landing on another *float* doesn't count. Pickers, which-key and the like
+    -- draw on top of Claude and hand focus straight back when they close; hiding
+    -- underneath them is both pointless and the source of the bug the WinEnter
+    -- autocmd below guards against.
     vim.api.nvim_create_autocmd("WinLeave", {
       group = augroup,
       desc = "Hide the Claude float when focus leaves it",
@@ -118,10 +120,39 @@ return {
           return
         end
         vim.schedule(function()
-          if vim.api.nvim_win_is_valid(leaving) and vim.api.nvim_get_current_win() ~= leaving then
-            pcall(vim.api.nvim_win_set_config, leaving, { hide = true })
+          if not (vim.api.nvim_win_is_valid(leaving) and vim.api.nvim_get_current_win() ~= leaving) then
+            return
           end
+          if vim.api.nvim_win_get_config(vim.api.nvim_get_current_win()).relative ~= "" then
+            return -- landed on a float; Claude stays live underneath it
+          end
+          pcall(vim.api.nvim_win_set_config, leaving, { hide = true })
         end)
+      end,
+    })
+
+    -- Self-heal the one state that breaks the toggle: focused *and* hidden.
+    --
+    -- Any focus round-trip through a focusable window that ends back on the
+    -- Claude float leaves the WinLeave hide already applied — cursor in the
+    -- terminal, window not drawn, so you type into something you can't see. To
+    -- the plugin that window isn't visible, so <leader>ac takes simple_toggle's
+    -- *show* branch and focuses Claude instead of toggling away from it.
+    --
+    -- Being the current window is the definition of wanting to see it, so
+    -- un-hide on entry and the state can't persist.
+    vim.api.nvim_create_autocmd("WinEnter", {
+      group = augroup,
+      desc = "Un-hide the Claude float if focus lands in it while hidden",
+      callback = function()
+        local win = vim.api.nvim_get_current_win()
+        if claude_win() ~= win then
+          return
+        end
+        local cfg = vim.api.nvim_win_get_config(win)
+        if cfg.relative ~= "" and cfg.hide then
+          pcall(vim.api.nvim_win_set_config, win, { hide = false })
+        end
       end,
     })
   end,
@@ -156,26 +187,40 @@ return {
           -- program consumes.
           term_normal = false,
 
-          -- ...which leaves <C-\><C-n> as the only way out of terminal mode,
-          -- and that chord is slow for something pressed this often. <C-/> is
-          -- one keystroke and Claude's input line doesn't use it.
+          -- ...which leaves <C-\><C-n> as the way out of terminal mode. That's
+          -- fine: it's a built-in, and it's the only key here that has to be
+          -- something Claude's TUI won't eat.
+          --
+          -- <C-/> is the float toggle instead — one keystroke to send Claude
+          -- away from inside it, matching the same key in any other buffer.
+          -- Claude's input line doesn't use it.
+          --
+          -- Note the rhs is a function, not "<cmd>ClaudeCode<cr>": Snacks reads a
+          -- string rhs in win.keys as an *action name* (win.lua M:action), looks
+          -- it up in opts.actions or as a method on the window, and when neither
+          -- exists returns it from a non-expr function — so the key silently does
+          -- nothing. A function rhs is called directly.
           --
           -- Bound twice on purpose. Without tmux's `extended-keys on` (see
           -- dot_tmux.conf, currently commented out) Ctrl-/ reaches Neovim as
           -- 0x1f, i.e. <C-_>; with the kitty protocol in play it arrives as a
           -- real <C-/>. Neovim keeps those two distinct, so bind both and the
           -- key works either way.
-          claude_mode = {
+          claude_toggle = {
             "<C-/>",
-            toggle_mode,
+            function()
+              vim.cmd("ClaudeCode")
+            end,
             mode = { "t", "n" },
-            desc = "Toggle Claude terminal/normal mode",
+            desc = "Toggle Claude",
           },
-          claude_mode_legacy = {
+          claude_toggle_legacy = {
             "<C-_>",
-            toggle_mode,
+            function()
+              vim.cmd("ClaudeCode")
+            end,
             mode = { "t", "n" },
-            desc = "Toggle Claude terminal/normal mode",
+            desc = "Toggle Claude",
           },
 
           -- Resize without leaving terminal mode. <C-\> is Neovim's terminal
@@ -210,6 +255,11 @@ return {
 
   keys = {
     { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
+    -- The same toggle from anywhere in the editor. Buffer-local keys win over
+    -- global ones, so inside Claude the snacks_win_opts pair takes these over —
+    -- they do the same thing either way.
+    { "<C-/>", "<cmd>ClaudeCode<cr>", mode = "n", desc = "Toggle Claude" },
+    { "<C-_>", "<cmd>ClaudeCode<cr>", mode = "n", desc = "Toggle Claude" },
     { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
     { "<leader>az", toggle_width, desc = "Toggle Claude width (full/side)" },
     { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume session" },
