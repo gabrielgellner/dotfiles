@@ -6,6 +6,74 @@ return {
     -- ── picker (telescope replacement) ──────────────────────────────────────
     picker = {
       sources = {
+        -- Notification history. Everything about this source lives here rather
+        -- than at the keymap so the layout and the extra actions travel
+        -- together with the source.
+        notifications = {
+          layout = {
+            preset = "default",
+            layout = {
+              width = 0.9,
+              height = 0.9,
+              box = "vertical", -- stack list and preview vertically
+              {
+                box = "vertical",
+                border = "rounded",
+                title = "{title} {live} {flags}",
+                { win = "input", height = 1, border = "bottom" },
+                { win = "list", height = 0.4 },
+              },
+              { win = "preview", border = "rounded", height = 0.6 },
+            },
+          },
+          -- A picker item's `text` is the one-line list entry (level, title and
+          -- message flattened together); the notification itself hangs off
+          -- `item.item`. Both actions below read `.msg` from there, so what you
+          -- get is the full multi-line message, not the truncated list line.
+          actions = {
+            yank_msg = function(picker, item)
+              if not item then
+                return
+              end
+              picker:close()
+              local msg = item.item and item.item.msg or item.text
+              vim.fn.setreg(vim.v.register, msg)
+              vim.fn.setreg("+", msg)
+            end,
+            -- ClaudeCodeSend @-mentions a *file range*; it never ships raw text.
+            -- So the message has to exist on disk before Claude can be pointed
+            -- at it. Each send gets its own file: reusing one path would
+            -- silently rewrite what an earlier mention still refers to.
+            send_to_claude = function(picker, item)
+              if not item then
+                return
+              end
+              picker:close()
+              local msg = item.item and item.item.msg or item.text
+              local dir = vim.fn.stdpath("state") .. "/notifications"
+              vim.fn.mkdir(dir, "p")
+              local path = ("%s/%s.md"):format(dir, os.date("%Y%m%d-%H%M%S"))
+              local lines = vim.split(msg, "\n", { plain = true })
+              vim.fn.writefile(lines, path)
+              -- 0-indexed, end-inclusive on Claude's side.
+              require("claudecode").send_at_mention(path, 0, #lines - 1, "notification")
+            end,
+          },
+          win = {
+            input = {
+              keys = {
+                ["<c-y>"] = { "yank_msg", mode = { "i", "n" } },
+                ["<c-o>"] = { "send_to_claude", mode = { "i", "n" } },
+              },
+            },
+            list = {
+              keys = {
+                ["<c-y>"] = "yank_msg",
+                ["<c-o>"] = "send_to_claude",
+              },
+            },
+          },
+        },
         files = {
           hidden = true, -- show dotfiles like .env .gitignore
           ignored = false, -- respect .gitignore by default
@@ -287,24 +355,7 @@ return {
     {
       "<leader>fn",
       function()
-        Snacks.picker.notifications({
-          layout = {
-            preset = "default",
-            layout = {
-              width = 0.9,
-              height = 0.9,
-              box = "vertical", -- stack list and preview vertically
-              {
-                box = "vertical",
-                border = "rounded",
-                title = "{title} {live} {flags}",
-                { win = "input", height = 1, border = "bottom" },
-                { win = "list", height = 0.4 },
-              },
-              { win = "preview", border = "rounded", height = 0.6 },
-            },
-          },
-        })
+        Snacks.picker.notifications()
       end,
       desc = "Notification history",
     },
