@@ -7,20 +7,24 @@
 -- that lock file and connects — so the editor gains selection context, @-mention
 -- sends, and in-editor diff review for proposed edits.
 --
--- Two ways to run Claude against it, both supported here:
+-- ── The workflow this is shaped around ──────────────────────────────────────
 --
---   1. In-editor: <leader>ac opens Claude in a snacks terminal split. Quick
---      questions without leaving nvim.
---   2. In tmux: run `claude` in another window of the same session (prefix+C,
---      see dot_tmux.conf). It auto-connects to this nvim's server — `/ide` in
---      the CLI picks the editor by hand if it doesn't. This is the full-terminal
---      Claude, with image paste and the whole UI.
+-- Claude is a full-screen float, not a split. Toggle it on with <leader>ac, work
+-- in it, then toggle it away (or just move focus — see the WinLeave autocmd) and
+-- the editor is back exactly as it was. The Claude session keeps running the
+-- whole time: hiding a float is nvim_win_set_config{hide=true}, which leaves the
+-- window, its grid and the pty untouched.
 --
--- Both connect to the same server, so <leader>as (send selection) reaches
--- whichever session is live. The ClaudeCodeSendComplete hook below follows the
--- send to the tmux window when Claude isn't running inside the editor.
+-- That last part is why a float rather than a maximised split. Snacks hides a
+-- *split* by closing the window and re-creating it on show, and that destroy /
+-- recreate cycle walks Claude's prompt up a row each time (the provider carries
+-- a whole workaround block for it). A float never dies, so the bug can't occur.
+--
+-- Splits appear in exactly one place: reviewing a proposed edit. diff_opts sends
+-- those to their own tab with the terminal suppressed, so the diff gets the full
+-- screen and the float isn't sitting on top of the thing being reviewed.
 
-local augroup = vim.api.nvim_create_augroup("claudecode_tmux", { clear = true })
+local augroup = vim.api.nvim_create_augroup("claudecode_ui", { clear = true })
 
 -- The window showing the in-editor Claude terminal, if one is on this tabpage.
 local function claude_win()
@@ -39,29 +43,51 @@ local function claude_win()
   end
 end
 
--- Toggle the Claude split between its configured width and full width.
+-- Toggle the float between full screen and a right-hand column.
 --
--- `<C-w>|` maximises, but there is no built-in way back: `<C-w>=` equalises
--- every window rather than restoring the 35% split. So stash the pre-zoom width
--- on the window and restore that.
-local function toggle_zoom()
+-- Full screen is the default and what you want most of the time; the narrow form
+-- is for glancing at Claude while a file stays readable underneath. Both are the
+-- same window resized in place, so the session and scrollback are untouched.
+--
+-- Note this is per-appearance: hiding and re-showing rebuilds the float from the
+-- configured opts, so it comes back full screen.
+local function toggle_width()
   local win = claude_win()
   if not win then
-    vim.notify("Claude terminal isn't open", vim.log.levels.WARN)
+    vim.notify("Claude isn't open", vim.log.levels.WARN)
     return
   end
-  vim.api.nvim_win_call(win, function()
-    local unzoomed = vim.w.claude_unzoomed_width
-    if unzoomed then
-      vim.api.nvim_win_set_width(0, unzoomed)
-      vim.w.claude_unzoomed_width = nil
-    else
-      vim.w.claude_unzoomed_width = vim.api.nvim_win_get_width(0)
-      -- Over-wide is clamped to whatever the other windows can spare, which is
-      -- what `wincmd |` does; done via the API to avoid `|` needing escaping.
-      vim.api.nvim_win_set_width(0, vim.o.columns)
-    end
-  end)
+  local cfg = vim.api.nvim_win_get_config(win)
+  if cfg.relative == "" then
+    vim.notify("Claude isn't floating", vim.log.levels.WARN)
+    return
+  end
+
+  -- `lines` counts the whole UI; the command line and status line aren't ours.
+  local height = vim.o.lines - vim.o.cmdheight - 1
+  local narrow = math.floor(vim.o.columns * 0.4)
+  local going_narrow = cfg.width > narrow
+
+  vim.api.nvim_win_set_config(win, {
+    relative = "editor",
+    row = 0,
+    col = going_narrow and (vim.o.columns - narrow) or 0,
+    width = going_narrow and narrow or vim.o.columns,
+    height = height,
+  })
+end
+
+-- Step in and out of terminal mode with one key.
+--
+-- Normal mode is for scrolling and yanking Claude's output; terminal mode is
+-- for typing at it. auto_insert is off, so nothing puts you back at the prompt
+-- on its own — this is the way back.
+local function toggle_mode()
+  if vim.api.nvim_get_mode().mode == "t" then
+    vim.cmd.stopinsert()
+  else
+    vim.cmd.startinsert()
+  end
 end
 
 return {
@@ -74,23 +100,28 @@ return {
   event = "VeryLazy",
 
   init = function()
-    -- After sending a selection, follow it to wherever Claude actually is.
-    -- Skipped when an in-editor terminal is running (the send is already
-    -- visible), and a no-op outside tmux or when no `claude` window exists —
-    -- tmux's error goes to the captured stderr, not the message area.
-    vim.api.nvim_create_autocmd("User", {
-      pattern = "ClaudeCodeSendComplete",
+    -- A full-screen float is opaque, so focus moving out of it without the
+    -- window going away would leave you typing into a buffer you can't see.
+    -- Hide it instead. This is the same hide the plugin's own toggle performs,
+    -- so <leader>ac brings it straight back — cc_show's first branch un-hides a
+    -- config-hidden float rather than building a new one.
+    --
+    -- Deferred because WinLeave fires before focus lands: re-check that we
+    -- really did end up somewhere else, so transient focus changes don't cause
+    -- the float to flicker away underneath you.
+    vim.api.nvim_create_autocmd("WinLeave", {
       group = augroup,
-      desc = "Focus the tmux claude window after sending a selection",
+      desc = "Hide the Claude float when focus leaves it",
       callback = function()
-        if not vim.env.TMUX then
+        local leaving = vim.api.nvim_get_current_win()
+        if claude_win() ~= leaving then
           return
         end
-        local ok, terminal = pcall(require, "claudecode.terminal")
-        if ok and terminal.get_active_terminal_bufnr() then
-          return -- Claude is in the editor; stay put
-        end
-        vim.system({ "tmux", "select-window", "-t", "claude" })
+        vim.schedule(function()
+          if vim.api.nvim_win_is_valid(leaving) and vim.api.nvim_get_current_win() ~= leaving then
+            pcall(vim.api.nvim_win_set_config, leaving, { hide = true })
+          end
+        end)
       end,
     })
   end,
@@ -101,16 +132,20 @@ return {
     -- makes the tmux-side CLI able to find this editor at all.
     terminal = {
       provider = "snacks",
-      split_side = "right",
-      -- A split rather than a float on purpose: proposed edits open as a diff in
-      -- the editor, and a split lets the diff and the conversation sit side by
-      -- side. A float would cover the thing being reviewed.
-      split_width_percentage = 0.35,
       -- Don't startinsert on focus. Otherwise re-entering the terminal snaps
       -- Claude to its prompt, so a scroll position never survives a trip out to
       -- a buffer and back. Costs an `i` before typing a prompt.
       auto_insert = false,
       snacks_win_opts = {
+        position = "float",
+        -- Snacks reads 0 as "full parent size" (a fraction < 1 would scale, and
+        -- 1 would mean one single cell). No border and no backdrop: at full
+        -- screen a border only eats two columns, and a backdrop would stay
+        -- behind as a dimmed overlay when the float above it is hidden.
+        width = 0,
+        height = 0,
+        border = "none",
+        backdrop = false,
         keys = {
           -- Snacks' terminal style binds <Esc><Esc> to stopinsert, but only
           -- swallows the second press if it lands within 200ms; slower than
@@ -121,31 +156,62 @@ return {
           -- program consumes.
           term_normal = false,
 
-          -- Zoom without leaving terminal mode. <C-\> is Neovim's terminal
+          -- ...which leaves <C-\><C-n> as the only way out of terminal mode,
+          -- and that chord is slow for something pressed this often. <C-/> is
+          -- one keystroke and Claude's input line doesn't use it.
+          --
+          -- Bound twice on purpose. Without tmux's `extended-keys on` (see
+          -- dot_tmux.conf, currently commented out) Ctrl-/ reaches Neovim as
+          -- 0x1f, i.e. <C-_>; with the kitty protocol in play it arrives as a
+          -- real <C-/>. Neovim keeps those two distinct, so bind both and the
+          -- key works either way.
+          claude_mode = {
+            "<C-/>",
+            toggle_mode,
+            mode = { "t", "n" },
+            desc = "Toggle Claude terminal/normal mode",
+          },
+          claude_mode_legacy = {
+            "<C-_>",
+            toggle_mode,
+            mode = { "t", "n" },
+            desc = "Toggle Claude terminal/normal mode",
+          },
+
+          -- Resize without leaving terminal mode. <C-\> is Neovim's terminal
           -- escape prefix, so Claude's TUI never sees it — unlike <C-w>, which
           -- its input line uses for delete-word.
-          claude_zoom = {
+          claude_width = {
             "<C-\\>z",
             function()
-              toggle_zoom()
+              toggle_width()
             end,
             mode = "t",
-            desc = "Zoom toggle",
+            desc = "Toggle Claude width",
           },
         },
       },
     },
     diff_opts = {
       layout = "vertical",
+      -- Reviewing an edit is the one job that genuinely wants two windows side
+      -- by side, so give it its own tab and leave Claude out of it: the diff
+      -- gets the full screen, and the float isn't covering what you're reading.
+      open_in_new_tab = true,
+      hide_terminal_in_new_tab = true,
       -- Land in the diff to review it, rather than being left in the terminal.
       keep_terminal_focus = false,
+      -- The diff lifecycle otherwise tries to resize the terminal to a split
+      -- width, which means nothing to a float and nothing at all once
+      -- hide_terminal_in_new_tab keeps it out of the diff tab.
+      auto_resize_terminal = false,
     },
   },
 
   keys = {
-    { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude (in editor)" },
+    { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
     { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
-    { "<leader>az", toggle_zoom, desc = "Zoom Claude split (toggle)" },
+    { "<leader>az", toggle_width, desc = "Toggle Claude width (full/side)" },
     { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume session" },
     { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Continue last session" },
     { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select model" },
