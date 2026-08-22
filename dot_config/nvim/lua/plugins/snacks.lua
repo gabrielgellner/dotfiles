@@ -2,6 +2,24 @@ return {
   "folke/snacks.nvim",
   priority = 1000,
   lazy = false,
+
+  -- Debug globals, available everywhere — including inside plugin code you're
+  -- poking at, where adding a require() would be a nuisance. `print` is useless
+  -- on tables; dd() pretty-prints with Lua highlighting and names the caller.
+  --
+  -- Safe to define before Snacks loads: the closures only look Snacks up when
+  -- called. Pointing vim.print at dd means `:=expr` and `:lua =expr` get the
+  -- pretty view too (at the cost of vim.print's return value, which nothing
+  -- here relies on).
+  init = function()
+    _G.dd = function(...)
+      Snacks.debug.inspect(...)
+    end
+    _G.bt = function()
+      Snacks.debug.backtrace()
+    end
+    vim.print = _G.dd
+  end,
   opts = {
     -- ── picker (telescope replacement) ──────────────────────────────────────
     picker = {
@@ -336,6 +354,39 @@ return {
         require("config.scratch").open({ name = "Journal", filekey = { cwd = false } })
       end,
       desc = "Toggle global journal",
+    },
+    -- A Lua pad, deliberately not routed through config.scratch: that seeds
+    -- markdown headings, which are syntax errors here.
+    --
+    -- The point of the lua filetype is Snacks' own `win_by_ft.lua` default,
+    -- which binds <cr> in normal *and* visual mode to Snacks.debug.run: the
+    -- buffer (or just the selection) runs with `print` output inlined beside
+    -- the code and errors raised as diagnostics. Selection-running is what
+    -- makes this a REPL rather than a :source keymap.
+    --
+    -- Not keyed to cwd — this is for learning the API, not per-project work.
+    -- The `wo` overrides undo the markdown-oriented window options above.
+    {
+      "<leader>nl",
+      function()
+        Snacks.scratch.open({
+          name = "Lua",
+          ft = "lua",
+          filekey = { cwd = false },
+          win = { wo = { spell = false, wrap = false, conceallevel = 0 } },
+        })
+      end,
+      desc = "Toggle Lua scratchpad",
+    },
+    -- The same runner for real config files: try a function where it lives
+    -- instead of copying it into the pad.
+    {
+      "<leader>cx",
+      function()
+        Snacks.debug.run()
+      end,
+      mode = { "n", "x" },
+      desc = "Run Lua (buffer or selection)",
     },
     {
       "<leader>ns",
