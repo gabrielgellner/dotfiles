@@ -158,6 +158,14 @@ return {
   end,
 
   opts = {
+    -- Follow the selection over to Claude. Without this, a send calls
+    -- terminal.ensure_visible() rather than terminal.open(): it un-hides the
+    -- float but leaves the cursor in the source buffer — which, at full screen,
+    -- is now completely behind the float. The frame is up with no cursor in it
+    -- and keystrokes go to a window you can't see. (The two <C-/> presses that
+    -- fixed it were hide-then-show-with-focus, not a redraw.)
+    focus_after_send = true,
+
     -- `claude` is on PATH (/opt/homebrew/bin/claude), so terminal_cmd stays nil.
     -- auto_start = true is what writes the lock file; leaving it on is what
     -- makes the tmux-side CLI able to find this editor at all.
