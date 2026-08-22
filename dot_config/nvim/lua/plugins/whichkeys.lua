@@ -15,6 +15,7 @@ return {
       { "<leader>s", group = "search/replace" },
       { "<leader>t", group = "test" },
       { "<leader>m", group = "markdown" },
+      { "<leader>n", group = "notes (scratch)" },
       { "<leader>u", group = "ui" },
       { "<leader>w", group = "window" },
       { "<leader>x", group = "diagnostics/quickfix" },

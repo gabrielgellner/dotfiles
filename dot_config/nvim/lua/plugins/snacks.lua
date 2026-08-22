@@ -32,6 +32,34 @@ return {
         },
       },
     },
+    -- ── scratch notebooks ────────────────────────────────────────────────────
+    -- Persistent per-project working notes. See config/scratch.lua for the
+    -- rationale and the day-heading/promote behaviour.
+    scratch = {
+      name = "Notes",
+      ft = "markdown", -- always markdown, even when opened from a code buffer
+      -- Outside nvim's data dir so notes survive a plugin wipe (and can be a
+      -- git repo of their own).
+      root = vim.fn.expand("~/scratch"),
+      autowrite = true,
+      filekey = {
+        cwd = true, -- one notebook per project
+        branch = false, -- ...but not per branch: a plan outlives the branch
+        count = true, -- 2<leader>nn opens a second notebook for the project
+      },
+      win = {
+        width = 0.7,
+        height = 0.85,
+        border = "rounded",
+        wo = {
+          winhighlight = "NormalFloat:Normal",
+          wrap = true,
+          linebreak = true,
+          spell = true,
+          conceallevel = 2, -- let render-markdown conceal link/heading syntax
+        },
+      },
+    },
     -- ── notifier ─────────────────────────────────────────────────────────────
     notifier = {
       enabled = true,
@@ -217,6 +245,43 @@ return {
         Snacks.lazygit()
       end,
       desc = "Lazygit",
+    },
+    -- scratch notebooks
+    {
+      "<leader>.",
+      function()
+        require("config.scratch").open()
+      end,
+      desc = "Toggle project notes",
+    },
+    {
+      "<leader>nn",
+      function()
+        require("config.scratch").open()
+      end,
+      desc = "Toggle project notes",
+    },
+    {
+      "<leader>ng",
+      function()
+        -- Not keyed to cwd: the notebook for cross-project thinking and plans.
+        require("config.scratch").open({ name = "Journal", filekey = { cwd = false } })
+      end,
+      desc = "Toggle global journal",
+    },
+    {
+      "<leader>ns",
+      function()
+        Snacks.scratch.select()
+      end,
+      desc = "Select notebook",
+    },
+    {
+      "<leader>np",
+      function()
+        require("config.scratch").promote()
+      end,
+      desc = "Promote buffer to zk note",
     },
     -- notifications
     {

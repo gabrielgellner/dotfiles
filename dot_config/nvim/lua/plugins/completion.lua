@@ -9,7 +9,7 @@
 return {
   {
     "saghen/blink.cmp",
-    version = "v0.*",
+    version = "1.*", -- 1.x ships prebuilt fuzzy-matcher binaries; no cargo needed
     dependencies = { "L3MON4D3/LuaSnip" },
     opts = {
       -- ── Keymaps ───────────────────────────────────────────────────────────
