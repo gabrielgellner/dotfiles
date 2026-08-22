@@ -26,8 +26,12 @@ local QUERY = [[
 local function heading_level(node)
   for child in node:iter_children() do
     local level = child:type():match("^atx_h(%d)_marker$") or child:type():match("^setext_h(%d)_underline$")
-    if level then
-      return tonumber(level)
+    local n = level and tonumber(level)
+    if n then
+      -- math.floor, not a bare tonumber: the level is concatenated into a
+      -- `@markup.heading.N.markdown` highlight group, and a float would
+      -- stringify as "3.0" and name a group that doesn't exist.
+      return math.floor(n)
     end
   end
   return 1
