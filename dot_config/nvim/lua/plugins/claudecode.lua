@@ -106,6 +106,10 @@ return {
       -- the editor, and a split lets the diff and the conversation sit side by
       -- side. A float would cover the thing being reviewed.
       split_width_percentage = 0.35,
+      -- Don't startinsert on focus. Otherwise re-entering the terminal snaps
+      -- Claude to its prompt, so a scroll position never survives a trip out to
+      -- a buffer and back. Costs an `i` before typing a prompt.
+      auto_insert = false,
       snacks_win_opts = {
         keys = {
           -- Snacks' terminal style binds <Esc><Esc> to stopinsert, but only
