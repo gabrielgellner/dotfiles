@@ -1,4 +1,5 @@
 {
+  "model": "opus[1m]",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
@@ -9,5 +10,9 @@
   },
   "effortLevel": "medium",
   "theme": "dark",
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "agentPushNotifEnabled": true,
+  "permissions": {
+    "defaultMode": "auto"
+  }
 }
