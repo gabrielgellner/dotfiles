@@ -1,5 +1,9 @@
 [git]
-    # `chezmoi re-add`/`add`/`apply` auto-commit to the source repo and push to
-    # origin, so capturing a live edit (e.g. an nvim config change) is one step.
-    autoCommit = true
-    autoPush = true
+    # Deliberately off. These were enabled in 9a9f1b0 so that capturing a live
+    # edit (`chezmoi re-add`) was one step — but they also fire on `apply`, so
+    # in-progress work got committed mid-change, and every commit since carried
+    # chezmoi's generated "Update <path> Add <path>" message instead of a
+    # conventional one. Capture is still one command; it just leaves the change
+    # staged in the source repo for a real commit message.
+    autoCommit = false
+    autoPush = false
