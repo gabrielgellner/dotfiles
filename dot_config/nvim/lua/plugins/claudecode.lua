@@ -83,9 +83,10 @@ end
 -- the tap acts immediately, so there's no timeoutlen stall and no double-press
 -- to get right.
 --
--- Getting to normal mode inside the terminal is a separate key, <C-\><C-n> —
--- Neovim's built-in, which no terminal program consumes. Normal mode is for
--- scrolling and yanking Claude's output; `i` goes back to typing at it.
+-- Getting to normal mode inside the terminal is a separate key, <C-\> — bound
+-- in config/keymaps.lua to the built-in <C-\><C-n>, which no terminal program
+-- consumes. Normal mode is for scrolling and yanking Claude's output; `i` goes
+-- back to typing at it.
 
 return {
   "coder/claudecode.nvim",
@@ -191,13 +192,13 @@ return {
           -- that and both escapes reach Claude, which reads them as its own
           -- double-Esc and opens rewind. Esc has no substitute on Claude's side
           -- (single = interrupt, double = rewind), so hand it over entirely and
-          -- leave insert mode with the built-in <C-\><C-n>, which no terminal
-          -- program consumes.
+          -- leave insert mode with <C-\>, which no terminal program consumes.
           term_normal = false,
 
-          -- ...which leaves <C-\><C-n> as the way out of terminal mode. That's
-          -- fine: it's a built-in, and it's the only key here that has to be
-          -- something Claude's TUI won't eat.
+          -- ...which leaves <C-\> as the way out of terminal mode. That's fine:
+          -- it wraps a built-in, and it's the only key here that has to be
+          -- something Claude's TUI won't eat. Note it is now a whole key rather
+          -- than a prefix, so nothing may be hung off <C-\> in this window.
           --
           -- <C-/> is the float toggle instead — one keystroke to send Claude
           -- away from inside it, matching the same key in any other buffer.
@@ -229,18 +230,6 @@ return {
             end,
             mode = { "t", "n" },
             desc = "Toggle Claude",
-          },
-
-          -- Resize without leaving terminal mode. <C-\> is Neovim's terminal
-          -- escape prefix, so Claude's TUI never sees it — unlike <C-w>, which
-          -- its input line uses for delete-word.
-          claude_width = {
-            "<C-\\>z",
-            function()
-              toggle_width()
-            end,
-            mode = "t",
-            desc = "Toggle Claude width",
           },
         },
       },

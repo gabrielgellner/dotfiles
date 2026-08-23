@@ -22,6 +22,26 @@ map("n", "<leader>-", "<C-w>s", { desc = "Split horizontal" })
 map("n", "<leader>|", "<C-w>v", { desc = "Split vertical" })
 map("n", "<leader>wd", "<C-w>c", { desc = "Close window" })
 
+-- ── Terminal ──────────────────────────────────────────────────────────────────
+-- One key out of terminal mode instead of <C-\><C-n>. <C-\> is 0x1c, so it
+-- survives every terminal intact — no <C-_>-style fallback needed the way <C-/>
+-- needs one.
+--
+-- This takes over the whole <C-\> prefix in terminal mode (:h terminal-input),
+-- which costs three things: <C-\><C-o> (one normal-mode command, then straight
+-- back to terminal mode), the <C-\>{key} literal passthrough, and any plugin
+-- key hung off the prefix. Nothing may reuse <C-\> as a prefix in terminal mode
+-- afterwards — a second binding would put a 'timeoutlen' wait on every press.
+map("t", "<C-\\>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+
+-- The passthrough above was the only way to send a literal <C-\> — the terminal
+-- quit character, i.e. SIGQUIT — to the job. That's how you get a Go goroutine
+-- dump or a Java thread dump, and how you kill something that's swallowing
+-- <C-c>, so keep a way to send the raw byte.
+map("t", "<C-q>", function()
+  vim.api.nvim_chan_send(vim.b.terminal_job_id, "\28")
+end, { desc = "Send SIGQUIT to terminal job" })
+
 -- ── Buffers ───────────────────────────────────────────────────────────────────
 map("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Prev buffer" })
 map("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next buffer" })
