@@ -67,10 +67,72 @@ end
 
 ---"Private Sanctum!" -> "private-sanctum". Apostrophes vanish rather than
 ---becoming separators, so "Mariner's Curse" -> "mariners-curse".
+---
+---The punctuation class spares bytes 128-255 so UTF-8 survives: %w is ASCII
+---only, so "[^%w]+" treated every byte of an accented character as punctuation
+---and "Déjà Vu" came out "d-j-vu", which matches no file. Filenames keep their
+---accents (déjà-vu.md), so the slug has to as well.
+---
+---vim.fn.tolower rather than s:lower() for the same reason: Lua lowercases a
+---byte at a time, which under some locales rewrites the lead byte of a UTF-8
+---sequence and leaves an invalid one behind — "DÉJÀ VU" came out with a broken
+---byte where the À had been. vim.fn.tolower knows about characters.
+---
+---The apostrophe class is bytewise too — it holds ' plus the three bytes of
+---U+2019 individually rather than the character — but that is harmless here:
+---any byte it could strip from another character is one the class below would
+---replace anyway.
 ---@param s string
 ---@return string
 function M.slugify(s)
-  return (s:lower():gsub("['\u{2019}]", ""):gsub("[^%w]+", "-"):gsub("^%-+", ""):gsub("%-+$", ""))
+  local lowered = vim.fn.tolower(s)
+  return (lowered:gsub("['\u{2019}]", ""):gsub("[^%w\128-\255]+", "-"):gsub("^%-+", ""):gsub("%-+$", ""))
+end
+
+---Accent-folded copy, for matching only: "Déjà Vu" -> "Deja Vu". Snacks' matcher
+---does ignorecase but no folding, so without this the picker cannot be reached
+---by typing "deja" — and typing the accent is the whole difficulty.
+---
+---Both cases are listed because Lua has no UTF-8-aware upper/lower: s:lower()
+---works a byte at a time and leaves "É" alone, so one half cannot be derived
+---from the other. Callers can pass text straight from a heading
+---(goto_rule_visual), so the uppercase half is not hypothetical.
+---
+---Only the characters this corpus plausibly contains are mapped; the pattern
+---matches whole UTF-8 sequences, so an unmapped one passes through untouched.
+-- A grid reads as a character table; one pair per line does not.
+-- stylua: ignore
+local FOLD = {
+  ["à"] = "a", ["á"] = "a", ["â"] = "a", ["ä"] = "a", ["ã"] = "a", ["å"] = "a",
+  ["è"] = "e", ["é"] = "e", ["ê"] = "e", ["ë"] = "e",
+  ["ì"] = "i", ["í"] = "i", ["î"] = "i", ["ï"] = "i",
+  ["ò"] = "o", ["ó"] = "o", ["ô"] = "o", ["ö"] = "o", ["õ"] = "o",
+  ["ù"] = "u", ["ú"] = "u", ["û"] = "u", ["ü"] = "u",
+  ["ñ"] = "n", ["ç"] = "c", ["ý"] = "y",
+  ["À"] = "A", ["Á"] = "A", ["Â"] = "A", ["Ä"] = "A", ["Ã"] = "A", ["Å"] = "A",
+  ["È"] = "E", ["É"] = "E", ["Ê"] = "E", ["Ë"] = "E",
+  ["Ì"] = "I", ["Í"] = "I", ["Î"] = "I", ["Ï"] = "I",
+  ["Ò"] = "O", ["Ó"] = "O", ["Ô"] = "O", ["Ö"] = "O", ["Õ"] = "O",
+  ["Ù"] = "U", ["Ú"] = "U", ["Û"] = "U", ["Ü"] = "U",
+  ["Ñ"] = "N", ["Ç"] = "C", ["Ý"] = "Y",
+}
+---@param s string
+---@return string
+function M.fold(s)
+  local folded = s:gsub("[\194-\244][\128-\191]*", function(c)
+    return FOLD[c] or c
+  end)
+  return folded
+end
+
+---Picker items carry `label` (shown) and `text` (matched). They differ only for
+---accented names, where the folded copy rides along in the haystack so both
+---"déjà" and "deja" find the entry. Everywhere else they are the same string.
+---@param label string
+---@return string
+local function haystack(label)
+  local folded = M.fold(label)
+  return folded ~= label and (label .. " " .. folded) or label
 end
 
 ---Resolve a display name to a rules file path, applying the spell alias map.
@@ -161,7 +223,8 @@ local function corpus(root)
     local base = ("%s/campaign/rules/%s"):format(root, dir)
     for _, path in ipairs(vim.fn.globpath(base, "*.md", false, true)) do
       local slug = vim.fn.fnamemodify(path, ":t:r")
-      items[#items + 1] = { text = titleize(slug), file = path, kind = dir:gsub("s$", ""), slug = slug }
+      local label = titleize(slug)
+      items[#items + 1] = { text = haystack(label), label = label, file = path, kind = dir:gsub("s$", ""), slug = slug }
       seen[dir .. "/" .. slug] = true
     end
   end
@@ -171,7 +234,8 @@ local function corpus(root)
     local path = ("%s/campaign/rules/spells/%s.md"):format(root, remaster)
     if vim.fn.filereadable(path) == 1 then
       items[#items + 1] = {
-        text = titleize(legacy),
+        text = haystack(titleize(legacy)),
+        label = titleize(legacy),
         file = path,
         kind = "spell (legacy)",
         slug = legacy,
@@ -179,7 +243,7 @@ local function corpus(root)
     end
   end
   table.sort(items, function(a, b)
-    return a.text < b.text
+    return a.label < b.label
   end)
   corpus_cache[root] = items
   return items
@@ -202,7 +266,8 @@ function M.pick()
     local path, kind = M.resolve(name, root)
     if path and not seen[path] then
       seen[path] = true
-      under[#under + 1] = { text = name, file = path, kind = kind:gsub("s$", ""), cursor = true }
+      under[#under + 1] =
+        { text = haystack(name), label = name, file = path, kind = kind:gsub("s$", ""), cursor = true }
     end
   end
 
@@ -216,12 +281,12 @@ function M.pick()
 
   Snacks.picker.pick({
     source = "rules_lookup",
-    title = #under > 0 and ("Rules — under cursor: " .. under[1].text) or "Rules",
+    title = #under > 0 and ("Rules — under cursor: " .. under[1].label) or "Rules",
     items = items,
     format = function(item)
       local ret = {
         { item.cursor and "● " or "  ", "SnacksPickerSelected" },
-        { item.text, "SnacksPickerLabel" },
+        { item.label, "SnacksPickerLabel" },
         { " ", "Normal" },
       }
       ret[#ret + 1] = { item.kind, "SnacksPickerComment" }
