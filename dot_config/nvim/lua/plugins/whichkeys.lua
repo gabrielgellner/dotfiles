@@ -5,30 +5,79 @@ return {
     preset = "modern",
     delay = 300,
     spec = {
-      -- ── Groups ─────────────────────────────────────────────────────────
-      { "<leader>f", group = "find/pick" },
-      { "<leader>c", group = "code" },
-      { "<leader>d", group = "debug" },
-      { "<leader>dt", group = "debug test" },
-      { "<leader>g", group = "git" },
-      { "<leader>j", group = "just" },
-      { "<leader>a", group = "ai/claude" },
-      { "<leader>b", group = "buffer" },
-      { "<leader>s", group = "search/replace" },
-      { "<leader>t", group = "test" },
-      { "<leader>m", group = "markdown" },
-      { "<leader>n", group = "notes (scratch)" },
-      { "<leader>u", group = "ui" },
-      { "<leader>w", group = "window" },
-      { "<leader>x", group = "diagnostics/quickfix" },
-      { "<leader>z", group = "zettelkasten" },
+      -- Groups carry an explicit mode list. which-key defaults every spec entry
+      -- to normal mode only (which-key/mappings.lua: `mapping.mode or {"n"}`),
+      -- so all of these went unnamed the moment there was a selection:
+      -- <leader>c rendered as "+3 keymaps" in visual mode, and `gs` as
+      -- "+3 keymaps" rather than "surround".
+      --
+      -- `mode` is an inheriting field, so one nested entry covers the lot.
+      -- Naming a group in a mode where nothing lives under it is free —
+      -- which-key deletes group nodes that end up with no keymaps beneath them
+      -- (tree.lua `keep`/`fix`). That pruning is also why a group declared for
+      -- keys that don't exist never shows up at all.
+      --
+      -- Only groups are nested here. The desc-only entries below have to stay
+      -- normal-mode: they are *not* pruned when the keymap is missing (`keep`
+      -- is true for any non-group mapping), so claiming e.g. `]b` in visual
+      -- mode would invent a row for a mapping mini.bracketed only defines in
+      -- normal mode.
+      {
+        mode = { "n", "x", "o" },
+
+        -- ── Leader groups ─────────────────────────────────────────────────
+        { "<leader>a", group = "ai/claude" },
+        { "<leader>b", group = "buffer" },
+        { "<leader>c", group = "code" },
+        { "<leader>d", group = "debug" },
+        { "<leader>dt", group = "debug test" },
+        { "<leader>f", group = "find/pick" },
+        { "<leader>g", group = "git" },
+        { "<leader>j", group = "just" },
+        { "<leader>l", group = "lsp" },
+        { "<leader>m", group = "markdown" },
+        { "<leader>n", group = "notes (scratch)" },
+        { "<leader>q", group = "quit" },
+        { "<leader>s", group = "search/replace" },
+        { "<leader>u", group = "ui" },
+        { "<leader>w", group = "window" },
+        { "<leader>x", group = "diagnostics/quickfix" },
+        { "<leader>z", group = "zettelkasten" },
+
+        -- ── Navigation groups ─────────────────────────────────────────────
+        { "[", group = "prev" },
+        { "]", group = "next" },
+        { "g", group = "goto" },
+        { "gs", group = "surround" },
+      },
+
+      -- `gr` is only a prefix in visual mode, where Neovim's built-in LSP
+      -- mappings live under it. In normal mode `gr` is our own leaf (Snacks LSP
+      -- references, plugins/snacks.lua), so naming it a group there would
+      -- replace that description with the group's.
+      { "gr", group = "lsp", mode = "x" },
+      { "gra", desc = "Code action", mode = "x" },
+
       { "<leader>?", desc = "Open a guide" },
 
-      -- ── Navigation groups ───────────────────────────────────────────────
-      { "[", group = "prev" },
-      { "]", group = "next" },
-      { "g", group = "goto" },
-      { "gs", group = "surround" },
+      -- ── vim-matchup ─────────────────────────────────────────────────────
+      -- These are <Plug> mappings with no description of their own, so
+      -- which-key fell back to printing the raw `<Plug>(matchup-…)` rhs.
+      { "[%", desc = "Prev unmatched open word", mode = { "o", "x" } },
+      { "]%", desc = "Next unmatched close word", mode = { "o", "x" } },
+      { "g%", desc = "Prev matching word", mode = { "o", "x" } },
+      { "z%", desc = "Into nearest inner block", mode = { "n", "o", "x" } },
+      -- Nothing to say about these two and nowhere useful to say it: hiding
+      -- them also prunes the otherwise-unnamed <C-G> prefix in insert mode.
+      { "<C-G>%", hidden = true, mode = "i" },
+      { "<2-LeftMouse>", hidden = true },
+
+      -- ── Undo ────────────────────────────────────────────────────────────
+      -- mini.bracketed re-maps both to record undo state for [u/]u, and its
+      -- wrappers carry no desc, so these showed as raw
+      -- `u<Cmd>lua MiniBracketed.register_undo_state()<CR>`.
+      { "u", desc = "Undo" },
+      { "<C-R>", desc = "Redo" },
 
       -- ── Treesitter motions ──────────────────────────────────────────────
       { "]f", desc = "Next function" },
