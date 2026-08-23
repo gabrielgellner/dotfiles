@@ -11,7 +11,16 @@ done
 unset _brew
 
 # Cache brew prefix
-BREW_PREFIX=$(brew --prefix)
+# `brew shellenv` above already exported HOMEBREW_PREFIX, so asking brew again
+# would fork a process for a value we already have.
+#
+# If the loop found no brew, say so rather than carrying an empty prefix into
+# fpath and the plugin paths below — but keep going. ${VAR:?} would abort the
+# rest of this file, and a half-sourced rc (no aliases, no PATH, no vi mode) is
+# a worse shell than one missing its completions.
+BREW_PREFIX="$HOMEBREW_PREFIX"
+[[ -n $BREW_PREFIX ]] ||
+  print -u2 "zshrc: no brew found — completions and the zsh plugins will fail to load"
 
 # Don't let Ctrl-S freeze the terminal
 stty -ixon
@@ -29,19 +38,26 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 fpath=("$BREW_PREFIX/share/zsh/site-functions" $fpath)
 
 # 2. compinit with 24hr cache
+# The staleness test is a glob qualifier rather than a find(1) fork: N is
+# nullglob so a missing dump matches nothing, . restricts to plain files, and
+# mh+24 is "modified more than 24 hours ago".
 autoload -Uz compinit
-if [[ $(find "$HOME/.zcompdump" -mmin +1440 2>/dev/null) ]]; then
+_zcompdump_stale=("$HOME"/.zcompdump(N.mh+24))
+if (( $#_zcompdump_stale )); then
   compinit -u -d "$HOME/.zcompdump"
 else
   compinit -C -u -d "$HOME/.zcompdump"
 fi
+unset _zcompdump_stale
 
 # 3. fzf shell integration
 source <(fzf --zsh)
 
 # Options
-setopt COMPLETE_ALIASES APPEND_HISTORY SHARE_HISTORY \
-       HIST_IGNORE_ALL_DUPS HIST_SAVE_NO_DUPS HIST_IGNORE_SPACE
+# No COMPLETE_ALIASES: it stops an alias being expanded before completion, so
+# `ll --<TAB>` offered nothing where eza's own flags were wanted. No
+# APPEND_HISTORY either — SHARE_HISTORY implies it.
+setopt SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_SAVE_NO_DUPS HIST_IGNORE_SPACE
 
 # History
 HISTFILE="$HOME/.zsh_history"
@@ -49,8 +65,11 @@ HISTSIZE=10000
 SAVEHIST=10000
 
 # Plugins
-[[ -r "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] &&
-  source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+# Sourced unguarded on purpose. The guarded form failed *silently*: a missing
+# plugin meant no autosuggestions and no explanation for it. The tool evals
+# below — fzf, starship, zoxide, direnv — already fail loudly, so this matches
+# them. ghcup keeps its guard further down, because that one really is optional.
+source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # Prompt
 eval "$(starship init zsh)"
@@ -83,8 +102,7 @@ eval "$(direnv hook zsh)"
 [ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env"
 
 # zsh-syntax-highlighting (must be last)
-[[ -r "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] &&
-  source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 # Setup personal path
 path=($HOME/.local/bin $HOME/bin $path)
