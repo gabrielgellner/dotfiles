@@ -1,4 +1,4 @@
-# timout for commands, defaults to 500
+# timeout for commands, defaults to 500
 # command_timeout = 1000
 
 [container]
@@ -8,10 +8,21 @@ disabled = true
 [python]
 disabled = true
 
-# Show the uv environment python version when in a uv project
+# Show the uv project's Python version.
+#
+# `when` requires both files, so the command cannot fail and the module simply
+# does not appear when there is nothing to report. This used to fall back to
+# grepping `requires-python` out of pyproject.toml, which is a floor (">=3.13")
+# rather than the installed version — the one branch that could report something
+# untrue, covering a case that does not arise, since uv writes .python-version.
+#
+# Reads the file rather than running .venv/bin/python. Measured over 20 runs:
+# cat 2.0ms, pyvenv.cfg 3.8ms, forking the interpreter 4.4ms — and this runs on
+# every prompt. The cost of that choice is that editing .python-version without
+# re-running `uv sync` shows the intended version rather than what the venv has.
 [custom.uv_python]
-when = "test -f uv.lock"
-command = "test -f .python-version && cat .python-version || rg -m1 'requires-python' pyproject.toml 2>/dev/null | rg -o '[0-9]+\\.[0-9]+'"
+when = "test -f uv.lock && test -f .python-version"
+command = "cat .python-version"
 format = "via [🐍 $output]($style) "
 style = "green"
 
