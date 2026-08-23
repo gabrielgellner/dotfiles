@@ -12,6 +12,27 @@ vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   end,
 })
 
+-- ── Run Lua from the buffer it lives in ───────────────────────────────────────
+-- Snacks.debug.run() executes the buffer, or just the visual selection, with
+-- print output inlined beside the code and errors raised as diagnostics. That is
+-- what makes plugins/snacks.lua's <leader>nl pad a REPL, and the same thing is
+-- worth having in real config files — try a function where it lives instead of
+-- copying it into the pad.
+--
+-- Bound per-buffer rather than globally because it only means anything for Lua:
+-- a global <leader>cx would appear in the code popup in every filetype and
+-- error on each of them. Snacks is loaded eagerly (lazy = false), so the global
+-- is safe to reference here.
+vim.api.nvim_create_autocmd("FileType", {
+  group = augroup("lua_run"),
+  pattern = "lua",
+  callback = function(ev)
+    vim.keymap.set({ "n", "x" }, "<leader>cx", function()
+      Snacks.debug.run()
+    end, { buffer = ev.buf, desc = "Run Lua (buffer or selection)" })
+  end,
+})
+
 -- ── Highlight on yank ─────────────────────────────────────────────────────────
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),

@@ -12,22 +12,28 @@ return {
     },
   },
   keys = {
+    -- cc is the doubled key, so by vim's own convention — gcc, dd, yy — it has
+    -- to be the ordinary case, not a special one. It used to be the class
+    -- variant while the general "annotate whatever is nearest" sat on cn, which
+    -- read backwards. Swapped: cc annotates the nearest node, and cC widens to
+    -- the enclosing class, which keeps the capital meaning a wider scope the way
+    -- it does everywhere else here.
+    --
     -- No `type = "func"` variant. It lived on <leader>cf, which lsp.lua binds
     -- buffer-locally to "Format buffer" — and a buffer-local mapping always
     -- shadows a global one, so it was unreachable in exactly the buffers where
-    -- you would write a docstring. <leader>cn covers the case anyway: the
-    -- default type "any" annotates the nearest annotatable node, which is the
-    -- enclosing function whenever you are inside one. <leader>cc stays, because
-    -- "any" picks the method rather than the class when the cursor is in one.
+    -- you would write a docstring. The default type "any" covers it anyway: it
+    -- annotates the enclosing function whenever the cursor is inside one, and
+    -- only picks the class when nothing nearer qualifies.
     {
-      "<leader>cn",
+      "<leader>cc",
       function()
         require("neogen").generate()
       end,
       desc = "Generate docstring",
     },
     {
-      "<leader>cc",
+      "<leader>cC",
       function()
         require("neogen").generate({ type = "class" })
       end,

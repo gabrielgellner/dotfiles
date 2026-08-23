@@ -488,16 +488,10 @@ return {
       end,
       desc = "Toggle Lua scratchpad",
     },
-    -- The same runner for real config files: try a function where it lives
-    -- instead of copying it into the pad.
-    {
-      "<leader>cx",
-      function()
-        Snacks.debug.run()
-      end,
-      mode = { "n", "x" },
-      desc = "Run Lua (buffer or selection)",
-    },
+    -- The same runner is bound for real config files too, but per-buffer on
+    -- FileType lua (config/autocmds.lua) rather than as a global key here:
+    -- Snacks.debug.run executes the buffer as Lua, so a global <leader>cx would
+    -- show up in the code popup of every filetype and error on all of them.
     {
       "<leader>ns",
       function()
