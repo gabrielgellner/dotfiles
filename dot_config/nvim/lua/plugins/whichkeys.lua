@@ -45,6 +45,15 @@ return {
         { "<leader>x", group = "diagnostics/quickfix" },
         { "<leader>z", group = "zettelkasten" },
 
+        -- ── haskell-tools, in haskell buffers ─────────────────────────────
+        -- Two leader prefixes that exist only where haskell-tools has attached,
+        -- and that it does not name — so the leader popup showed h and r as
+        -- "+2 keymaps" and "+3 keymaps" there. Same pruning argument as the
+        -- conjure groups below: harmless everywhere else, because a group with
+        -- nothing under it is dropped.
+        { "<leader>h", group = "haskell" },
+        { "<leader>r", group = "repl" },
+
         -- ── Conjure, in lisp buffers ──────────────────────────────────────
         -- conjure hangs ~30 mappings off <localleader> in scheme, racket,
         -- fennel and clojure buffers, and names none of the prefixes — so the
