@@ -92,6 +92,31 @@ return {
             },
           },
         },
+        explorer = {
+          -- The explorer starts focused on the list (upstream `focus = "list"`),
+          -- so it is a normal-mode buffer, and its `j`/`k` are bound to
+          -- list_down/list_up — which read vim.v.count1. `12j` therefore moves
+          -- 12 entries already; relative numbers are only the missing half,
+          -- turning that count from a guess into something you can read off.
+          win = {
+            list = {
+              wo = {
+                number = true,
+                relativenumber = true,
+                -- Snacks' own statuscolumn (opts.statuscolumn) would otherwise
+                -- draw fold and git columns in here and eat the width.
+                statuscolumn = "",
+                signcolumn = "no",
+              },
+              keys = { ["O"] = "explorer_oil" },
+            },
+          },
+          actions = {
+            explorer_oil = function(picker, item)
+              require("config.files").oil_from_explorer(picker, item)
+            end,
+          },
+        },
         files = {
           hidden = true, -- show dotfiles like .env .gitignore
           ignored = false, -- respect .gitignore by default
@@ -215,16 +240,7 @@ return {
     {
       "<leader>fe",
       function()
-        Snacks.picker.explorer({
-          auto_close = true,
-          layout = {
-            layout = {
-              position = "float",
-              width = 0.4,
-              height = 0.8,
-            },
-          },
-        })
+        require("config.files").explorer()
       end,
       desc = "File Explorer",
     },
