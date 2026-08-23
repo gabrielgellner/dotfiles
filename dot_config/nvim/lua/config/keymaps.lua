@@ -40,6 +40,12 @@ map("n", "<C-l>", "<C-w>l", { desc = "Window right" })
 map("n", "<leader>-", "<C-w>s", { desc = "Split horizontal" })
 map("n", "<leader>|", "<C-w>v", { desc = "Split vertical" })
 map("n", "<leader>wd", "<C-w>c", { desc = "Close window" })
+-- `<leader>w` is deliberately left as a bare prefix for this group. It used to
+-- also be mapped to `:write`, which made it a complete action *and* a prefix:
+-- with 'timeoutlen' at 300ms, `<leader>wd` only closed a window if the `d`
+-- landed in time, and otherwise saved the file. which-key showed the group name
+-- "window" for it either way, so the popup described a key that wrote a file.
+-- `:w<CR>` is one keystroke more and costs no namespace.
 
 -- ── Terminal ──────────────────────────────────────────────────────────────────
 -- One key out of terminal mode instead of <C-\><C-n>. <C-\> is 0x1c, so it
@@ -100,7 +106,6 @@ end, { desc = "Open a guide" })
 
 -- ── Misc ──────────────────────────────────────────────────────────────────────
 map("n", "<leader>qq", "<cmd>qall<CR>", { desc = "Quit all" })
-map("n", "<leader>w", "<cmd>write<CR>", { desc = "Save" })
 -- paste without losing register
 map("v", "p", '"_dP', { desc = "Paste without yank" })
 
