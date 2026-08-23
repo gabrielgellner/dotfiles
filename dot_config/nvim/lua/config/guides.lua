@@ -88,16 +88,18 @@ function M.open(path)
   })
 end
 
---- Pick a guide. Opens the single guide directly when there's only one, since a
---- one-row picker is pure ceremony.
+--- Pick a guide.
+---
+--- Always the picker, even for a single guide. Short-circuiting to open the one
+--- guide directly saves a keystroke now and costs a surprise later: <leader>?
+--- would quietly change from "open the navigation guide" to "choose a guide" on
+--- the day a second file lands. The preview pane also makes the list worth
+--- reading in its own right.
 function M.pick()
   local list = items()
   if #list == 0 then
     vim.notify("guides: nothing in " .. DIR, vim.log.levels.WARN)
     return
-  end
-  if #list == 1 then
-    return M.open(list[1].file)
   end
   Snacks.picker({
     title = "Guides",
