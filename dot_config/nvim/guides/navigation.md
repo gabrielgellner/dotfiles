@@ -57,8 +57,10 @@ you want to land on.
 | `]f` `[f` | next / previous function start (`]F` `[F` for the end) |
 | `]c` `[c` | next / previous class (`]C` `[C` for the end) |
 | `]a` `[a` | next / previous argument |
-| `]i` `[i` | next / previous conditional |
+| `]?` `[?` | next / previous conditional |
 | `]l` `[l` | next / previous loop |
+| `[i` / `]i` | top / bottom of the current indent scope |
+| `ii` / `ai` | select the indent scope, without / with its borders |
 | `%` | matching bracket / keyword pair (matchup: `if`↔`end`, tags, …) |
 | `<leader>fs` | symbol picker for the file — the fastest way into a big file |
 
@@ -113,7 +115,8 @@ Everything `[`/`]` is bound to, in one place:
 
 | Suffix | Motion | From |
 | --- | --- | --- |
-| `f` `F` `c` `C` `a` `i` `l` | function, class, argument, conditional, loop | treesitter |
+| `f` `F` `c` `C` `a` `l` `?` | function, class, argument, loop, conditional | treesitter |
+| `i` | top / bottom of indent scope | mini.indentscope |
 | `b` `B` | buffer | mini.bracketed |
 | `j` `o` `u` `w` `x` `y` | jumplist, oldfile, undo state, window, conflict marker, yank ring | mini.bracketed |
 | `h` | git hunk | gitsigns |

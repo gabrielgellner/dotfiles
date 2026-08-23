@@ -29,6 +29,15 @@ return {
     })
 
     -- ── mini.indentscope — animated indent guides ──────────────────────────
+    -- Also owns four keys: `ii`/`ai` select the indent scope, and `[i`/`]i` jump
+    -- to its top/bottom — the useful pair when reading nested code.
+    --
+    -- `[i`/`]i` used to be dead: the treesitter @conditional move claimed them
+    -- buffer-locally (plugins/treesitter.lua), so indentscope's globals lost in
+    -- every buffer with a filetype. Conditional moved to `[?`/`]?`, since `i`
+    -- reads as "indent" here — `ii`/`ai` already mean exactly that — while `i`
+    -- for "if" was the arbitrary claim. mini.bracketed's own `indent` suffix
+    -- stays disabled for the same reason; this is the `i` motion.
     require("mini.indentscope").setup({
       symbol = "│",
       options = { try_as_border = true },
@@ -44,7 +53,8 @@ return {
     -- they'd silently shadow mini's globals in exactly the buffers you'd use
     -- them in. Disable those suffixes rather than leave half-dead bindings:
     --
-    --   c f i l    treesitter textobject moves   plugins/treesitter.lua
+    --   c f l      treesitter textobject moves   plugins/treesitter.lua
+    --   i          indent scope top/bottom       mini.indentscope, above
     --   t          todo comments                 plugins/todo.lua
     --   d          diagnostics                   plugins/lsp.lua, trouble.lua
     --   q          quickfix                      config/keymaps.lua

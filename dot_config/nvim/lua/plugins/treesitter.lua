@@ -97,7 +97,7 @@ return {
           ["]f"] = "@function.outer",
           ["]c"] = "@class.outer",
           ["]a"] = "@parameter.inner",
-          ["]i"] = "@conditional.outer",
+          ["]?"] = "@conditional.outer",
           ["]l"] = "@loop.outer",
         },
         goto_next_end = {
@@ -108,7 +108,7 @@ return {
           ["[f"] = "@function.outer",
           ["[c"] = "@class.outer",
           ["[a"] = "@parameter.inner",
-          ["[i"] = "@conditional.outer",
+          ["[?"] = "@conditional.outer",
           ["[l"] = "@loop.outer",
         },
         goto_previous_end = {
@@ -138,7 +138,10 @@ return {
           for key, query in pairs(keymaps) do
             local desc = (key:sub(1, 1) == "[" and "Prev " or "Next ")
               .. query:gsub("@", ""):gsub("%..*", "")
-              .. (key:sub(2, 2) == key:sub(2, 2):upper() and " end" or " start")
+              -- Capitalised suffix = the "end" variant. Match on %u rather than
+              -- comparing against :upper(): a non-letter suffix like `?` is
+              -- equal to its own uppercase and would be mislabelled an end motion.
+              .. (key:sub(2, 2):match("%u") and " end" or " start")
 
             vim.keymap.set({ "n", "x", "o" }, key, function()
               require("nvim-treesitter-textobjects.move")[method](query, "textobjects")

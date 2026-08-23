@@ -41,8 +41,8 @@ return {
       { "[C", desc = "End of prev class" },
       { "]a", desc = "Next argument" },
       { "[a", desc = "Prev argument" },
-      { "]i", desc = "Next conditional" },
-      { "[i", desc = "Prev conditional" },
+      { "]?", desc = "Next conditional" },
+      { "[?", desc = "Prev conditional" },
       { "]l", desc = "Next loop" },
       { "[l", desc = "Prev loop" },
 
@@ -58,6 +58,10 @@ return {
       -- ── Todo motions ────────────────────────────────────────────────────
       { "]t", desc = "Next todo" },
       { "[t", desc = "Prev todo" },
+
+      -- ── Indent scope (mini.indentscope) ─────────────────────────────────
+      { "]i", desc = "Bottom of indent scope" },
+      { "[i", desc = "Top of indent scope" },
 
       -- ── mini.bracketed motions ──────────────────────────────────────────
       { "]b", desc = "Next buffer" },
