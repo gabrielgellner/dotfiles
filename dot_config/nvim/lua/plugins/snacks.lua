@@ -187,14 +187,16 @@ return {
       function()
         Snacks.picker.smart()
       end,
-      desc = "Find files",
+      -- `smart` ranks open buffers and recent files above a plain file scan,
+      -- so this is the one to reach for by default.
+      desc = "Find files (smart)",
     },
     {
       "<leader>fF",
       function()
         Snacks.picker.files()
       end,
-      desc = "Find files",
+      desc = "Find files (all)",
     },
     {
       "<leader>fr",
@@ -370,11 +372,13 @@ return {
     },
     -- scratch notebooks
     {
+      -- Same action as <leader>nn, kept at the top level because it is the
+      -- most-reached-for key in the group.
       "<leader>.",
       function()
         require("config.scratch").open()
       end,
-      desc = "Toggle project notes",
+      desc = "Project notes (quick)",
     },
     {
       "<leader>nn",

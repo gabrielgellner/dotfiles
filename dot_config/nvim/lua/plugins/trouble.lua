@@ -14,7 +14,7 @@ return {
     { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", desc = "Diagnostics (buffer)" },
     { "<leader>xq", "<cmd>Trouble qflist toggle<CR>", desc = "Quickfix list" },
     { "<leader>xl", "<cmd>Trouble loclist toggle<CR>", desc = "Location list" },
-    { "<leader>xt", "<cmd>Trouble todo toggle<CR>", desc = "Todo comments" },
+    { "<leader>xt", "<cmd>Trouble todo toggle<CR>", desc = "Todo comments (trouble)" },
     -- these override ]d/[d to use trouble's jump when trouble is open
     {
       "]d",

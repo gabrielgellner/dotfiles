@@ -27,7 +27,7 @@ return {
       function()
         Snacks.picker.todo_comments()
       end,
-      desc = "Todo comments",
+      desc = "Todo comments (picker)",
     },
     {
       "<leader>fT",
