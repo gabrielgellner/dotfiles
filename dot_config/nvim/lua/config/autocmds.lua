@@ -119,6 +119,29 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.keymap.set("n", "<leader>zr", rules.pick, { buffer = true, desc = "Rules: pick (under cursor + fuzzy all)" })
     vim.keymap.set("n", "<leader>zR", rules.goto_rule, { buffer = true, desc = "Rules: jump to name under cursor" })
     vim.keymap.set("x", "<leader>zr", rules.goto_rule_visual, { buffer = true, desc = "Rules: go to selection" })
+
+    -- Task list checkboxes. See config/markdown_checkbox.lua for the toggle
+    -- semantics; the keys are chosen as follows.
+    --
+    -- <CR> is the primary one, and buffer-local so quickfix, Trouble and the
+    -- pickers keep theirs. Ticking a box is the highest-frequency action in a
+    -- notes buffer, and a <leader> prefix would make it the most expensive one;
+    -- <CR> is unbound as an lhs anywhere in this config, and its normal-mode
+    -- default (down a line, first non-blank) is j/+ territory and worth nothing
+    -- in prose.
+    --
+    -- <leader>mx is the same function under the `markdown` which-key group, so
+    -- it's discoverable next to mr/mp/mP/mR once <CR> has been forgotten. `x`
+    -- as in the x of [x].
+    local checkbox = require("config.markdown_checkbox")
+    vim.keymap.set({ "n", "x" }, "<CR>", checkbox.toggle, { buffer = true, desc = "Toggle checkbox" })
+    vim.keymap.set({ "n", "x" }, "<leader>mx", checkbox.toggle, { buffer = true, desc = "Toggle checkbox" })
+    vim.keymap.set("n", "]x", function()
+      checkbox.next_unchecked(false)
+    end, { buffer = true, desc = "Next unchecked box" })
+    vim.keymap.set("n", "[x", function()
+      checkbox.next_unchecked(true)
+    end, { buffer = true, desc = "Prev unchecked box" })
   end,
 })
 
