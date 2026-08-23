@@ -4,7 +4,7 @@ return {
   priority = 1000,
   lazy = false,
   opts = {
-    flavour = "mocha",
+    flavour = "frappe",
     integrations = {
       mini = { enabled = true, indentscope_color = "lavender" },
       snacks = true,
