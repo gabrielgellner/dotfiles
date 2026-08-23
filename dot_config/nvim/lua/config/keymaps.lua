@@ -106,9 +106,11 @@ map("v", ">", ">gv", { desc = "Indent right" })
 -- ── Argument list ─────────────────────────────────────────────────────────────
 -- Neovim binds [a/]a to :previous/:next and [A/]A to :rewind/:last. The
 -- treesitter @parameter move (plugins/treesitter.lua) claims [a/]a
--- buffer-locally and wins, so the arglist was left half-reachable: first and
--- last worked, previous and next didn't. Drop the remnant rather than keep a
--- pair of keys that only makes sense beside two that don't work.
+-- buffer-locally, which shadows the globals only in buffers that have a
+-- filetype — so the arglist ended up reachable in some buffers and not others,
+-- with [A/]A working everywhere regardless. All four go, so `a` means
+-- "argument" in the parameter sense consistently and nothing behaves
+-- differently depending on which buffer you happen to be in.
 --
 -- The argument list itself is untouched and still driven by command — :args,
 -- :argdo, :next, :previous. It just has no bracket keys here, and nothing in
@@ -116,7 +118,7 @@ map("v", ">", ">gv", { desc = "Indent right" })
 --
 -- pcall because these only exist on Neovim versions that ship them, and
 -- vim.keymap.del throws on a missing mapping.
-for _, lhs in ipairs({ "[A", "]A" }) do
+for _, lhs in ipairs({ "[a", "]a", "[A", "]A" }) do
   pcall(vim.keymap.del, "n", lhs)
 end
 
