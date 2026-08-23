@@ -53,7 +53,7 @@ return {
     -- they'd silently shadow mini's globals in exactly the buffers you'd use
     -- them in. Disable those suffixes rather than leave half-dead bindings:
     --
-    --   c f l      treesitter textobject moves   plugins/treesitter.lua
+    --   c f r      treesitter textobject moves   plugins/treesitter.lua
     --   i          indent scope top/bottom       mini.indentscope, above
     --   t          todo comments                 plugins/todo.lua
     --   d          diagnostics                   plugins/lsp.lua, trouble.lua
@@ -61,14 +61,20 @@ return {
     --   h          git hunks                     plugins/gitsigns.lua (not a
     --              mini suffix, listed so the map of the space is complete)
     --
+    -- `location` is enabled: [l/]l are Neovim's own :lprevious/:lnext, and mini
+    -- adds counts and wrapping plus [L/]L for first/last. The treesitter @loop
+    -- move used to sit on `l` and shadowed them buffer-locally; it has moved to
+    -- [r/]r so the location list can have the letter that means it — the same
+    -- trade already made for [i/]i and indent scope.
+    --
     -- What's left is the half that has no equivalent yet: b buffer, j jumplist,
-    -- o oldfile, u undo states, w window, x conflict marker, y yank ring.
+    -- l location list, o oldfile, u undo states, w window, x conflict marker,
+    -- y yank ring.
     require("mini.bracketed").setup({
       comment = { suffix = "" },
       diagnostic = { suffix = "" },
       file = { suffix = "" },
       indent = { suffix = "" },
-      location = { suffix = "" },
       quickfix = { suffix = "" },
       treesitter = { suffix = "" },
     })

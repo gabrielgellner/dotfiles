@@ -42,6 +42,7 @@ return {
         require("todo-comments").jump_next()
       end,
       desc = "Next todo",
+      mode = { "n", "x", "o" },
     },
     {
       "[t",
@@ -49,6 +50,7 @@ return {
         require("todo-comments").jump_prev()
       end,
       desc = "Prev todo",
+      mode = { "n", "x", "o" },
     },
   },
 }

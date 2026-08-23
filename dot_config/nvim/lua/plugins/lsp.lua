@@ -35,8 +35,8 @@ return {
       group = vim.api.nvim_create_augroup("nvim_lsp_attach", { clear = true }),
       callback = function(event)
         vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
-        local map = function(keys, func, desc)
-          vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
+        local map = function(keys, func, desc, mode)
+          vim.keymap.set(mode or "n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
         end
 
         map("K", vim.lsp.buf.hover, "Hover docs")
@@ -45,18 +45,22 @@ return {
         map("<leader>cf", function()
           require("conform").format({ async = true, lsp_fallback = true })
         end, "Format buffer")
-        map("[d", function()
-          vim.diagnostic.jump({ count = -1 })
-        end, "Prev diagnostic")
-        map("]d", function()
-          vim.diagnostic.jump({ count = 1 })
-        end, "Next diagnostic")
-        map("[e", function()
-          vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR })
-        end, "Prev error")
-        map("]e", function()
-          vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
-        end, "Next error")
+        -- No [d/]d here. plugins/trouble.lua binds those globally to a version
+        -- that steps the Trouble list when it is open and falls back to this
+        -- exact vim.diagnostic.jump call when it is not. Defining them here made
+        -- them buffer-local, which always beats a global mapping — so the
+        -- Trouble half never ran in any buffer with a client attached, which is
+        -- every buffer that has diagnostics to jump between.
+        --
+        -- [e/]e stay: nothing else defines an errors-only motion.
+        local diag_jump = function(count, severity)
+          return function()
+            vim.diagnostic.jump({ count = count, severity = severity })
+          end
+        end
+        local ERROR = vim.diagnostic.severity.ERROR
+        map("[e", diag_jump(-1, ERROR), "Prev error", { "n", "x", "o" })
+        map("]e", diag_jump(1, ERROR), "Next error", { "n", "x", "o" })
         map("<leader>e", vim.diagnostic.open_float, "Show diagnostic")
         map("<leader>lr", function()
           -- Restart every server attached to this buffer (config-agnostic;

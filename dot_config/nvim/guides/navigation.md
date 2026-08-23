@@ -58,7 +58,7 @@ you want to land on.
 | `]c` `[c` | next / previous class (`]C` `[C` for the end) |
 | `]a` `[a` | next / previous argument |
 | `]?` `[?` | next / previous conditional |
-| `]l` `[l` | next / previous loop |
+| `]r` `[r` | next / previous loop |
 | `[i` / `]i` | top / bottom of the current indent scope |
 | `ii` / `ai` | select the indent scope, without / with its borders |
 | `%` | matching bracket / keyword pair (matchup: `if`↔`end`, tags, …) |
@@ -118,10 +118,10 @@ Everything `[`/`]` is bound to, in one place:
 
 | Suffix | Motion | From |
 | --- | --- | --- |
-| `f` `F` `c` `C` `a` `l` `?` | function, class, argument, loop, conditional | treesitter |
+| `f` `F` `c` `C` `a` `r` `?` | function, class, argument, loop (repeat), conditional | treesitter |
 | `i` | top / bottom of indent scope | mini.indentscope |
 | `b` `B` | buffer | mini.bracketed |
-| `j` `o` `u` `w` `x` `y` | jumplist, oldfile, undo state, window, conflict marker, yank ring | mini.bracketed |
+| `j` `l` `o` `u` `w` `x` `y` | jumplist, location list, oldfile, undo state, window, conflict marker, yank ring | mini.bracketed |
 | `h` | git hunk | gitsigns |
 | `d` `e` | diagnostic, error | LSP |
 | `t` | todo comment | todo-comments |

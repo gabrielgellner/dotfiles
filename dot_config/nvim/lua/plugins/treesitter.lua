@@ -98,7 +98,7 @@ return {
           ["]c"] = "@class.outer",
           ["]a"] = "@parameter.inner",
           ["]?"] = "@conditional.outer",
-          ["]l"] = "@loop.outer",
+          ["]r"] = "@loop.outer",
         },
         goto_next_end = {
           ["]F"] = "@function.outer",
@@ -109,7 +109,7 @@ return {
           ["[c"] = "@class.outer",
           ["[a"] = "@parameter.inner",
           ["[?"] = "@conditional.outer",
-          ["[l"] = "@loop.outer",
+          ["[r"] = "@loop.outer",
         },
         goto_previous_end = {
           ["[F"] = "@function.outer",

@@ -26,6 +26,7 @@ return {
         end
       end,
       desc = "Next diagnostic",
+      mode = { "n", "x", "o" },
     },
     {
       "[d",
@@ -37,6 +38,7 @@ return {
         end
       end,
       desc = "Prev diagnostic",
+      mode = { "n", "x", "o" },
     },
   },
 }

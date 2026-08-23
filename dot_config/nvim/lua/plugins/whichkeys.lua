@@ -93,8 +93,8 @@ return {
       { "[a", desc = "Prev argument" },
       { "]?", desc = "Next conditional" },
       { "[?", desc = "Prev conditional" },
-      { "]l", desc = "Next loop" },
-      { "[l", desc = "Prev loop" },
+      { "]r", desc = "Next loop" },
+      { "[r", desc = "Prev loop" },
 
       -- ── Git diffview ────────────────────────────────────────────────────
       { "<leader>gv", desc = "Diff view (working tree)" },
@@ -118,6 +118,8 @@ return {
       { "[b", desc = "Prev buffer" },
       { "]j", desc = "Next jumplist entry" },
       { "[j", desc = "Prev jumplist entry" },
+      { "]l", desc = "Next location list entry" },
+      { "[l", desc = "Prev location list entry" },
       { "]o", desc = "Next oldfile" },
       { "[o", desc = "Prev oldfile" },
       { "]u", desc = "Next undo state" },
