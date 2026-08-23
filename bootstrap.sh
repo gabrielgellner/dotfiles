@@ -20,6 +20,26 @@ brew_install() {
     fi
 }
 
+# Install only when the command is genuinely absent, whatever provides it.
+#
+# brew_install asks `brew list`, which only knows brew's own packages, so it
+# installs a second copy alongside anything the system already ships. For tmux
+# that means two binaries on PATH and a client and server that can disagree
+# about version and socket. The same trap is one step away for anything
+# installable by more than one route.
+#
+# Second argument is the formula when it differs from the binary, e.g.
+# `ensure_command rg ripgrep`.
+ensure_command() {
+    local cmd="$1" formula="${2:-$1}"
+    if command -v "$cmd" &>/dev/null; then
+        yellow "  $cmd already present ($(command -v "$cmd")), skipping"
+    else
+        green "  brew: installing $formula"
+        brew install "$formula"
+    fi
+}
+
 uv_tool_install() {
     local pkg="$1"
     if uv tool list 2>/dev/null | grep -q "^$pkg "; then
@@ -86,11 +106,25 @@ brew_install lazygit
 # shell environment
 brew_install direnv
 
+# terminal multiplexer
+# ensure_command, not brew_install: several platforms ship tmux already, and a
+# brew copy alongside it has caused version and socket mismatches.
+ensure_command tmux
+
+# notes (zk drives plugins/zk.lua and ZK_NOTEBOOK_DIR in dot_zshrc)
+ensure_command zk
+
 # dev tooling
 brew_install git
 brew_install just
 brew_install git-cliff
 brew_install tree-sitter
+
+# LSP servers that plugins/lsp.lua actually enables. basedpyright below is not
+# one of them — it is kept deliberately for CI and `just` checks, where broader
+# coverage matters than the editor needs (see the comment in lsp.lua).
+ensure_command pyrefly
+ensure_command just-lsp
 
 # ── uv itself ─────────────────────────────────────────────────────────────────
 
@@ -150,6 +184,25 @@ if [[ -d "$YAZI_FLAVOR_DIR" ]]; then
 else
     green "Installing catppuccin-frappe flavor via ya pkg..."
     ya pkg add yazi-rs/flavors:catppuccin-frappe
+fi
+
+# ── Verify ────────────────────────────────────────────────────────────────────
+# The reason this exists: nothing else checks that bootstrap still provisions
+# what the config expects. tmux, zk, pyrefly and just-lsp had all drifted out of
+# this script while remaining hard dependencies, and it was invisible because a
+# bootstrap is run once per machine, years apart.
+
+blue "\nVerifying..."
+missing=()
+for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
+         yazi starship zoxide direnv lazygit just uv tree-sitter; do
+    command -v "$c" &>/dev/null || missing+=("$c")
+done
+if (( ${#missing[@]} )); then
+    yellow "  not on PATH: ${missing[*]}"
+    yellow "  (a new shell may be needed first, or these genuinely failed to install)"
+else
+    green "  all expected tools present"
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
