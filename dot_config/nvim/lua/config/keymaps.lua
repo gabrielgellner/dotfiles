@@ -88,21 +88,32 @@ map("n", "<leader>wd", "<C-w>c", { desc = "Close window" })
 -- `:w<CR>` is one keystroke more and costs no namespace.
 
 -- ── Terminal ──────────────────────────────────────────────────────────────────
--- One key out of terminal mode instead of <C-\><C-n>. <C-\> is 0x1c, so it
--- survives every terminal intact — no <C-_>-style fallback needed the way <C-/>
--- needs one.
+-- One key out of terminal mode instead of <C-\><C-n>. This is the most-pressed
+-- key in the Claude float — normal mode is how you scroll and yank its output —
+-- so it has to be a single chord.
 --
--- This takes over the whole <C-\> prefix in terminal mode (:h terminal-input),
--- which costs three things: <C-\><C-o> (one normal-mode command, then straight
--- back to terminal mode), the <C-\>{key} literal passthrough, and any plugin
--- key hung off the prefix. Nothing may reuse <C-\> as a prefix in terminal mode
--- afterwards — a second binding would put a 'timeoutlen' wait on every press.
-map("t", "<C-\\>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+-- <C-x> rather than <C-\>, which is what this used to be. The hazard was not
+-- inside nvim but outside it: a key pressed this often gets into the fingers,
+-- and <C-\> in a plain shell is the terminal quit character, so a misfire in
+-- the wrong pane sends SIGQUIT to whatever is running. <C-x> is the one
+-- candidate that does *nothing* in this shell — zsh reports it as
+-- `undefined-key` — and it is unbound in tmux's root and copy-mode tables too.
+-- <C-g> was the runner-up (zsh binds it to list-expand, harmless), but a TUI is
+-- likelier to want <C-g> for cancel than <C-x>.
+--
+-- 0x18 is a real control character, so it survives every terminal intact — no
+-- <C-_>-style fallback needed the way <C-/> needs one.
+--
+-- The cost is that the job never receives <C-x>. In exchange, <C-\> is left
+-- alone: the built-in <C-\><C-n> and <C-\><C-o> still work as a fallback, and
+-- the <C-\>{key} literal passthrough is intact (:h terminal-input).
+map("t", "<C-x>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
--- The passthrough above was the only way to send a literal <C-\> — the terminal
--- quit character, i.e. SIGQUIT — to the job. That's how you get a Go goroutine
--- dump or a Java thread dump, and how you kill something that's swallowing
--- <C-c>, so keep a way to send the raw byte.
+-- An explicit way to send the terminal quit character to the job — a Go
+-- goroutine dump, a Java thread dump, or killing something that is swallowing
+-- <C-c>. <C-\> can reach the job on its own again now, but this stays: it is
+-- unambiguous, and it does not depend on remembering how nvim's <C-\> prefix
+-- resolves.
 map("t", "<C-q>", function()
   vim.api.nvim_chan_send(vim.b.terminal_job_id, "\28")
 end, { desc = "Send SIGQUIT to terminal job" })
