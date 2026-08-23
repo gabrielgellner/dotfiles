@@ -37,8 +37,11 @@ map("n", "<C-h>", "<C-w>h", { desc = "Window left" })
 map("n", "<C-j>", "<C-w>j", { desc = "Window down" })
 map("n", "<C-k>", "<C-w>k", { desc = "Window up" })
 map("n", "<C-l>", "<C-w>l", { desc = "Window right" })
-map("n", "<leader>-", "<C-w>s", { desc = "Split horizontal" })
-map("n", "<leader>|", "<C-w>v", { desc = "Split vertical" })
+-- Splits sit under <leader>w with the rest of the window commands. <leader>-
+-- used to be the horizontal one and did nothing: plugins/oil.lua binds the same
+-- key to `Oil --float` and, being a lazy key registered later, won.
+map("n", "<leader>w-", "<C-w>s", { desc = "Split horizontal" })
+map("n", "<leader>w|", "<C-w>v", { desc = "Split vertical" })
 map("n", "<leader>wd", "<C-w>c", { desc = "Close window" })
 -- `<leader>w` is deliberately left as a bare prefix for this group. It used to
 -- also be mapped to `:write`, which made it a complete action *and* a prefix:

@@ -147,7 +147,7 @@ where the cursor still is.
 like; `<C-o>` unwinds one level per press.
 
 **Compare two places in one file.** `ma` on the first, jump away, `` `a `` to
-return. Or split with `<leader>-` and scroll the two independently.
+return. Or split with `<leader>w-` and scroll the two independently.
 
 **Get to something you can see.** `s` + two characters. Never scroll to it.
 
