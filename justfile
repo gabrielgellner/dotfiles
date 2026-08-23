@@ -33,6 +33,9 @@ changelog-preview:
 # show what version git-cliff would bump to next
 next-version:
     #!/usr/bin/env bash
+    # set -e like `release` below: without it a git-cliff failure left $ver empty
+    # and this printed a bare "v".
+    set -euo pipefail
     ver=$(git-cliff --bumped-version)
     [[ "$ver" == v* ]] || ver="v$ver"
     echo "$ver"
@@ -41,6 +44,13 @@ next-version:
 release version="":
     #!/usr/bin/env bash
     set -euo pipefail
+    # Guards before anything is written. main is protected and rejects
+    # force-push, so a bad release commit cannot be reworded away afterwards.
+    if [[ -n "$(git status --porcelain)" ]]; then
+        echo "working tree is dirty — commit or stash first" >&2
+        echo "  (git add CHANGELOG.md below would otherwise sweep in whatever is staged)" >&2
+        exit 1
+    fi
     if [[ -z "{{ version }}" ]]; then
         ver=$(git-cliff --bumped-version)
         # ensure v prefix (git-cliff omits it when there are no prior tags)
@@ -48,10 +58,20 @@ release version="":
     else
         ver="{{ version }}"
     fi
+    # Before committing, not after: `git tag` failing on an existing tag used to
+    # abort here leaving a chore(release) commit with nothing tagging it.
+    if git rev-parse -q --verify "refs/tags/$ver" >/dev/null; then
+        echo "tag $ver already exists" >&2
+        exit 1
+    fi
+
     echo "Releasing $ver..."
     git-cliff --tag "$ver" --output CHANGELOG.md
     git add CHANGELOG.md
     git commit -m "chore(release): $ver"
     git tag -a "$ver" -m "Release $ver"
-    git push && git push --tags
+    # --follow-tags sends the commit and its annotated tag in one exchange.
+    # `git push && git push --tags` could push the commit and then fail, leaving
+    # the tag behind on this machine only.
+    git push --follow-tags
     echo "Done — $ver tagged and pushed."
