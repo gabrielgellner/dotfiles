@@ -125,7 +125,7 @@ Everything `[`/`]` is bound to, in one place:
 | `h` | git hunk | gitsigns |
 | `d` `e` | diagnostic, error | LSP |
 | `t` | todo comment | todo-comments |
-| `q` | quickfix entry | keymaps |
+| `q` `Q` | quickfix entry / first-last | mini.bracketed |
 
 `[y` / `]y` is the sleeper: after pasting, it cycles the paste through older and
 newer yanks in place.

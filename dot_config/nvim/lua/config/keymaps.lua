@@ -94,10 +94,14 @@ map("v", "<", "<gv", { desc = "Indent left" })
 map("v", ">", ">gv", { desc = "Indent right" })
 
 -- ── Quickfix ──────────────────────────────────────────────────────────────────
--- No <leader>xq here: plugins/trouble.lua binds it to `Trouble qflist toggle`
--- and loads later, so a `:copen` mapping at this point was only ever overwritten.
-map("n", "]q", "<cmd>cnext<CR>", { desc = "Next quickfix" })
-map("n", "[q", "<cmd>cprev<CR>", { desc = "Prev quickfix" })
+-- Nothing is bound here any more; both halves live elsewhere and this note is
+-- what stops them being re-added:
+--
+--   ]q / [q     mini.bracketed (plugins/mini.lua). Takes a count, wraps, and
+--               adds [Q/]Q for first/last — none of which the plain
+--               :cnext/:cprev mappings that used to live here could do.
+--   <leader>xq  plugins/trouble.lua, `Trouble qflist toggle`. It loads after
+--               this file, so a :copen mapping here was only ever overwritten.
 
 -- ── Guides ────────────────────────────────────────────────────────────────────
 -- Personal reference cards (guides/*.md). See config/guides.lua.

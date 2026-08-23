@@ -57,25 +57,27 @@ return {
     --   i          indent scope top/bottom       mini.indentscope, above
     --   t          todo comments                 plugins/todo.lua
     --   d          diagnostics                   plugins/lsp.lua, trouble.lua
-    --   q          quickfix                      config/keymaps.lua
     --   h          git hunks                     plugins/gitsigns.lua (not a
     --              mini suffix, listed so the map of the space is complete)
     --
-    -- `location` is enabled: [l/]l are Neovim's own :lprevious/:lnext, and mini
-    -- adds counts and wrapping plus [L/]L for first/last. The treesitter @loop
-    -- move used to sit on `l` and shadowed them buffer-locally; it has moved to
-    -- [r/]r so the location list can have the letter that means it — the same
-    -- trade already made for [i/]i and indent scope.
+    -- `location` and `quickfix` are both enabled, so the two lists behave the
+    -- same way: [l/]l and [q/]q take a count and wrap, and [L/]L and [Q/]Q jump
+    -- to first/last — none of which plain :lnext/:cnext gave. Leaving one to
+    -- mini and hand-rolling the other is what made them diverge before.
+    --
+    -- The treesitter @loop move used to sit on `l` and shadowed :lprevious /
+    -- :lnext buffer-locally; it moved to [r/]r so the location list could have
+    -- the letter that means it — the same trade already made for [i/]i and
+    -- indent scope.
     --
     -- What's left is the half that has no equivalent yet: b buffer, j jumplist,
-    -- l location list, o oldfile, u undo states, w window, x conflict marker,
-    -- y yank ring.
+    -- l location list, o oldfile, q quickfix, u undo states, w window,
+    -- x conflict marker, y yank ring.
     require("mini.bracketed").setup({
       comment = { suffix = "" },
       diagnostic = { suffix = "" },
       file = { suffix = "" },
       indent = { suffix = "" },
-      quickfix = { suffix = "" },
       treesitter = { suffix = "" },
     })
 

@@ -120,6 +120,8 @@ return {
       { "[j", desc = "Prev jumplist entry" },
       { "]l", desc = "Next location list entry" },
       { "[l", desc = "Prev location list entry" },
+      { "]q", desc = "Next quickfix entry" },
+      { "[q", desc = "Prev quickfix entry" },
       { "]o", desc = "Next oldfile" },
       { "[o", desc = "Prev oldfile" },
       { "]u", desc = "Next undo state" },
