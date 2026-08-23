@@ -89,3 +89,7 @@ backs out; nothing is changed until a match is found.
 - `gsh{id}` is the cheap way to check what `gsd{id}` would hit before doing it.
 - Counts on text objects behave oddly here — `gsa2iw)` does not wrap two words.
   Use visual mode when the target isn't a single clean motion.
+
+---
+
+The rules behind these bindings: [Keymap conventions](keymaps.md).

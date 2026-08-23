@@ -64,6 +64,48 @@ local function items()
   return out
 end
 
+--- Follow a `[text](other.md)` link, or a bare `other.md`, to another guide.
+---
+--- Plain `gf` cannot do this: the float's 'path' is `.,,` and resolves against
+--- the *cwd*, not the guides directory, so a relative link between guides never
+--- opens. Resolving by basename here also means the link text can stay short.
+---@param win snacks.win
+local function follow(win)
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.fn.col(".")
+
+  -- Prefer the link the cursor is actually inside, matching on the whole
+  -- `[text](dest)` span rather than just the parenthesised half — the cursor is
+  -- normally on the words, not the filename. A see-also line carries several
+  -- links, and taking the first would ignore which one was pointed at.
+  local target
+  local from = 1
+  while true do
+    local a, b, dest = line:find("%[[^%]]*%]%((%S-%.md)%)", from)
+    if not a then
+      break
+    end
+    if col >= a and col <= b then
+      target = dest
+      break
+    end
+    target = target or dest -- first link on the line, if the cursor is on none
+    from = b + 1
+  end
+  target = target or vim.fn.expand("<cfile>")
+  if type(target) ~= "string" or not target:match("%.md$") then
+    vim.notify("guides: no guide link on this line", vim.log.levels.WARN)
+    return
+  end
+  local path = DIR .. "/" .. vim.fs.basename(target)
+  if not vim.uv.fs_stat(path) then
+    vim.notify("guides: no such guide: " .. vim.fs.basename(target), vim.log.levels.WARN)
+    return
+  end
+  win:close()
+  M.open(path)
+end
+
 --- Open one guide in a float, styled for reading rather than editing.
 ---@param path string
 function M.open(path)
@@ -84,7 +126,12 @@ function M.open(path)
       spell = false,
       conceallevel = 2, -- let render-markdown conceal the syntax
     },
-    keys = { q = "close" },
+    keys = {
+      q = "close",
+      -- `gf` because these *are* file references; it just needs help resolving
+      -- them. <CR> is already the checkbox toggle in markdown buffers.
+      gf = follow,
+    },
   })
 end
 

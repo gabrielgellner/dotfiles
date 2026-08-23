@@ -139,3 +139,9 @@ The four questions worth asking of any namespace:
 3. Do two keys share a description, or does one key's case partner mean something
    unrelated?
 4. Does anything advertised actually work?
+
+---
+
+The guides these rules shaped — `gf` on a link follows it:
+[Navigation](navigation.md), [Files](files.md), [Git](git.md),
+[Surround](surround.md), [Command line](cmdline.md).

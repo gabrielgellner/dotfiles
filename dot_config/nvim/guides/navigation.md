@@ -178,3 +178,8 @@ return. Or split with `<leader>w-` and scroll the two independently.
 
 **Get to something you can't see.** Name it: `/pattern`, `]f`, `<leader>fs`, or
 `<leader>fw`. Scrolling is the last resort, not the first.
+
+---
+
+Why these keys are where they are, and what a capital means:
+[Keymap conventions](keymaps.md). Press `gf` on a link to follow it.

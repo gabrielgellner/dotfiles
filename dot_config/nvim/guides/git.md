@@ -109,3 +109,7 @@ If that isn't the one, `<leader>gh` for the file's history and read backwards.
 
 **Undo a change you just made.** `<leader>gr` resets the hunk under the cursor.
 `[u` / `]u` walk Neovim's own undo states, which is the finer-grained tool.
+
+---
+
+The rules behind these bindings: [Keymap conventions](keymaps.md).

@@ -112,3 +112,7 @@ line you find, `<CR>`.
 
 **Feed a directory to a command.** `:args src/<C-a>` puts every file on the line,
 ready for `:argdo`.
+
+---
+
+The rules behind these bindings: [Keymap conventions](keymaps.md).

@@ -107,3 +107,7 @@ Either can do the other's job badly. The split worth keeping is that the explore
 shows you *many* directories at once and oil lets you *edit* one of them — so
 reach for the explorer when you don't know where a thing is, and oil when you
 know exactly what you want the directory to look like afterwards.
+
+---
+
+The rules behind these bindings: [Keymap conventions](keymaps.md).
