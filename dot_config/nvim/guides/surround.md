@@ -4,11 +4,11 @@
 
 | Key | Does |
 | --- | --- |
-| `gsa{motion}{id}` | **add** a surrounding around whatever the motion covers |
+| `gsa{motion}{id}` | **add** a surrounding around what the motion covers |
 | `gsd{id}` | **delete** the nearest `{id}` surrounding |
 | `gsr{old}{new}` | **replace** one surrounding with another |
 | `gsf{id}` / `gsF{id}` | jump to the right / left edge of a surrounding |
-| `gsh{id}` | briefly highlight one, to check you're aiming at the right thing |
+| `gsh{id}` | briefly highlight one, to check your aim |
 
 `gsa` is an operator, so it takes any motion or text object: `gsaiw"`, `gsaip)`,
 `gsa$)`. In visual mode the selection *is* the target, so it's just `gsa{id}`.

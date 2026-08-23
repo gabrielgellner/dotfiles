@@ -21,11 +21,11 @@ gl / gL   blame line / toggle inline       cc / cC   nearest / enclosing class
 nothing to reason from, so the reader has to memorise which is which. Give them
 separate letters instead:
 
-| Was | Became | Why |
+| Was | Became | Why case was wrong |
 | --- | --- | --- |
-| `<leader>cb` / `cB` decode / encode | `cbe` / `cbd` under a group | case was carrying *direction* |
-| `<leader>mr` / `mR` render / preview refresh | refresh moved to `mf` | different plugins, coincidental collision |
-| `<leader>ac` / `aC` toggle / continue session | continue moved to `al` | unrelated actions |
+| `cb` / `cB` decode / encode | `cbe` / `cbd` | carried *direction* |
+| `mr` / `mR` render / refresh | refresh → `mf` | different plugins |
+| `ac` / `aC` toggle / continue | continue → `al` | unrelated actions |
 
 When a genuine scope pair is backwards, **swap it**. When it was never a pair,
 **move the odd one out** — and move the *rarer* half, so the common action keeps

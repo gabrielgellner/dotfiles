@@ -15,7 +15,7 @@ The short version: **find in the explorer, change in oil.**
 | Key | Does |
 | --- | --- |
 | `O` in the explorer | open oil on the directory under the cursor |
-| `<leader>fe` in oil | open the explorer rooted where oil is, not at the cwd |
+| `<leader>fe` in oil | explorer rooted where oil is, not the cwd |
 
 So the loop is: `<leader>fe`, drill down through the tree to the directory you
 want, `O`, do the editing, `<leader>fe` to carry on browsing from there.
@@ -32,7 +32,7 @@ gutter rather than pressing `j` twelve times.
 | `<BS>` | go up a level |
 | `.` | make the directory under the cursor the root |
 | `<CR>` | open the file |
-| `a` `d` `r` `c` `m` | add, delete, rename, copy, move — one item at a time |
+| `a` `d` `r` `c` `m` | add, delete, rename, copy, move — one at a time |
 | `y` / `p` | yank / paste paths |
 | `H` / `I` | toggle hidden / ignored files |
 | `Z` | collapse everything |

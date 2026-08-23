@@ -111,8 +111,12 @@ end
 function M.open(path)
   Snacks.win({
     file = path,
-    width = 0.7,
-    height = 0.85,
+    -- Absolute, not a fraction. These are reference documents whose tables are
+    -- written to fit 80 columns, and 0.7 of a narrow terminal was 54 — narrower
+    -- than the content, so tables overflowed. 86 is 80 plus the border and a
+    -- little breathing room; Snacks clamps it when the editor is smaller.
+    width = 86,
+    height = 0.9,
     border = "rounded",
     title = " " .. (title_of(path) or vim.fn.fnamemodify(path, ":t")) .. " ",
     title_pos = "center",

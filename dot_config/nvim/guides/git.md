@@ -56,13 +56,13 @@ gitsigns, in the buffer, no separate UI.
 
 | Key | Does |
 | --- | --- |
-| `]h` / `[h` | next / previous hunk — works after an operator, so `d]h` deletes to the next one |
+| `]h` / `[h` | next / previous hunk; works after an operator (`d]h`) |
 | `ih` | the hunk as a text object — `dih`, `vih` |
 | `<leader>gp` | preview the hunk in a popup |
 | `<leader>gP` | preview it inline instead |
-| `<leader>gs` | stage the hunk — in visual mode, only the selected lines |
+| `<leader>gs` | stage the hunk — in visual, just the selected lines |
 | `<leader>gS` | stage the whole buffer |
-| `<leader>gr` | reset the hunk — in visual mode, only the selected lines |
+| `<leader>gr` | reset the hunk — in visual, just the selected lines |
 | `<leader>gR` | reset the whole buffer |
 
 `<leader>gs` is also **unstage**: on a hunk that's already staged it takes it back
@@ -73,7 +73,7 @@ own sign so you can see which you're aiming at.
 
 | Key | Does |
 | --- | --- |
-| `<leader>gl` | blame the current line, in a popup, with the full commit message |
+| `<leader>gl` | blame this line — popup, full commit message |
 | `<leader>gL` | toggle persistent inline blame for every line |
 | `<leader>gB` | blame the whole file in a scrollbound split |
 | `<leader>gd` | diff this file against the index |

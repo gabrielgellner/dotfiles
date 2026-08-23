@@ -13,7 +13,7 @@ runs out.
 | Key | Does |
 | --- | --- |
 | `<C-e>` / `<C-y>` | scroll window down / up, 3 lines a press |
-| `zt` `zz` `zb` | put the cursor's line at top / middle / bottom of window |
+| `zt` `zz` `zb` | cursor's line to top / middle / bottom of window |
 | `z<CR>` `z.` `z-` | same, but also jump to first non-blank |
 
 `<C-e>`/`<C-y>` are the answer to "scroll without moving the cursor". Vim has no
@@ -28,7 +28,7 @@ way to fully decouple the two — the cursor must stay on screen — so a genero
 | `s{char}{char}` | flash: jump to any visible match by label |
 | `S` | flash treesitter: label every enclosing node, pick one |
 | `f` `t` `F` `T` | flash-enhanced — labels appear on multiple matches |
-| `w` `e` `b` `ge` | spider — stops at subWord boundaries, not just words |
+| `w` `e` `b` `ge` | spider — stops at subWord boundaries |
 
 **`<C-e>`/`<C-y>` then `H`/`M`/`L` is the core two-step**: bring the text into
 view, then place the cursor. That's the pair that replaces mashing `<C-d>`.
@@ -40,10 +40,10 @@ keystrokes regardless of distance. Scrolling is for things *off* screen.
 
 | Key | Does |
 | --- | --- |
-| `<C-d>` / `<C-u>` | half page, recentred (`zz`) so the cursor stays mid-screen |
+| `<C-d>` / `<C-u>` | half page, recentred — cursor stays mid-screen |
 | `<C-f>` / `<C-b>` | full page |
 | `{` / `}` | previous / next blank line — cheap paragraph-sized hops |
-| `12j` `12k` | counted moves are *real* lines, matching the `relativenumber` gutter |
+| `12j` `12k` | counted moves are *real* lines, matching the gutter |
 | `n` / `N` | next / previous match, recentred |
 | `gg` / `G` / `42G` | top / bottom / line 42 |
 
@@ -62,7 +62,7 @@ you want to land on.
 | `[i` / `]i` | top / bottom of the current indent scope |
 | `ii` / `ai` | select the indent scope, without / with its borders |
 | `%` | matching bracket / keyword pair (matchup: `if`↔`end`, tags, …) |
-| `<leader>fs` | symbol picker for the file — the fastest way into a big file |
+| `<leader>fs` | symbol picker — the fastest way into a big file |
 
 A sticky header pins the enclosing function/class signatures to the top of the
 window as you scroll, so you always know what you're inside. `<leader>uc`
@@ -95,7 +95,7 @@ the original by reflex.
 | `s` | substitute character | flash jump | `cl` |
 | `S` | substitute line | flash treesitter | `cc` |
 | visual `S` / `R` | change the selected lines | flash | `c` |
-| `w` `e` `b` | word motions | spider — stops at subWord boundaries | `W` `E` `B` for the vanilla ones |
+| `w` `e` `b` | word motions | spider (subword-aware) | `W` `E` `B` |
 
 The spider one is the easiest to trip over, because it applies **after an
 operator too**: `dw` on `getUserName` deletes only `get`. `dW` is the vanilla
@@ -136,7 +136,7 @@ The single biggest reading upgrade: jump freely, because returning is one key.
 | `<leader>ff` `<leader>fb` `<leader>fr` | find file / buffer / recent |
 | `<leader>fg` `<leader>fw` | live grep / grep word under cursor |
 | `<leader>fl` | fuzzy-find a line in this buffer |
-| `<leader>fm` `<leader>fj` | marks / jumplist as a list, rather than stepping it |
+| `<leader>fm` `<leader>fj` | marks / jumps as a list, not stepped |
 | `<leader>f;` | reopen the last picker |
 | `<leader>fS` | workspace symbols |
 
@@ -146,10 +146,13 @@ Everything `[`/`]` is bound to, in one place:
 
 | Suffix | Motion | From |
 | --- | --- | --- |
-| `f` `F` `c` `C` `a` `r` `?` | function, class, argument, loop (repeat), conditional | treesitter |
+| `f` `F` `c` `C` | function, class (caps = end) | treesitter |
+| `a` `r` `?` | argument, loop (repeat), conditional | treesitter |
 | `i` | top / bottom of indent scope | mini.indentscope |
 | `b` `B` | buffer | mini.bracketed |
-| `j` `l` `o` `u` `w` `x` `y` | jumplist, location list, oldfile, undo state, window, conflict marker, yank ring | mini.bracketed |
+| `j` `l` `o` | jumplist, location list, oldfile | mini.bracketed |
+| `u` `w` `y` | undo state, window, yank ring | mini.bracketed |
+| `x` | conflict marker | mini.bracketed |
 | `h` | git hunk | gitsigns |
 | `d` `e` | diagnostic, error | LSP |
 | `t` | todo comment | todo-comments |
