@@ -45,7 +45,10 @@ return {
       map("<leader>gr", gs.reset_hunk, "Reset hunk")
       map("<leader>gS", gs.stage_buffer, "Stage buffer")
       map("<leader>gR", gs.reset_buffer, "Reset buffer")
-      map("<leader>gu", gs.undo_stage_hunk, "Undo stage hunk")
+      -- No unstage mapping: gitsigns deprecated undo_stage_hunk, and the
+      -- replacement is stage_hunk() itself — on a staged sign it unstages.
+      -- signs_staged (above) is what makes those hunks visible to aim at, so
+      -- <leader>gs is now both "stage" and "unstage" depending on the sign.
 
       -- visual mode stage/reset just the selected lines
       map("<leader>gs", function()

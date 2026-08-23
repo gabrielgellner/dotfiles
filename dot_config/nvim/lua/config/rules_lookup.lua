@@ -26,7 +26,7 @@ local MAX_WORDS = 4
 local function repo_root(bufnr)
   local from = vim.api.nvim_buf_get_name(bufnr or 0)
   if from == "" then
-    from = vim.uv.cwd()
+    from = vim.uv.cwd() or ""
   end
   local hit = vim.fs.find("spell_aliases.toml", { upward = true, path = vim.fs.dirname(from) })[1]
   return hit and vim.fs.dirname(hit) or nil

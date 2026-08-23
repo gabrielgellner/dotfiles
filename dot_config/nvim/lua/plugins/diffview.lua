@@ -15,7 +15,7 @@ return {
         merge_tool = { layout = "diff3_vertical" },
       },
       hooks = {
-        diff_buf_read = function(_bufnr)
+        diff_buf_read = function()
           vim.opt_local.wrap = false
           vim.opt_local.list = false
           vim.opt_local.colorcolumn = ""
