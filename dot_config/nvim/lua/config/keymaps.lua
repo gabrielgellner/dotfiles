@@ -33,10 +33,9 @@ map({ "n", "x" }, "<C-e>", "3<C-e>", { desc = "Scroll view down" })
 map({ "n", "x" }, "<C-y>", "3<C-y>", { desc = "Scroll view up" })
 
 -- ── Windows ───────────────────────────────────────────────────────────────────
-map("n", "<C-h>", "<C-w>h", { desc = "Window left" })
-map("n", "<C-j>", "<C-w>j", { desc = "Window down" })
-map("n", "<C-k>", "<C-w>k", { desc = "Window up" })
-map("n", "<C-l>", "<C-w>l", { desc = "Window right" })
+-- <C-hjkl> are bound in plugins/tmux-navigator.lua, not here. They used to be
+-- plain <C-w>h/j/k/l, which stopped at the outermost window; the plugin carries
+-- the same movement on into the neighbouring tmux pane instead.
 -- Splits sit under <leader>w with the rest of the window commands. <leader>-
 -- used to be the horizontal one and did nothing: plugins/oil.lua binds the same
 -- key to `Oil --float` and, being a lazy key registered later, won.

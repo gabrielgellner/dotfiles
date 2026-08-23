@@ -54,7 +54,11 @@ return {
     keys = {
       { "<leader>mp", "<cmd>MarkdownPreview<CR>", ft = "markdown", desc = "Preview start" },
       { "<leader>mP", "<cmd>MarkdownPreviewStop<CR>", ft = "markdown", desc = "Preview stop" },
-      { "<leader>mR", "<cmd>MarkdownPreviewRefresh<CR>", ft = "markdown", desc = "Preview refresh" },
+      -- Refresh sits on mf, not mR. <leader>mr is render-markdown's toggle — a
+      -- different plugin doing a different thing — so mr/mR looked like a pair
+      -- and wasn't. mf keeps refresh beside the preview commands it belongs to
+      -- without borrowing a letter that is already spoken for.
+      { "<leader>mf", "<cmd>MarkdownPreviewRefresh<CR>", ft = "markdown", desc = "Preview refresh" },
     },
   },
 }

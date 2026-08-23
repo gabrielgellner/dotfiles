@@ -74,7 +74,8 @@ whole directory, visual block to change a column of names, `.` to repeat.
 | `g?` | help |
 
 > **Two keys mean something else in an oil buffer.** `gs` is change-sort, not the
-> surround prefix. `<C-h>` opens the file in a horizontal split, not window-left.
+> surround prefix. `<C-h>` opens the file in a horizontal split, rather than moving
+> to the window or tmux pane on the left.
 
 ## Recipes
 

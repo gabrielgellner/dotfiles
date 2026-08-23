@@ -325,7 +325,11 @@ return {
     { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
     { "<leader>az", toggle_width, desc = "Toggle Claude width (full/side)" },
     { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume session" },
-    { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Continue last session" },
+    -- `al` rather than `aC`: continuing the last session has nothing to do with
+    -- toggling the window on <leader>ac, and a capital that means an unrelated
+    -- action rather than a wider one is the one case convention this config
+    -- tries to keep. `l` as in last; it sits beside ar, which picks a session.
+    { "<leader>al", "<cmd>ClaudeCode --continue<cr>", desc = "Continue last session" },
     { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select model" },
     -- Context
     { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "Add current buffer" },

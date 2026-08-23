@@ -16,18 +16,11 @@ return {
     },
     -- search word under cursor
     {
+      -- Lowercase is this file, capital is the whole project. The pair used to
+      -- run the other way, which fought the convention a capital carries
+      -- everywhere else here — and fought vim's own w/W, where the capital is
+      -- the bigger thing.
       "<leader>sw",
-      function()
-        require("grug-far").open({
-          transient = true,
-          prefills = { search = vim.fn.expand("<cword>") },
-        })
-      end,
-      desc = "Search word under cursor",
-    },
-    -- search and replace in current file only
-    {
-      "<leader>sW",
       function()
         require("grug-far").open({
           transient = true,
@@ -38,6 +31,16 @@ return {
         })
       end,
       desc = "Search word in current file",
+    },
+    {
+      "<leader>sW",
+      function()
+        require("grug-far").open({
+          transient = true,
+          prefills = { search = vim.fn.expand("<cword>") },
+        })
+      end,
+      desc = "Search word under cursor (project)",
     },
     -- search visual selection
     {
