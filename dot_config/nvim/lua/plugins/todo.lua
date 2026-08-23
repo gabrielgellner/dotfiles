@@ -27,14 +27,11 @@ return {
       function()
         Snacks.picker.todo_comments()
       end,
+      -- No pre-filtered <leader>fT variant. It listed only TODO/FIX/FIXME, so
+      -- the capital gave *fewer* results than the lowercase — backwards from
+      -- <leader>fs/fS and ff/fF, where a capital widens. The picker filters
+      -- interactively once open, so the second keymap earned little.
       desc = "Todo comments (picker)",
-    },
-    {
-      "<leader>fT",
-      function()
-        Snacks.picker.todo_comments({ keywords = { "TODO", "FIX", "FIXME" } })
-      end,
-      desc = "Todo/Fix/Fixme",
     },
     {
       "]t",

@@ -348,7 +348,77 @@ return {
       end,
       desc = "Search history",
     },
+    {
+      -- Pairs with f/ above: the two histories on the two keys that already
+      -- mean "search" and "command" at a vim prompt.
+      "<leader>f:",
+      function()
+        Snacks.picker.command_history()
+      end,
+      desc = "Command history",
+    },
+    {
+      -- `;` is vim's repeat-last-motion, so it reads as "that picker again".
+      -- Deliberately not <leader>fR: `fr` is recent files, and a capital that
+      -- means an unrelated action rather than a wider one is the mistake this
+      -- namespace was just cleaned of.
+      "<leader>f;",
+      function()
+        Snacks.picker.resume()
+      end,
+      desc = "Resume last picker",
+    },
+    {
+      -- Fuzzy-find within the current buffer — the picker equivalent of the
+      -- structural motions in guides/navigation.md, for when you know the text
+      -- but not where it is.
+      "<leader>fl",
+      function()
+        Snacks.picker.lines()
+      end,
+      desc = "Buffer lines",
+    },
+    -- Pickers over the lists the [ / ] motions step through one at a time
+    -- (plugins/mini.lua): see the whole list and jump, instead of walking it.
+    {
+      "<leader>fm",
+      function()
+        Snacks.picker.marks()
+      end,
+      desc = "Marks",
+    },
+    {
+      "<leader>fj",
+      function()
+        Snacks.picker.jumps()
+      end,
+      desc = "Jumps",
+    },
+    {
+      "<leader>fu",
+      function()
+        Snacks.picker.undo()
+      end,
+      desc = "Undo tree",
+    },
+    {
+      -- `"` is how you name a register in vim, so it needs no other mnemonic.
+      '<leader>f"',
+      function()
+        Snacks.picker.registers()
+      end,
+      desc = "Registers",
+    },
     -- git
+    {
+      -- Changed files, i.e. `git status`. Not on <leader>gs or gS — gitsigns
+      -- holds both for stage hunk and stage buffer.
+      "<leader>gf",
+      function()
+        Snacks.picker.git_status()
+      end,
+      desc = "Changed files (status)",
+    },
     {
       "<leader>gc",
       function()

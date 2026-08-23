@@ -29,6 +29,7 @@ return {
         { "<leader>a", group = "ai/claude" },
         { "<leader>b", group = "buffer" },
         { "<leader>c", group = "code" },
+        { "<leader>cb", group = "base64" },
         { "<leader>d", group = "debug" },
         { "<leader>dt", group = "debug test" },
         { "<leader>f", group = "find/pick" },

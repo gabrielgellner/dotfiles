@@ -141,14 +141,18 @@ map("n", "<leader>uw", function()
 end, { desc = "Toggle wrap" })
 
 -- ── Base64 ────────────────────────────────────────────────────────────────────
-map("v", "<leader>cB", function()
+-- Under a <leader>cb group rather than cb/cB. Everywhere else here a capital
+-- means a wider scope — stage hunk/buffer, file/repo history, document/workspace
+-- symbols — so using case for direction instead left no way to guess which of
+-- cb and cB encoded. e and d say it outright.
+map("v", "<leader>cbe", function()
   vim.cmd('noautocmd normal! "zy')
   local text = vim.fn.getreg("z")
   vim.fn.setreg("z", vim.base64.encode(text))
   vim.cmd('noautocmd normal! gv"zp')
 end, { desc = "Base64 encode" })
 
-map("v", "<leader>cb", function()
+map("v", "<leader>cbd", function()
   vim.cmd('noautocmd normal! "zy')
   local text = vim.fn.getreg("z")
   local ok, result = pcall(vim.base64.decode, text)

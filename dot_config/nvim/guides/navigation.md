@@ -110,6 +110,9 @@ The single biggest reading upgrade: jump freely, because returning is one key.
 | `gO` | document symbols (same as `<leader>fs`) |
 | `<leader>ff` `<leader>fb` `<leader>fr` | find file / buffer / recent |
 | `<leader>fg` `<leader>fw` | live grep / grep word under cursor |
+| `<leader>fl` | fuzzy-find a line in this buffer |
+| `<leader>fm` `<leader>fj` | marks / jumplist as a list, rather than stepping it |
+| `<leader>f;` | reopen the last picker |
 | `<leader>fS` | workspace symbols |
 
 ## The rest of the bracket family
