@@ -319,6 +319,20 @@ return {
       ft = "markdown",
       desc = "Notes this note links to",
     },
+    {
+      -- The other half of linking. Visual <leader>zl links text that is already
+      -- written; this inserts a link to an existing note where the cursor is,
+      -- picking the target from a list — which is the action you actually reach
+      -- for while writing prose.
+      --
+      -- `k` rather than another `l`: <leader>zl already carries two link
+      -- meanings across normal and visual mode, and a third would need a mode
+      -- that is already taken.
+      "<leader>zk",
+      "<cmd>ZkInsertLink<CR>",
+      ft = "markdown",
+      desc = "Insert link to a note",
+    },
     -- ── Create from a visual selection ────────────────────────────────────
     {
       "<leader>zn",
