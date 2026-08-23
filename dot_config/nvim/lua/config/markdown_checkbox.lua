@@ -104,6 +104,16 @@ end
 
 ---Toggle the checkbox(es) in the current line or visual selection.
 function M.toggle()
+  -- A markdown buffer is not necessarily a writable one. The guides float
+  -- (config/guides.lua) is read-only, and it inherits every markdown mapping
+  -- including this — where nvim_buf_set_lines below raises "Buffer is not
+  -- 'modifiable'" with a stack trace. <CR> is rebound to follow links there, but
+  -- <leader>mx still lands here, as would any read-only markdown buffer.
+  if not vim.bo.modifiable then
+    vim.notify("checkbox: buffer is read-only", vim.log.levels.WARN)
+    return
+  end
+
   local first, last = range()
   local lines = vim.api.nvim_buf_get_lines(0, first, last, false)
 
