@@ -83,6 +83,10 @@ local lang_indent = {
 }
 
 vim.api.nvim_create_autocmd("FileType", {
+  -- Grouped like everything else here. Without it, re-sourcing this file stacks
+  -- another copy rather than replacing the old one — every other autocmd in the
+  -- file goes through augroup(), which clears first.
+  group = augroup("lang_indent"),
   pattern = vim.tbl_keys(lang_indent),
   callback = function()
     local indent = lang_indent[vim.bo.filetype]
@@ -90,15 +94,6 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.tabstop = indent
   end,
 })
--- ── Python specific ───────────────────────────────────────────────────────────
--- vim.api.nvim_create_autocmd("FileType", {
---   group    = augroup("python"),
---   pattern  = "python",
---   callback = function()
---     vim.opt_local.tabstop    = 4
---     vim.opt_local.shiftwidth = 4
---   end,
--- })
 
 -- ── Markdown: no soft wrap (tables scroll), gq reflow to 120, prettier owns ──
 -- ── hard-wrap on save. <leader>uw toggles soft wrap back on when wanted.    ──
