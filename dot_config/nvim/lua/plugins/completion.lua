@@ -93,6 +93,36 @@ return {
         enabled = true,
         window = { border = "rounded" },
       },
+
+      -- ── Command line ──────────────────────────────────────────────────────
+      -- blink enables cmdline completion by default, but only auto-shows the
+      -- menu in the command-line *window* (`q:`). Show it while typing `:` too,
+      -- which is the VSCode-palette-ish behaviour: start typing and the matches
+      -- appear.
+      --
+      -- Not for `/` and `?`. Those are incremental — the point is watching the
+      -- match move as you type — and a popup over the buffer hides the thing you
+      -- are aiming at. Ghost text still works there, and <C-space> pulls the
+      -- menu up on demand.
+      cmdline = {
+        completion = {
+          menu = {
+            auto_show = function(ctx)
+              return ctx.mode == "cmdwin" or vim.fn.getcmdtype() == ":"
+            end,
+          },
+        },
+        keymap = {
+          preset = "cmdline",
+          -- The `cmdline` preset gives Left/Right to the menu whenever it is
+          -- open. That was tolerable when the menu only appeared on demand;
+          -- with auto_show it is open most of the time, and arrow keys are how
+          -- you move the cursor in a command you are editing. Hand them back —
+          -- <Tab>, <C-n>/<C-p> already select.
+          ["<Left>"] = { "fallback" },
+          ["<Right>"] = { "fallback" },
+        },
+      },
     },
   },
 
