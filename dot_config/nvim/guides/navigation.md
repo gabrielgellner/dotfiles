@@ -84,6 +84,31 @@ Use them as a reading tool: collapse a file to its shape, then open what matters
 `zM` then `zr` a couple of times gives you a signatures-only view of a file.
 `zM` then `zv` gives you "just the function I'm in, everything else collapsed".
 
+## What the plugins took
+
+Several single keys mean something other than stock vim here. Each is a
+deliberate trade, and each has a replacement worth knowing before you reach for
+the original by reflex.
+
+| Key | Stock vim | Here | Use instead |
+| --- | --- | --- | --- |
+| `s` | substitute character | flash jump | `cl` |
+| `S` | substitute line | flash treesitter | `cc` |
+| visual `S` / `R` | change the selected lines | flash | `c` |
+| `w` `e` `b` | word motions | spider — stops at subWord boundaries | `W` `E` `B` for the vanilla ones |
+
+The spider one is the easiest to trip over, because it applies **after an
+operator too**: `dw` on `getUserName` deletes only `get`. `dW` is the vanilla
+behaviour, and `daw` still takes the whole word.
+
+Two that are *not* taken, despite looking like they should be: `r` still replaces
+a character and `R` still enters Replace mode — flash only claims those in
+operator-pending and visual, where they weren't vim commands to begin with.
+
+Pasting over a selection: `P` leaves your register alone, `p` takes the replaced
+text into it, which is how you swap two pieces of text — yank the first, select
+the second, `p`, then select where the first was and `p` again.
+
 ## Getting back where you were
 
 The single biggest reading upgrade: jump freely, because returning is one key.

@@ -132,8 +132,10 @@ end, { desc = "Open a guide" })
 
 -- ── Misc ──────────────────────────────────────────────────────────────────────
 map("n", "<leader>qq", "<cmd>qall<CR>", { desc = "Quit all" })
--- paste without losing register
-map("v", "p", '"_dP', { desc = "Paste without yank" })
+-- No `p` remap in visual mode. `"_dP` is the usual one, but vim's own `P`
+-- already pastes over a selection without taking the replaced text into the
+-- register — verified identical — so remapping `p` only spent native `p`, which
+-- *does* take it, and is how you swap two pieces of text.
 
 -- toggle soft wrap for the current buffer (markdown defaults to off so wide
 -- tables scroll instead of folding onto the next screen line)
