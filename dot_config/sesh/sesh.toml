@@ -1,2 +1,0 @@
-[default_session]
-startup_command = "~/.config/sesh/new-session.sh"
