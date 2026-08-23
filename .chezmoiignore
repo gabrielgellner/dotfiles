@@ -7,3 +7,17 @@ README.md
 bootstrap.sh
 homebrew-taps/**
 dot_gitconfig-work
+
+{{/*
+  Machine-specific inclusion. This file is always evaluated as a template — no
+  .tmpl suffix — so a path can be skipped per machine. Paths here are *target*
+  names (.config/i3), not source names (dot_config/i3).
+
+  i3 and i3status are the window manager and its status bar: Linux only. Only
+  fontconfig looked like a candidate to join them, and it turns out to be
+  present on macOS too.
+*/ -}}
+{{ if ne .chezmoi.os "linux" -}}
+.config/i3/**
+.config/i3status/**
+{{ end -}}

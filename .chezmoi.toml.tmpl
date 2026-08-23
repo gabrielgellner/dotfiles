@@ -1,3 +1,26 @@
+{{- /*
+  Machine role, for distinctions the OS cannot express — .chezmoi.os already
+  separates Linux from macOS, so this is for things like work versus personal.
+
+  Asked once per machine by `chezmoi init` and then stored in the file this
+  template generates, ~/.config/chezmoi/chezmoi.toml, which is never tracked.
+  Each machine therefore keeps its own answer, and changing it afterwards is a
+  matter of editing that file — no re-init needed.
+
+  Non-interactively, `chezmoi init --promptDefaults` takes the default below.
+  (`--promptString role=...` does not suppress the prompt for promptStringOnce;
+  it still wants a TTY.)
+
+  Guard uses of it, since a machine whose config predates this will not have
+  the key until `chezmoi init` is run again:
+
+      {{ if eq (.role | default "personal") "work" }}
+*/ -}}
+{{- $role := promptStringOnce . "role" "Machine role (personal/work)" "personal" -}}
+
+[data]
+    role = {{ $role | quote }}
+
 [git]
     # Deliberately off. These were enabled in 9a9f1b0 so that capturing a live
     # edit (`chezmoi re-add`) was one step — but they also fire on `apply`, so
