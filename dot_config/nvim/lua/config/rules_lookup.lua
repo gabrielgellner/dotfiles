@@ -17,8 +17,20 @@
 
 local M = {}
 
--- Searched in order; spells first since that's the common case in stat blocks.
-local LOOKUP_ORDER = { "spells", "conditions", "actions", "creatures" }
+-- Searched in order, and the order is precedence: resolve() returns the first
+-- hit, so a slug living in two directories resolves to the earlier one. Spells
+-- lead because that is the common case in stat blocks.
+--
+-- The three trailing entries were added later and go last deliberately: gm-core
+-- shares influence, light, research and treat-wounds with actions and spells,
+-- and putting it after them keeps those resolving where they always did.
+-- hazards and player-core collide with nothing.
+--
+-- Not everything under campaign/rules/ is here. feats (5408) and items (5466)
+-- dwarf the rest, and pulling them in would quadruple the corpus this globs and
+-- bury the picker in feats. The cost is that they cannot be reached at all —
+-- including a few item files with accents in their names.
+local LOOKUP_ORDER = { "spells", "conditions", "actions", "creatures", "hazards", "gm-core", "player-core" }
 local MAX_WORDS = 4
 
 ---Repo root = the directory holding spell_aliases.toml, found upward from buf.

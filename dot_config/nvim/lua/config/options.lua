@@ -9,8 +9,8 @@ opt.cursorline = true
 -- viewport before the cursor is dragged along, so a small value makes
 -- "scroll without moving the cursor" barely work at all. 8 also keeps a few
 -- lines of context visible past the cursor when reading downward.
-opt.scrolloff = 8
-opt.sidescrolloff = 8
+opt.scrolloff = 2
+opt.sidescrolloff = 2
 opt.wrap = false
 opt.termguicolors = true
 opt.showmode = false -- lualine / mini.statusline handles this
