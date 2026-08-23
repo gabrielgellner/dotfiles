@@ -337,14 +337,14 @@ return {
     {
       "<leader>zn",
       ":'<,'>ZkNewFromTitleSelection<CR>",
-      mode = "v",
+      mode = "x",
       ft = "markdown",
       desc = "New note (selection as title)",
     },
     {
       "<leader>zc",
       ":'<,'>ZkNewFromContentSelection<CR>",
-      mode = "v",
+      mode = "x",
       ft = "markdown",
       desc = "New note (selection as content)",
     },
@@ -352,7 +352,7 @@ return {
     {
       "<leader>zl",
       ":<C-u>ZkLinkSelection<CR>",
-      mode = "v",
+      mode = "x",
       ft = "markdown",
       desc = "Link selection to a note (alias)",
     },

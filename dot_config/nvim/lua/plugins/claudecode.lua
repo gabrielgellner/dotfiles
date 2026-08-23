@@ -333,7 +333,7 @@ return {
     { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select model" },
     -- Context
     { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "Add current buffer" },
-    { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send selection" },
+    { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "x", desc = "Send selection" },
     {
       "<leader>as",
       "<cmd>ClaudeCodeTreeAdd<cr>",

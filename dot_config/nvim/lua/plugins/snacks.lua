@@ -258,7 +258,7 @@ return {
         Snacks.picker.grep_word()
       end,
       desc = "Grep word under cursor",
-      mode = { "n", "v" },
+      mode = { "n", "x" },
     },
     -- lsp
     {

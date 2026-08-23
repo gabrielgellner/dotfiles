@@ -88,12 +88,18 @@ end, { desc = "Close other buffers" })
 -- ── Move lines ────────────────────────────────────────────────────────────────
 map("n", "<A-j>", "<cmd>m .+1<CR>==", { desc = "Move line down" })
 map("n", "<A-k>", "<cmd>m .-2<CR>==", { desc = "Move line up" })
-map("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
-map("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
+map("x", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
+map("x", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 
 -- ── Indenting in visual mode (keep selection) ─────────────────────────────────
-map("v", "<", "<gv", { desc = "Indent left" })
-map("v", ">", ">gv", { desc = "Indent right" })
+-- "x", not "v", here and everywhere else in this config. "v" is visual *and*
+-- select mode, and in select mode a printable key is meant to replace the
+-- selection — so `mode = "v"` on `<` made typing `<` dedent instead of typing a
+-- `<`, and the <leader> maps turned a space into the start of a command
+-- sequence. Select mode is where LuaSnip leaves you inside a placeholder, which
+-- is exactly where you are typing over the selection.
+map("x", "<", "<gv", { desc = "Indent left" })
+map("x", ">", ">gv", { desc = "Indent right" })
 
 -- ── Quickfix ──────────────────────────────────────────────────────────────────
 -- Nothing is bound here any more; both halves live elsewhere and this note is
@@ -149,14 +155,14 @@ end, { desc = "Toggle wrap" })
 -- means a wider scope — stage hunk/buffer, file/repo history, document/workspace
 -- symbols — so using case for direction instead left no way to guess which of
 -- cb and cB encoded. e and d say it outright.
-map("v", "<leader>cbe", function()
+map("x", "<leader>cbe", function()
   vim.cmd('noautocmd normal! "zy')
   local text = vim.fn.getreg("z")
   vim.fn.setreg("z", vim.base64.encode(text))
   vim.cmd('noautocmd normal! gv"zp')
 end, { desc = "Base64 encode" })
 
-map("v", "<leader>cbd", function()
+map("x", "<leader>cbd", function()
   vim.cmd('noautocmd normal! "zy')
   local text = vim.fn.getreg("z")
   local ok, result = pcall(vim.base64.decode, text)

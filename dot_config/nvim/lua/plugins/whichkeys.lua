@@ -45,6 +45,19 @@ return {
         { "<leader>x", group = "diagnostics/quickfix" },
         { "<leader>z", group = "zettelkasten" },
 
+        -- ── Conjure, in lisp buffers ──────────────────────────────────────
+        -- conjure hangs ~30 mappings off <localleader> in scheme, racket,
+        -- fennel and clojure buffers, and names none of the prefixes — so the
+        -- `\` popup listed `c`, `e`, `g` and `l` as "+N keymaps" and `\ec` as
+        -- another. Declared unconditionally rather than per-filetype: a group
+        -- with no keymaps under it is pruned (tree.lua keep/fix), so these
+        -- appear only where conjure has actually loaded.
+        { "<localleader>c", group = "repl" },
+        { "<localleader>e", group = "eval" },
+        { "<localleader>ec", group = "eval + comment" },
+        { "<localleader>g", group = "goto" },
+        { "<localleader>l", group = "log" },
+
         -- ── Navigation groups ─────────────────────────────────────────────
         { "[", group = "prev" },
         { "]", group = "next" },

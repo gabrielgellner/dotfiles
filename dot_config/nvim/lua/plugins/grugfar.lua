@@ -50,7 +50,7 @@ return {
           transient = true,
         })
       end,
-      mode = "v",
+      mode = "x",
       desc = "Search and replace selection",
     },
   },
