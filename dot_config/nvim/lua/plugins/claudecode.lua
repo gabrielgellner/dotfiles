@@ -77,6 +77,75 @@ local function toggle_width()
   })
 end
 
+-- Toggle the float, safely.
+--
+-- Two separate things go wrong, and they compound, so both are handled here.
+--
+-- 1. Terminal mode. The plugin hides the float with nvim_win_set_config{hide =
+--    true} and then steps out of it, because Neovim doesn't auto-leave a
+--    config-hidden window. From *terminal* mode that step doesn't stick: the
+--    window command runs while mode() is still "t", and when the mapping
+--    returns, terminal mode is re-entered and takes the focus back. Same reason
+--    the canonical terminal mapping is `tnoremap <C-w>h <C-\><C-n><C-w>h` and
+--    never `:wincmd h<CR>` — you have to leave terminal mode *before* the window
+--    command, not during it. Hence stopinsert, then the toggle on the next tick
+--    once the mode change has landed. From normal mode both are no-ops, which is
+--    why one function serves the "t" and "n" mappings alike.
+--
+-- 2. `wincmd p` isn't a reliable escape even from normal mode. It is a no-op
+--    whenever there is no previous window to go to, and Neovim has two everyday
+--    ways of arriving at that:
+--
+--      * the window you came from was closed while you were in Claude, so
+--        winnr("#") is 0;
+--      * a transient float — a picker, which-key, a notification — opened on top
+--        of Claude and closed again, which leaves the previous window pointing
+--        at the Claude float *itself*.
+--
+--    The second is the common one, and it's why this only bites sometimes: it
+--    depends entirely on what you happened to do just before pressing the key.
+--    Note the WinLeave autocmd below deliberately doesn't hide Claude when focus
+--    lands on another float, which is what lets pickers set that state up.
+--
+-- Either way the float ends up hidden but still focused: the screen changes, so
+-- it looks like the toggle worked, while keystrokes go to a window that is no
+-- longer drawn. The WinEnter self-heal can't catch it, because focus never
+-- *entered* anywhere — it never left. So verify afterwards and, if we're still
+-- sitting in the hidden float, pick a window by hand.
+
+-- Somewhere to land: prefer an ordinary window, since that's what was underneath
+-- the float, but any window at all beats staying in one that isn't drawn.
+local function escape_to_any_win(from)
+  local fallback
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if win ~= from then
+      local cfg = vim.api.nvim_win_get_config(win)
+      if cfg.relative == "" and not cfg.hide then
+        vim.api.nvim_set_current_win(win)
+        return
+      end
+      fallback = fallback or win
+    end
+  end
+  if fallback then
+    vim.api.nvim_set_current_win(fallback)
+  end
+end
+
+local function toggle_float()
+  vim.cmd("stopinsert")
+  vim.schedule(function()
+    vim.cmd("ClaudeCode")
+    local win = claude_win()
+    if not (win and vim.api.nvim_get_current_win() == win) then
+      return
+    end
+    if vim.api.nvim_win_get_config(win).hide then
+      escape_to_any_win(win)
+    end
+  end)
+end
+
 -- ── <C-/>: toggle the float ─────────────────────────────────────────────────
 --
 -- One key, one job, from inside Claude or from any buffer. No timing involved:
@@ -217,17 +286,13 @@ return {
           -- key works either way.
           claude_toggle = {
             "<C-/>",
-            function()
-              vim.cmd("ClaudeCode")
-            end,
+            toggle_float,
             mode = { "t", "n" },
             desc = "Toggle Claude",
           },
           claude_toggle_legacy = {
             "<C-_>",
-            function()
-              vim.cmd("ClaudeCode")
-            end,
+            toggle_float,
             mode = { "t", "n" },
             desc = "Toggle Claude",
           },
@@ -251,12 +316,12 @@ return {
   },
 
   keys = {
-    { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
+    { "<leader>ac", toggle_float, desc = "Toggle Claude" },
     -- The same toggle from anywhere in the editor. Buffer-local keys win over
     -- global ones, so inside Claude the snacks_win_opts pair takes these over —
     -- they do the same thing either way.
-    { "<C-/>", "<cmd>ClaudeCode<cr>", mode = "n", desc = "Toggle Claude" },
-    { "<C-_>", "<cmd>ClaudeCode<cr>", mode = "n", desc = "Toggle Claude" },
+    { "<C-/>", toggle_float, mode = "n", desc = "Toggle Claude" },
+    { "<C-_>", toggle_float, mode = "n", desc = "Toggle Claude" },
     { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
     { "<leader>az", toggle_width, desc = "Toggle Claude width (full/side)" },
     { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume session" },
