@@ -133,8 +133,14 @@ function M.open(path)
     keys = {
       q = "close",
       -- `gf` because these *are* file references; it just needs help resolving
-      -- them. <CR> is already the checkbox toggle in markdown buffers.
+      -- them.
       gf = follow,
+      -- <CR> as well, because it is what a reader presses on a link. In a
+      -- markdown buffer it is otherwise the checkbox toggle
+      -- (config/autocmds.lua), which here throws "Buffer is not 'modifiable'"
+      -- — the float is read-only and a reference document has no checkboxes,
+      -- so the toggle can only ever fail. Better the key does the useful thing.
+      ["<CR>"] = follow,
     },
   })
 end
