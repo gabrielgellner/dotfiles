@@ -114,8 +114,10 @@ return {
       { "]r", desc = "Next loop" },
       { "[r", desc = "Prev loop" },
 
-      -- ── Git diffview ────────────────────────────────────────────────────
-      { "<leader>gv", desc = "Diff view (working tree)" },
+      -- ── Git review (codediff) ───────────────────────────────────────────
+      { "<leader>gv", desc = "Review working tree" },
+      { "<leader>gm", desc = "Review branch vs base (MR)" },
+      { "<leader>gM", desc = "Branch commits" },
       { "<leader>gh", desc = "File history" },
       { "<leader>gH", desc = "Repo history" },
 
