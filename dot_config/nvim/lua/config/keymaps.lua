@@ -103,6 +103,23 @@ map("v", ">", ">gv", { desc = "Indent right" })
 --   <leader>xq  plugins/trouble.lua, `Trouble qflist toggle`. It loads after
 --               this file, so a :copen mapping here was only ever overwritten.
 
+-- ── Argument list ─────────────────────────────────────────────────────────────
+-- Neovim binds [a/]a to :previous/:next and [A/]A to :rewind/:last. The
+-- treesitter @parameter move (plugins/treesitter.lua) claims [a/]a
+-- buffer-locally and wins, so the arglist was left half-reachable: first and
+-- last worked, previous and next didn't. Drop the remnant rather than keep a
+-- pair of keys that only makes sense beside two that don't work.
+--
+-- The argument list itself is untouched and still driven by command — :args,
+-- :argdo, :next, :previous. It just has no bracket keys here, and nothing in
+-- this config uses it; :argdo's job belongs to grug-far (<leader>sr).
+--
+-- pcall because these only exist on Neovim versions that ship them, and
+-- vim.keymap.del throws on a missing mapping.
+for _, lhs in ipairs({ "[A", "]A" }) do
+  pcall(vim.keymap.del, "n", lhs)
+end
+
 -- ── Guides ────────────────────────────────────────────────────────────────────
 -- Personal reference cards (guides/*.md). See config/guides.lua.
 map("n", "<leader>?", function()
