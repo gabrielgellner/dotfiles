@@ -13,7 +13,8 @@ A [chezmoi](https://chezmoi.io) dotfiles repository managing shell, editor, and 
 - `private_*` → prefix means chmod 600 on apply (e.g., `dot_config/private_starship.toml`)
 - `dot_config/` → `~/.config/`
 - Run `chezmoi diff` to preview changes
-- `.tmpl` suffix = Go template (us {{ .chezmoi.os }}, etc.)
+- `.tmpl` suffix = Go template (use `{{ .chezmoi.os }}`, etc.)
+- `.chezmoiignore` and `.chezmoi.toml.tmpl` are **always** evaluated as templates — `.chezmoiignore` needs no `.tmpl` suffix
 
 ## Applying Changes
 
@@ -29,30 +30,84 @@ To test changes without applying:
 chezmoi diff --no-pager
 ```
 
+Common tasks are wrapped in the `justfile` — `just diff`, `just apply`, `just update`,
+`just changelog`, `just next-version`, `just release`. Run `just` for the list.
+`just release` refuses to run on a dirty tree or an existing tag; the changelog
+recipe carries a note about commits git-cliff silently drops.
+
+## Per-Machine Configuration
+
+The same repo serves a macOS laptop and a Linux machine. Two mechanisms:
+
+- **`.chezmoiignore`** is a template, so a path can be skipped per machine.
+  `.config/i3` and `.config/i3status` apply on Linux only. Paths there are
+  *target* names (`.config/i3`), not source names (`dot_config/i3`).
+- **`.chezmoi.toml.tmpl`** defines a `role`, asked once per machine by
+  `chezmoi init` and stored in the generated (untracked)
+  `~/.config/chezmoi/chezmoi.toml`. For distinctions `.chezmoi.os` cannot
+  express. Guard uses of it: `{{ if eq (.role | default "personal") "work" }}`.
+
+Machine-local secrets stay out of the repo entirely — `dot_gitconfig` includes
+`~/.gitconfig.local`, which is not tracked.
+
 ## Key Files and Their Roles
 
-| File                               | Destination               | Purpose                                                      |
-| ---------------------------------- | ------------------------- | ------------------------------------------------------------ |
-| `dot_zshrc`                        | `~/.zshrc`                | Zsh config: completions, fzf, zoxide, starship, aliases      |
-| `dot_tmux.conf`                    | `~/.tmux.conf`            | Tmux: Ctrl-A prefix, vi keys, catppuccin theme               |
-| `bin/executable_dev`               | `~/bin/dev`               | fzf-based tmux session/project switcher                      |
-| `bin/executable_new-session`       | `~/bin/new-session`       | Creates tmux sessions with nvim + console windows            |
-| `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module |
-| `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                               |
+| File                               | Destination               | Purpose                                                       |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| `dot_zshrc`                        | `~/.zshrc`                | Zsh config: completions, fzf, zoxide, starship, aliases       |
+| `dot_tmux.conf`                    | `~/.tmux.conf`            | Tmux: Ctrl-A prefix, vi keys, catppuccin frappe               |
+| `bin/executable_dev`               | `~/bin/dev`               | fzf-based tmux session/project switcher                       |
+| `bin/executable_new-session`       | `~/bin/new-session`       | Creates tmux sessions with nvim + console windows             |
+| `bin/executable_claude-window`     | `~/bin/claude-window`     | Jump to or create a `claude` window (tmux prefix + C)         |
+| `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
+| `bin/executable_regenerate-completions` | `~/bin/regenerate-completions` | Rebuild zsh completion files                        |
+| `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
+| `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
+| `bootstrap.sh`                     | —                         | Installs the toolchain on a fresh machine; not applied        |
 
 ## Neovim Configuration Architecture
 
 Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
 
-- `config/` — options, keymaps, autocmds (loaded unconditionally)
-- `plugins/` — one file per plugin or plugin group, lazy-loaded
+- `config/` — loaded unconditionally. Beyond `options`, `keymaps` and `autocmds`
+  this holds standalone features: `files` (oil ↔ explorer handoff), `folds`
+  (LSP/treesitter fold dispatch), `guides` (the `<leader>?` picker), `just`
+  (run recipes into a tmux console window), `scratch`, `markdown_checkbox`,
+  `markdown_outline`, `rules_lookup`.
+- `plugins/` — one file per plugin or plugin group, lazy-loaded.
+- `guides/` — hand-written markdown reference cards, opened with `<leader>?`.
+  Covers navigation, git, files, surround, the command line, and the keymap
+  conventions themselves. `gf` or `<CR>` follows a link between them.
 
-Plugin categories: LSP + completion, DAP debugging, treesitter, formatting/linting, UI (noice, snacks, mini), navigation (flash, spider, oil), git (gitsigns), Rust-specific.
+Plugin categories: LSP + completion (blink.cmp), DAP debugging, treesitter,
+formatting/linting, UI (noice, snacks, mini), navigation (flash, spider, oil),
+git (gitsigns, codediff), tmux integration (vim-tmux-navigator), Rust, Haskell,
+Scheme (conjure, paredit).
+
+## Keymap Conventions
+
+`dot_config/nvim/guides/keymaps.md` records the rules this config follows and
+the faults each one prevents — read it before adding a mapping. In short: a
+capital means a *wider* scope and never an unrelated action; a doubled key is
+the ordinary case; buffer-local mappings silently beat global ones, which is the
+most common way a keymap appears to do nothing; and `mode = "x"`, never `"v"`,
+because `"v"` includes select mode.
 
 ## Toolchain
 
-The config assumes these tools are installed: `fzf`, `fd`, `eza`, `bat`, `zoxide`, `starship`, `tmux`, `nvim`, `uv` (Python).
+Installed by `bootstrap.sh`, which skips anything already present. Core:
+`tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `zoxide`,
+`starship`, `direnv`, `lazygit`, `zk`, `just`, `git-cliff`, `tree-sitter`,
+`uv` (Python).
+
+Language servers: `lua-language-server`, `pyrefly`, `ruff`, `just-lsp`.
+`basedpyright` is installed but deliberately *not* enabled in nvim — it is the
+CI/`just` checker, while pyrefly does the editor work.
 
 ## Starship Custom Module
 
-`dot_config/private_starship.toml` defines a custom `uv_python` module that shows the Python version from `pyproject.toml` when in a uv project. The vi mode uses `❯`/`❮` symbols with color coding (green=normal, red=error, yellow=visual, purple=replace).
+`dot_config/private_starship.toml` defines a custom `uv_python` module that
+shows the contents of `.python-version` when both it and `uv.lock` are present.
+It reads the file rather than running `.venv/bin/python` because this evaluates
+on every prompt; the tradeoff is noted in the config. The vi mode uses `❯`/`❮`
+symbols with color coding (green=normal, red=error, yellow=visual, purple=replace).
