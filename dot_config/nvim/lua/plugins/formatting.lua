@@ -22,6 +22,7 @@ return {
       javascriptreact = { "biome" },
       typescriptreact = { "biome" },
       rust = { "rustfmt" },
+      just = { "just" },
     },
     -- Prettier's default proseWrap is "preserve", so markdown saves left long
     -- lines untouched. Hard-wrap prose at 120 instead; tables are never wrapped

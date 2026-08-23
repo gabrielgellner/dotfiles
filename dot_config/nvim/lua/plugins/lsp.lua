@@ -124,6 +124,19 @@ return {
     })
     vim.lsp.enable("ruff")
 
+    -- ── just_lsp ──────────────────────────────────────────────────────────
+    -- terror/just-lsp (brew install just-lsp): completion for builtin
+    -- functions/constants, goto-definition and rename for recipes/variables,
+    -- and parse diagnostics from tree-sitter-just. Formatting comes from
+    -- `just --fmt` via conform (see plugins/formatting.lua), not the server.
+    vim.lsp.config("just_lsp", {
+      capabilities = capabilities,
+      cmd = { "just-lsp" },
+      filetypes = { "just" },
+      root_markers = { "justfile", "Justfile", ".justfile", ".git" },
+    })
+    vim.lsp.enable("just_lsp")
+
     -- ── lua_ls (for editing this config) ─────────────────────────────────
     vim.lsp.config("lua_ls", {
       capabilities = capabilities,
