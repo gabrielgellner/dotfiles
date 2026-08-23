@@ -43,12 +43,21 @@ end
 ---@param picker snacks.Picker
 ---@param item snacks.picker.Item?
 function M.oil_from_explorer(picker, item)
-  if not item then
+  -- Guard on the path rather than on `item`. An item carrying no path is as
+  -- useless here as no item at all, and the `and`/`or` below is only safe once
+  -- the path is known truthy: `item.dir and item.file` falls through to the
+  -- `or` branch whenever item.file is nil — even with item.dir true, which is
+  -- the opposite of what it reads like.
+  --
+  -- That failure is silent rather than loud. vim.fs.dirname(nil) returns nil,
+  -- fnameescape stringifies nil to "v:null", and oil is handed a path by that
+  -- name. Nothing raises; you just end up somewhere absurd.
+  local path = item and item.file
+  if not path then
     return
   end
-  local dir = item.dir and item.file or vim.fs.dirname(item.file)
   picker:close()
-  vim.cmd("Oil " .. vim.fn.fnameescape(dir))
+  vim.cmd("Oil " .. vim.fn.fnameescape(item.dir and path or vim.fs.dirname(path)))
 end
 
 return M
