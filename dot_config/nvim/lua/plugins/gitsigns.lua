@@ -74,6 +74,10 @@ return {
         gs.blame_line({ full = true })
       end, "Blame line")
       map("<leader>gL", gs.toggle_current_line_blame, "Toggle line blame")
+      -- Whole-file blame in a scrollbound split, as against gl's popup for one
+      -- line. gB came free when blame moved off gb/gB so the branches picker
+      -- could have gb.
+      map("<leader>gB", gs.blame, "Blame file")
       map("<leader>gd", gs.diffthis, "Diff this")
       map("<leader>gD", function()
         gs.diffthis("~")

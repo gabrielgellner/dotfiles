@@ -424,7 +424,8 @@ return {
       function()
         Snacks.picker.git_log()
       end,
-      desc = "Git log",
+      -- `c` is for commits; the picker is the log that lists them.
+      desc = "Commits (log)",
     },
     {
       "<leader>gb",
