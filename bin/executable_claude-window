@@ -25,4 +25,7 @@ if [[ -n "$index" ]]; then
   exit 0
 fi
 
+# If the `claude` binary is missing this still succeeds — tmux opens the window,
+# the command exits immediately, and the window closes again. That flicker is
+# the symptom, not a tmux problem.
 tmux new-window -t "$session" -n claude -c "$dir" claude

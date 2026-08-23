@@ -1,27 +1,46 @@
 #!/usr/bin/env zsh
+# new-session - create a tmux session laid out for a project, then go to it.
+#
+# Called by `dev` when it finds no session for the chosen project, and usable
+# by hand: new-session <name> <dir>
 
 SESSION=$1
 DIR=$2
 
-# create session without attaching
-tmux new-session -d -s "$SESSION" -c "$DIR"
+if [[ -z "$SESSION" || -z "$DIR" ]]; then
+  print -u2 "usage: new-session <session-name> <directory>"
+  exit 2
+fi
 
-# rename the first window to nvim
-tmux rename-window -t "$SESSION:1" nvim
+# Every -t below is "=$SESSION". tmux resolves a target by exact match, then
+# *prefix*, then fnmatch, so a bare name can land on a longer sibling — pinax
+# reaching pinax-ai, say. Here the session has just been created so the exact
+# match wins anyway; the = keeps that true if this is ever called somewhere the
+# assumption does not hold.
+if tmux has-session -t "=$SESSION" 2>/dev/null; then
+  # Already built. Do not lay it out again: `tmux new-session` fails with
+  # "duplicate session" but the rest of the script used to carry on regardless,
+  # renaming the live session's first window, typing nvim into it and appending
+  # two more consoles. Re-running this on a session you are working in is the
+  # obvious mistake, and going there is what was meant by it.
+  :
+else
+  tmux new-session -d -s "$SESSION" -c "$DIR" || exit 1
 
-# create console windows
-tmux new-window -t "$SESSION" -n console -c "$DIR"
-tmux new-window -t "$SESSION" -n console -c "$DIR"
+  # first window is the editor
+  tmux rename-window -t "=$SESSION:1" nvim
 
-# send nvim command to nvim window
-tmux send-keys -t "$SESSION:nvim" "nvim" Enter
+  # two consoles, for a build and something else
+  tmux new-window -t "=$SESSION" -n console -c "$DIR"
+  tmux new-window -t "=$SESSION" -n console -c "$DIR"
 
-# select nvim window on attach
-tmux select-window -t "$SESSION:nvim"
+  tmux send-keys -t "=$SESSION:nvim" "nvim" Enter
+  tmux select-window -t "=$SESSION:nvim"
+fi
 
 # attach or switch depending on whether we're already in tmux
-if [ -n "$TMUX" ]; then
-  tmux switch-client -t "$SESSION"
+if [[ -n "$TMUX" ]]; then
+  tmux switch-client -t "=$SESSION"
 else
-  tmux attach -t "$SESSION"
+  tmux attach -t "=$SESSION"
 fi
