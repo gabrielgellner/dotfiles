@@ -20,8 +20,6 @@ update:
 
 # ── changelog ─────────────────────────────────────────────────────────────────
 
-# regenerate full CHANGELOG from git history
-#
 # cliff.toml sets filter_unconventional = true, so a commit whose subject is not
 # conventional-commit shaped is dropped silently — git-cliff reports only a count
 # of "skipped due to parse error(s)", never which ones. Find them with:
@@ -35,6 +33,8 @@ update:
 # with no changelog entries, including scratch.lua, rules_lookup.lua and
 # markdown_outline.lua being added. Left that way deliberately rather than
 # papered over with a catch-all parser.
+#
+# regenerate full CHANGELOG from git history
 changelog:
     git-cliff --output CHANGELOG.md
 
