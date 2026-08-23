@@ -6,12 +6,31 @@ vim.g.maplocalleader = "\\"
 
 -- ── Better defaults ───────────────────────────────────────────────────────────
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
-map("n", "j", "gj", { desc = "Visual line down" })
-map("n", "k", "gk", { desc = "Visual line up" })
 map("n", "n", "nzzzv", { desc = "Next match (centred)" })
 map("n", "N", "Nzzzv", { desc = "Prev match (centred)" })
-map("n", "<C-d>", "<C-d>", { desc = "Scroll down" })
-map("n", "<C-u>", "<C-u>", { desc = "Scroll up" })
+
+-- Bare j/k step by display line so soft-wrapped markdown moves by what you see,
+-- but a *counted* j/k has to move real lines: 'relativenumber' counts real
+-- lines, so 12j must go where the gutter says 12. Unconditional gj/gk breaks
+-- that in any wrapped buffer (<leader>uw), landing you short by however many
+-- screen lines the wrapping added.
+map("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, desc = "Down" })
+map("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Up" })
+
+-- ── Viewport ──────────────────────────────────────────────────────────────────
+-- Half-page jumps recentre, so the cursor stays pinned mid-screen and the text
+-- slides past it rather than the cursor drifting to a screen edge.
+map("n", "<C-d>", "<C-d>zz", { desc = "Half page down (centred)" })
+map("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centred)" })
+
+-- Move the *window* while the cursor stays put on its buffer line — it only
+-- gets dragged once 'scrolloff' runs out, which is why that's set to 8. This is
+-- as close as vim gets to scrolling without moving the cursor (:h scroll).
+-- Three lines a press; one is too slow to be worth the keystroke. The natural
+-- follow-up is H/M/L, which place the cursor on the top/middle/bottom of
+-- whatever you just scrolled into view.
+map({ "n", "x" }, "<C-e>", "3<C-e>", { desc = "Scroll view down" })
+map({ "n", "x" }, "<C-y>", "3<C-y>", { desc = "Scroll view up" })
 
 -- ── Windows ───────────────────────────────────────────────────────────────────
 map("n", "<C-h>", "<C-w>h", { desc = "Window left" })
@@ -43,8 +62,11 @@ map("t", "<C-q>", function()
 end, { desc = "Send SIGQUIT to terminal job" })
 
 -- ── Buffers ───────────────────────────────────────────────────────────────────
-map("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Prev buffer" })
-map("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next buffer" })
+-- Buffer cycling lives on [b / ]b (mini.bracketed, plugins/mini.lua) rather than
+-- <S-h>/<S-l>. Those shadow H and L, which are worth more here: with <C-e>/<C-y>
+-- moving the viewport under a parked cursor, H/M/L are how you then place the
+-- cursor on what you scrolled into view. mini's version also takes a count and
+-- wraps, and adds [B/]B for first/last buffer.
 -- <leader>bd is bound by mini.bufremove in plugins/mini.lua (keeps window layout)
 vim.keymap.set("n", "<leader>bo", function()
   local current = vim.api.nvim_get_current_buf()
@@ -69,6 +91,12 @@ map("v", ">", ">gv", { desc = "Indent right" })
 map("n", "<leader>xq", "<cmd>copen<CR>", { desc = "Quickfix list" })
 map("n", "]q", "<cmd>cnext<CR>", { desc = "Next quickfix" })
 map("n", "[q", "<cmd>cprev<CR>", { desc = "Prev quickfix" })
+
+-- ── Guides ────────────────────────────────────────────────────────────────────
+-- Personal reference cards (guides/*.md). See config/guides.lua.
+map("n", "<leader>?", function()
+  require("config.guides").pick()
+end, { desc = "Open a guide" })
 
 -- ── Misc ──────────────────────────────────────────────────────────────────────
 map("n", "<leader>qq", "<cmd>qall<CR>", { desc = "Quit all" })

@@ -22,6 +22,7 @@ return {
       { "<leader>w", group = "window" },
       { "<leader>x", group = "diagnostics/quickfix" },
       { "<leader>z", group = "zettelkasten" },
+      { "<leader>?", desc = "Open a guide" },
 
       -- ── Navigation groups ───────────────────────────────────────────────
       { "[", group = "prev" },
@@ -57,6 +58,22 @@ return {
       -- ── Todo motions ────────────────────────────────────────────────────
       { "]t", desc = "Next todo" },
       { "[t", desc = "Prev todo" },
+
+      -- ── mini.bracketed motions ──────────────────────────────────────────
+      { "]b", desc = "Next buffer" },
+      { "[b", desc = "Prev buffer" },
+      { "]j", desc = "Next jumplist entry" },
+      { "[j", desc = "Prev jumplist entry" },
+      { "]o", desc = "Next oldfile" },
+      { "[o", desc = "Prev oldfile" },
+      { "]u", desc = "Next undo state" },
+      { "[u", desc = "Prev undo state" },
+      { "]w", desc = "Next window" },
+      { "[w", desc = "Prev window" },
+      { "]x", desc = "Next conflict marker" },
+      { "[x", desc = "Prev conflict marker" },
+      { "]y", desc = "Newer yank (replace paste)" },
+      { "[y", desc = "Older yank (replace paste)" },
 
       -- ── Diagnostic motions ──────────────────────────────────────────────
       { "]d", desc = "Next diagnostic" },

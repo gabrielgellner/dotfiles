@@ -52,7 +52,7 @@ return {
         TS.install(missing)
       end
 
-      -- wire up highlighting, indent, and folds per filetype
+      -- wire up highlighting and indent per filetype
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("nvim_treesitter_ft", { clear = true }),
         callback = function(ev)
@@ -62,13 +62,11 @@ return {
           -- treesitter-powered indent
           vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 
-          -- treesitter-powered folds
-          local win = vim.api.nvim_get_current_win()
-          if vim.api.nvim_win_get_buf(win) == ev.buf then
-            vim.wo[win].foldmethod = "expr"
-            vim.wo[win].foldexpr = "v:lua.vim.treesitter.foldexpr()"
-            vim.wo[win].foldenable = false -- open all folds by default
-          end
+          -- Folds are wired up globally in config/options.lua ('foldmethod',
+          -- 'foldexpr', 'foldlevel'), not here. They're window-local options,
+          -- and setting them from FileType missed the first buffer of a
+          -- session (which got 'foldexpr' but kept foldmethod=manual, so zM
+          -- silently did nothing) and every new split.
         end,
       })
     end,
