@@ -32,6 +32,44 @@ map("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centred)" })
 map({ "n", "x" }, "<C-e>", "3<C-e>", { desc = "Scroll view down" })
 map({ "n", "x" }, "<C-y>", "3<C-y>", { desc = "Scroll view up" })
 
+-- ── Structural selection ──────────────────────────────────────────────────────
+-- Neovim's incremental selection, on Helix's keys rather than its own.
+--
+-- Upstream puts grow and shrink on `an`/`in`, which mini.ai already owns — and
+-- not by accident. `n` and `l` are mini.ai's next/last modifiers, so `an)` is
+-- "around the next parens" and `il"` is "inside the last quotes". That axis runs
+-- through every textobject it defines; there is no carving `n` out of it.
+--
+-- Moving the operation is the better trade anyway. `a`/`i` mean "find a region
+-- around the cursor", while these grow and shrink the selection you already
+-- have — a different kind of thing that never really belonged in the textobject
+-- namespace. Helix calls them expand and shrink and puts them on <M-o>/<M-i>.
+--
+-- So mini.ai stays the way to *name* a region (vaf, ci", daa), and this is the
+-- way to take the next bigger one *without* naming it: a table entry, a match
+-- arm, one link of a chained call — anything with no textobject of its own.
+--
+-- [n/]n and [N/]N are Neovim's and were never shadowed; only grow and shrink
+-- needed rehoming.
+---@param target "parent"|"child"|"next"|"prev"
+---@param lsp? integer direction for the no-parser fallback, if it has one
+local function select_node(target, lsp)
+  return function()
+    if vim.treesitter.get_parser(nil, nil, { error = false }) then
+      vim.treesitter.select(target, vim.v.count1)
+    elseif lsp then
+      -- What upstream falls back to: the server's idea of the enclosing range,
+      -- so this still works in a filetype with no parser installed.
+      vim.lsp.buf.selection_range(lsp * vim.v.count1)
+    end
+  end
+end
+
+map("x", "<M-o>", select_node("parent", 1), { desc = "Grow selection to parent node" })
+map("x", "<M-i>", select_node("child", -1), { desc = "Shrink selection to child node" })
+map("x", "<M-n>", select_node("next"), { desc = "Select next sibling node" })
+map("x", "<M-p>", select_node("prev"), { desc = "Select previous sibling node" })
+
 -- ── Windows ───────────────────────────────────────────────────────────────────
 -- <C-hjkl> are bound in plugins/tmux-navigator.lua, not here. They used to be
 -- plain <C-w>h/j/k/l, which stopped at the outermost window; the plugin carries

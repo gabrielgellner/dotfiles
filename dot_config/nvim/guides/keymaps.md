@@ -106,6 +106,24 @@ where that plugin loaded — that's how conjure's `\e`/`\l`/… and haskell-tool
 a row for a mapping that only exists in normal mode. Only groups get the blanket
 treatment.
 
+## When two designs legitimately want the same keys
+
+Usually a collision means one side is wrong. Once it didn't.
+
+Neovim puts incremental selection on `an`/`in` — grow to the parent node,
+shrink to the child. mini.ai also maps `an`/`in`, as "around/inside the
+**next** textobject": `n` and `l` are its next/last modifiers, and that axis
+runs through every textobject it defines. Both uses are load-bearing.
+
+The resolution was to **move the operation, not break either grammar**. `a`
+and `i` mean "find a region around the cursor"; grow and shrink act on the
+selection you already have, which is a different kind of operation that
+never really belonged in the textobject namespace. They now sit on Helix's
+own keys, `<M-o>` and `<M-i>`.
+
+The lesson generalises: when a key is contested, ask whether one of the two
+is in the wrong namespace to begin with. Moving it beats picking a winner.
+
 ## Fighting upstream is a standing commitment
 
 `gr` used to be references, which collided with Neovim's own `gr*` LSP

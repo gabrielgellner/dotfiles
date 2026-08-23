@@ -84,6 +84,45 @@ Use them as a reading tool: collapse a file to its shape, then open what matters
 `zM` then `zr` a couple of times gives you a signatures-only view of a file.
 `zM` then `zv` gives you "just the function I'm in, everything else collapsed".
 
+## Growing a selection
+
+Two ways to select by structure, and they answer different questions.
+
+**Name it** — mini.ai and the treesitter textobjects. `vaf` a function, `ci"`
+inside quotes, `daa` an argument. Precise, but you have to know the thing has
+a name.
+
+**Grow into it** — start anywhere and take the next bigger node. No name
+needed, which is what makes it work on things that have none: a table entry,
+a match arm, one link of a chained call.
+
+| Key | Does |
+| --- | --- |
+| `<M-o>` | grow to the parent node |
+| `<M-i>` | shrink back to the child |
+| `<M-n>` / `<M-p>` | next / previous sibling |
+| `]n` / `[n` | next / previous sibling (Neovim's own) |
+| `]N` / `[N` | same, but growing the selection |
+
+All take a count, so `3<M-o>` grows three levels at once.
+
+Worked example, cursor on `client` in `if client:supports_method(...) then`:
+
+```
+viw      client
+<M-o>    client:supports_method
+<M-o>    client:supports_method("textDocument/foldingRange")
+<M-o>    the whole if block, across three lines
+<M-i>    back to the call
+```
+
+Reach for growing when reading unfamiliar code — you rarely know what the
+node is called, and it is faster than guessing which textobject fits. Reach
+for naming when you already know: `daf` beats four `<M-o>` presses.
+
+These live on Alt because Neovim puts them on `an`/`in`, which mini.ai owns.
+See [Keymap conventions](keymaps.md) for why moving them was the right call.
+
 ## What the plugins took
 
 Several single keys mean something other than stock vim here. Each is a
