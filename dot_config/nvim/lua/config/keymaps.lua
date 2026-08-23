@@ -126,3 +126,21 @@ vim.keymap.set("n", "<leader>xR", function()
     vim.notify("ruff: no issues found", vim.log.levels.INFO)
   end
 end, { desc = "Ruff check project" })
+
+-- ── Just ──────────────────────────────────────────────────────────────────────
+-- Recipes run in the tmux console window (see config/just.lua), not in nvim.
+-- Focus stays here; <leader>jw is the "watch it" variant that follows the run.
+local just = function(fn, ...)
+  local args = { ... }
+  return function()
+    require("config.just")[fn](unpack(args))
+  end
+end
+
+map("n", "<leader>jj", just("pick"), { desc = "Run recipe (pick)" })
+map("n", "<leader>jw", just("pick", { focus = true }), { desc = "Run recipe (pick, watch)" })
+map("n", "<leader>jd", just("run_default"), { desc = "Run default recipe" })
+map("n", "<leader>jr", just("rerun"), { desc = "Re-run last recipe" })
+map("n", "<leader>jt", just("run_named", "test"), { desc = "Run `test`" })
+map("n", "<leader>jb", just("run_named", "build"), { desc = "Run `build`" })
+map("n", "<leader>jc", just("run_named", "check"), { desc = "Run `check`" })

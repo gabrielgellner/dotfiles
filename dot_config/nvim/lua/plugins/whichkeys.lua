@@ -11,6 +11,7 @@ return {
       { "<leader>d", group = "debug" },
       { "<leader>dt", group = "debug test" },
       { "<leader>g", group = "git" },
+      { "<leader>j", group = "just" },
       { "<leader>a", group = "ai/claude" },
       { "<leader>b", group = "buffer" },
       { "<leader>s", group = "search/replace" },
