@@ -58,10 +58,13 @@ opt.completeopt = { "menu", "menuone", "noselect" }
 -- file), and a new split started from the global default rather than
 -- inheriting. As a global default both are simply always right.
 --
--- vim.treesitter.foldexpr() returns "0" for a filetype with no parser, so
--- unparsed files just get no folds instead of an error.
+-- The expression dispatches per buffer: a language server's folds where one can
+-- provide them, treesitter's otherwise, and "0" — no folds — for a filetype with
+-- neither. See config/folds.lua, which is required here rather than lazily from
+-- the expression so its LspAttach invalidation is registered at startup.
+require("config.folds")
 opt.foldmethod = "expr"
-opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+opt.foldexpr = "v:lua.require'config.folds'.expr()"
 opt.foldenable = true
 opt.foldlevel = 99
 opt.foldlevelstart = 99
