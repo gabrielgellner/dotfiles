@@ -44,11 +44,25 @@ local function repo_root(bufnr)
   return hit and vim.fs.dirname(hit) or nil
 end
 
+---Cache stamp for a path: its mtime, or "-" if it does not exist. Comparing
+---these is what lets the caches below survive a long nvim session without going
+---stale — this notebook is edited in the same session that reads it, so
+---"parsed once per root, forever" meant a new rules file stayed invisible until
+---a restart.
+---@param path string
+---@return string
+local function stamp(path)
+  local st = vim.uv.fs_stat(path)
+  return st and (st.mtime.sec .. "." .. st.mtime.nsec) or "-"
+end
+
 local alias_cache = {}
----Legacy slug -> remaster slug. Same file zk.lua reads; parsed once per root.
+---Legacy slug -> remaster slug. Same file zk.lua reads; reparsed when it changes.
 local function aliases(root)
-  if alias_cache[root] then
-    return alias_cache[root]
+  local now = stamp(root .. "/spell_aliases.toml")
+  local hit = alias_cache[root]
+  if hit and hit.stamp == now then
+    return hit.map
   end
   local map = {}
   local f = io.open(root .. "/spell_aliases.toml", "r")
@@ -61,7 +75,7 @@ local function aliases(root)
     end
     f:close()
   end
-  alias_cache[root] = map
+  alias_cache[root] = { stamp = now, map = map }
   return map
 end
 
@@ -212,20 +226,37 @@ local function titleize(slug)
   return table.concat(out, " ")
 end
 
----Every rules file, as picker items. Cached per root — ~2k files, globbed once.
+---Stamp covering every input to corpus(): each searched directory, plus the
+---alias file whose entries it folds in. A directory's mtime moves when a file
+---is added, removed or renamed, which is precisely what corpus() reads — it
+---takes names, never contents, so an edit that leaves the filename alone
+---correctly does not invalidate anything.
+---@param root string
+---@return string
+local function corpus_stamp(root)
+  local parts = { stamp(root .. "/spell_aliases.toml") }
+  for _, dir in ipairs(LOOKUP_ORDER) do
+    parts[#parts + 1] = stamp(("%s/campaign/rules/%s"):format(root, dir))
+  end
+  return table.concat(parts, "|")
+end
+
+---Every rules file, as picker items. ~2.6k files, globbed once and then only
+---again when one of the directories changes: eight fs_stat calls per pick.
 local corpus_cache = {}
 local function corpus(root)
-  if corpus_cache[root] then
-    return corpus_cache[root]
+  local now = corpus_stamp(root)
+  local hit = corpus_cache[root]
+  if hit and hit.stamp == now then
+    return hit.items
   end
-  local items, seen = {}, {}
+  local items = {}
   for _, dir in ipairs(LOOKUP_ORDER) do
     local base = ("%s/campaign/rules/%s"):format(root, dir)
     for _, path in ipairs(vim.fn.globpath(base, "*.md", false, true)) do
       local slug = vim.fn.fnamemodify(path, ":t:r")
       local label = titleize(slug)
       items[#items + 1] = { text = haystack(label), label = label, file = path, kind = dir:gsub("s$", ""), slug = slug }
-      seen[dir .. "/" .. slug] = true
     end
   end
   -- Legacy names as their own entries, so searching "Dimension Door" finds the
@@ -245,7 +276,7 @@ local function corpus(root)
   table.sort(items, function(a, b)
     return a.label < b.label
   end)
-  corpus_cache[root] = items
+  corpus_cache[root] = { stamp = now, items = items }
   return items
 end
 
