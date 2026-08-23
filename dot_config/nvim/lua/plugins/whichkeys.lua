@@ -49,14 +49,15 @@ return {
         { "]", group = "next" },
         { "g", group = "goto" },
         { "gs", group = "surround" },
+        { "gr", group = "lsp" },
       },
 
-      -- `gr` is only a prefix in visual mode, where Neovim's built-in LSP
-      -- mappings live under it. In normal mode `gr` is our own leaf (Snacks LSP
-      -- references, plugins/snacks.lua), so naming it a group there would
-      -- replace that description with the group's.
-      { "gr", group = "lsp", mode = "x" },
-      { "gra", desc = "Code action", mode = "x" },
+      -- Neovim's own gr* mappings (:h lsp-defaults). The three we override with
+      -- pickers describe themselves from plugins/snacks.lua; these are the ones
+      -- left native, which carry no desc of their own.
+      { "grn", desc = "Rename symbol" },
+      { "grx", desc = "Run codelens" },
+      { "gra", desc = "Code action", mode = { "n", "x" } },
 
       { "<leader>?", desc = "Open a guide" },
 

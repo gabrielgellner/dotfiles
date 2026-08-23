@@ -267,12 +267,39 @@ return {
       end,
       desc = "Diagnostics",
     },
+    -- LSP navigation sits inside Neovim's own `gr*` namespace (:h lsp-defaults)
+    -- rather than beside it. `gr` used to be references, which made it both a
+    -- complete action and the prefix for grn/gra/gri/grr/grt/grx: with
+    -- 'timeoutlen' at 300ms, a third keystroke that arrived late silently
+    -- opened a references picker instead. Deleting `gr` makes it a pure prefix
+    -- and the ambiguity goes away.
+    --
+    -- Fighting the other way — keeping `gr` and deleting the defaults — is a
+    -- standing commitment: grx (codelens) only appeared in 0.12, so the
+    -- namespace grows with each release.
+    --
+    -- The three that have a nicer picker are overridden here; grn, gra and grx
+    -- stay exactly as Neovim defines them.
     {
-      "gr",
+      "grr",
       function()
         Snacks.picker.lsp_references()
       end,
       desc = "LSP references",
+    },
+    {
+      "gri",
+      function()
+        Snacks.picker.lsp_implementations()
+      end,
+      desc = "LSP implementations",
+    },
+    {
+      "grt",
+      function()
+        Snacks.picker.lsp_type_definitions()
+      end,
+      desc = "LSP type definitions",
     },
     {
       "gd",
@@ -280,6 +307,15 @@ return {
         Snacks.picker.lsp_definitions()
       end,
       desc = "LSP definitions",
+    },
+    {
+      -- Same dispatch as <leader>fs, so both symbol keys behave alike —
+      -- including the treesitter heading fallback for markdown.
+      "gO",
+      function()
+        require("config.markdown_outline").symbols()
+      end,
+      desc = "Document symbols",
     },
     -- vim
     {

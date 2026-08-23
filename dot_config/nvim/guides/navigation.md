@@ -104,7 +104,10 @@ The single biggest reading upgrade: jump freely, because returning is one key.
 | --- | --- |
 | `[b` `]b` | previous / next buffer (`[B` `]B` for first / last) |
 | `[o` `]o` | previous / next recently-opened file |
-| `gd` / `gr` | LSP definition / references |
+| `gd` | LSP definition |
+| `grr` `gri` `grt` | LSP references / implementations / type definitions |
+| `grn` `gra` `grx` | rename / code action / run codelens |
+| `gO` | document symbols (same as `<leader>fs`) |
 | `<leader>ff` `<leader>fb` `<leader>fr` | find file / buffer / recent |
 | `<leader>fg` `<leader>fw` | live grep / grep word under cursor |
 | `<leader>fS` | workspace symbols |
