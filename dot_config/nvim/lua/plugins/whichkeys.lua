@@ -73,6 +73,23 @@ return {
       { "<C-G>%", hidden = true, mode = "i" },
       { "<2-LeftMouse>", hidden = true },
 
+      -- ── Folds that cannot work here ─────────────────────────────────────
+      -- 'foldmethod' is "expr" everywhere (config/options.lua), which makes
+      -- manual fold editing impossible: zf/zF raise E350, zd/zD raise E351 and
+      -- zE raises E352, in every buffer, always. which-key's "modern" preset
+      -- advertises all five, so the z popup was offering keys that only ever
+      -- error. Hide them rather than list them — the alternative is giving up
+      -- treesitter folds, which are worth far more than manual ones.
+      --
+      -- Everything else under z is unaffected: zM/zR/zm/zr collapse and expand,
+      -- za/zc/zo/zv act on the fold under the cursor, zj/zk move between folds
+      -- and zx recomputes them.
+      { "zf", hidden = true },
+      { "zF", hidden = true },
+      { "zd", hidden = true },
+      { "zD", hidden = true },
+      { "zE", hidden = true },
+
       -- ── Undo ────────────────────────────────────────────────────────────
       -- mini.bracketed re-maps both to record undo state for [u/]u, and its
       -- wrappers carry no desc, so these showed as raw

@@ -68,6 +68,19 @@ opt.foldlevelstart = 99
 opt.foldtext = "" -- empty picks nvim's built-in, which keeps treesitter colours
 opt.fillchars:append({ fold = " ", foldopen = "▾", foldclose = "▸", foldsep = " " })
 
+-- ── Spelling ──────────────────────────────────────────────────────────────────
+-- 'spellfile' has to be set explicitly for zg/zw to write somewhere tracked.
+-- Left empty, Neovim makes up a path from the first writable 'runtimepath'
+-- directory ending in spell/ — which is stdpath("data") .. "/site/spell", not
+-- the config directory. Words added there are outside chezmoi entirely and
+-- never reach another machine.
+--
+-- The file itself lives in the chezmoi source, so the word list is versioned.
+-- Neovim compiles a .spl sidecar beside it, which is a build artifact and stays
+-- untracked. 'spell' itself is left off globally and switched on per-window
+-- (config/scratch.lua, config/guides.lua) where prose is expected.
+opt.spellfile = vim.fn.stdpath("config") .. "/spell/en.utf-8.add"
+
 -- ── Misc ──────────────────────────────────────────────────────────────────────
 opt.clipboard = "unnamedplus" -- sync with system clipboard
 opt.mouse = "a"

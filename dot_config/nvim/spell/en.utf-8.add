@@ -1,0 +1,13 @@
+# Words added with zg / zw land here.
+#
+# config/options.lua points 'spellfile' at this path. That is required, not
+# decorative: with 'spellfile' empty, Neovim makes up a name from the first
+# writable 'runtimepath' directory ending in spell/, which is
+# stdpath("data") .. "/site/spell" — outside chezmoi, so added words would never
+# be versioned or reach another machine.
+#
+# The compiled en.utf-8.add.spl sidecar Neovim writes next to this file is a
+# build artifact and is deliberately not tracked.
+#
+# Kept non-empty on purpose: chezmoi removes empty files unless the source name
+# carries the empty_ attribute, so a blank file here would never be applied.
