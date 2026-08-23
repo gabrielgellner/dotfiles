@@ -21,6 +21,20 @@ update:
 # ── changelog ─────────────────────────────────────────────────────────────────
 
 # regenerate full CHANGELOG from git history
+#
+# cliff.toml sets filter_unconventional = true, so a commit whose subject is not
+# conventional-commit shaped is dropped silently — git-cliff reports only a count
+# of "skipped due to parse error(s)", never which ones. Find them with:
+#
+#     git log --format='%h %s' | grep -vE '^\S+ (feat|fix|refactor|perf|docs|chore|ci|revert)(\(.*\))?!?: '
+#
+# There are eleven today and they are permanent: main rejects force-push, so the
+# subjects cannot be reworded. Eight are chezmoi's own "Update <path> Add <path>"
+# messages from the window when autoCommit was enabled — see the comment in
+# .chezmoi.toml.tmpl for why it is off now. They leave 2026-07-10 to 2026-08-22
+# with no changelog entries, including scratch.lua, rules_lookup.lua and
+# markdown_outline.lua being added. Left that way deliberately rather than
+# papered over with a catch-all parser.
 changelog:
     git-cliff --output CHANGELOG.md
 
