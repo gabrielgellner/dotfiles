@@ -133,10 +133,11 @@ return {
       settings = {
         Lua = {
           runtime = { version = "LuaJIT" },
-          workspace = {
-            checkThirdParty = false,
-            library = vim.api.nvim_get_runtime_file("", true),
-          },
+          -- No workspace.library here on purpose: lazydev owns that key and
+          -- pushes plugin paths on demand (see plugins/lazydev.lua). Setting it
+          -- statically would be the slow version of the same thing, and a
+          -- second writer of the key is one more thing to keep in sync.
+          workspace = { checkThirdParty = false },
           diagnostics = { globals = { "vim", "Snacks" } },
           telemetry = { enable = false },
         },
