@@ -61,10 +61,13 @@ return {
       -- ── Preview / blame ─────────────────────────────────────────────────
       map("<leader>gp", gs.preview_hunk, "Preview hunk")
       map("<leader>gP", gs.preview_hunk_inline, "Preview hunk inline")
-      map("<leader>gb", function()
+      -- Blame sits on gl/gL, not gb/gB. These are buffer-local and gitsigns
+      -- attaches to every tracked file, so <leader>gb here shadowed the Snacks
+      -- git_branches picker (plugins/snacks.lua) everywhere it mattered.
+      map("<leader>gl", function()
         gs.blame_line({ full = true })
       end, "Blame line")
-      map("<leader>gB", gs.toggle_current_line_blame, "Toggle line blame")
+      map("<leader>gL", gs.toggle_current_line_blame, "Toggle line blame")
       map("<leader>gd", gs.diffthis, "Diff this")
       map("<leader>gD", function()
         gs.diffthis("~")

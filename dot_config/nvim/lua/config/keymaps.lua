@@ -94,7 +94,8 @@ map("v", "<", "<gv", { desc = "Indent left" })
 map("v", ">", ">gv", { desc = "Indent right" })
 
 -- ── Quickfix ──────────────────────────────────────────────────────────────────
-map("n", "<leader>xq", "<cmd>copen<CR>", { desc = "Quickfix list" })
+-- No <leader>xq here: plugins/trouble.lua binds it to `Trouble qflist toggle`
+-- and loads later, so a `:copen` mapping at this point was only ever overwritten.
 map("n", "]q", "<cmd>cnext<CR>", { desc = "Next quickfix" })
 map("n", "[q", "<cmd>cprev<CR>", { desc = "Prev quickfix" })
 
