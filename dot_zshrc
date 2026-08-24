@@ -111,11 +111,19 @@ _just_recipes_only() {
 
   cands=(${(f)"$(_CLAP_IFS=$nl _CLAP_COMPLETE_INDEX=$((CURRENT - 1)) JUST_COMPLETE=zsh just -- "${words[@]}" 2>/dev/null)"})
 
+  # Only the first argument is narrowed to recipes. Past that, a recipe's own
+  # parameters are in play and several of them take paths — pf2e-prep's
+  # `reindex file:` is documented as `just reindex campaign/npcs/wrin.md` — so
+  # everything clap offers is passed through, minus the flags. Filtering there
+  # too was the first version of this and silently removed file completion for
+  # every parameterised recipe.
   for c in $cands; do
     name=${c%%:*}
     if [[ $c == *:* ]]; then desc=${c#*:}; else desc=''; fi
     if [[ $cur == -* ]]; then
       [[ $name == -* ]] && out+=("${name}${desc:+:$desc}")
+    elif (( CURRENT > 2 )); then
+      [[ $name != -* ]] && out+=("${name}${desc:+:$desc}")
     else
       (( ${recipes[(I)$name]} )) && out+=("${name}${desc:+:$desc}")
     fi
@@ -124,6 +132,8 @@ _just_recipes_only() {
   (( $#out )) || return 1
   if [[ $cur == -* ]]; then
     _describe -t options 'option' out
+  elif (( CURRENT > 2 )); then
+    _describe -t arguments 'argument' out
   else
     _describe -t recipes 'recipe' out
   fi
