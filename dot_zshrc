@@ -237,5 +237,11 @@ eval "$(direnv hook zsh)"
 source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 # Setup personal path
-path=($HOME/.local/bin $HOME/bin $path)
+# ~/.cargo/bin is here because bootstrap.sh installs rustup with
+# --no-modify-path, which is deliberate — rustup would otherwise edit .zshrc
+# itself — but it means nothing else adds the directory. Without this line the
+# whole toolchain installs and then cannot be found: cargo, rustc, rustfmt and
+# rust-analyzer all sit in ~/.cargo/bin unreachable, and nvim inherits the same
+# empty PATH, so a .rs file gets no LSP and no formatter.
+path=($HOME/.local/bin $HOME/.cargo/bin $HOME/bin $path)
 typeset -U path   # dedupe, keeps first occurrence, repeated sourcing .zshrc won't stack

@@ -8,4 +8,4 @@
 # $HOME rather than a literal path: uv's installer wrote this file with
 # /Users/gabrielgellner hardcoded, which would have expanded to nothing useful
 # on the Linux machine had it ever been synced.
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"

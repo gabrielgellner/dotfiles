@@ -225,11 +225,15 @@ for t in basedpyright ruff debugpy djlint; do
     uv tool list 2>/dev/null | grep -q "^$t " || missing+=("uv:$t")
 done
 
-# Rust components live behind rustup, not on PATH until a toolchain is active.
-if command -v rustup &>/dev/null; then
+# Rust components live behind rustup. Test the install location rather than
+# PATH: this script sources ~/.cargo/env above, so `command -v rustup` succeeds
+# here even when nothing puts ~/.cargo/bin on PATH for a normal shell — which is
+# how a complete toolchain sat unreachable and unnoticed. dot_zshrc and
+# dot_zshenv are what actually expose it.
+if [[ -x "$HOME/.cargo/bin/rustup" ]]; then
     for component in rust-analyzer clippy rustfmt; do
-        rustup component list --installed 2>/dev/null | grep -q "^${component}" \
-            || missing+=("rustup:$component")
+        "$HOME/.cargo/bin/rustup" component list --installed 2>/dev/null \
+            | grep -q "^${component}" || missing+=("rustup:$component")
     done
 else
     missing+=("rustup")
