@@ -90,6 +90,13 @@ return {
       -- else — and then preferred a project .venv, which does not carry debugpy
       -- either. Both branches were dead, in every project.
       local function adapter_python()
+        -- Guarded rather than relying on v:shell_error: vim.fn.system() throws
+        -- E475 when the command does not exist, so an unguarded call would
+        -- raise here on a machine where uv is not yet installed — which is
+        -- precisely the machine that has not been bootstrapped.
+        if vim.fn.executable("uv") ~= 1 then
+          return "python3"
+        end
         local dir = vim.fn.system({ "uv", "tool", "dir" })
         if vim.v.shell_error == 0 then
           local p = vim.trim(dir) .. "/debugpy/bin/python"

@@ -28,16 +28,28 @@ return {
       -- path stays as a fallback because it is present on any Mac with Xcode
       -- tools, and a debugger that may fail to launch beats none at all.
       local function lldb_dap()
-        local brewed = "/opt/homebrew/opt/llvm/bin/lldb-dap"
-        if vim.fn.executable(brewed) == 1 then
-          return brewed
+        -- HOMEBREW_PREFIX rather than a literal: brew lives at /opt/homebrew on
+        -- Apple silicon and /home/linuxbrew/.linuxbrew on the Linux machine, and
+        -- dot_zshrc exports it from `brew shellenv` before nvim ever starts.
+        local prefix = vim.env.HOMEBREW_PREFIX
+        if prefix then
+          local brewed = prefix .. "/opt/llvm/bin/lldb-dap"
+          if vim.fn.executable(brewed) == 1 then
+            return brewed
+          end
         end
         if vim.fn.executable("lldb-dap") == 1 then
           return "lldb-dap"
         end
-        local found = vim.fn.system({ "xcrun", "-f", "lldb-dap" })
-        if vim.v.shell_error == 0 and vim.trim(found) ~= "" then
-          return vim.trim(found)
+        -- Guarded, not just checked afterwards: vim.fn.system() with a list
+        -- *throws* E475 when the command does not exist rather than setting
+        -- v:shell_error, so calling xcrun unguarded would raise inside this
+        -- config function on any machine without Xcode tools.
+        if vim.fn.executable("xcrun") == 1 then
+          local found = vim.fn.system({ "xcrun", "-f", "lldb-dap" })
+          if vim.v.shell_error == 0 and vim.trim(found) ~= "" then
+            return vim.trim(found)
+          end
         end
       end
 
