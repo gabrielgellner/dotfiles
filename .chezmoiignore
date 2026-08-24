@@ -5,7 +5,6 @@ justfile
 LICENSE
 README.md
 bootstrap.sh
-dot_gitconfig-work
 
 {{/*
   ~/.tmux/plugins is tpm's install directory, not ours. bootstrap.sh clones tpm
