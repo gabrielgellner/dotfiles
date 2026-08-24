@@ -78,16 +78,29 @@ return {
     config = function()
       local dap_python = require("dap-python")
 
-      -- default: debugpy installed via `uv tool install debugpy` (~/.local/bin/python)
-      local python_path = vim.fn.expand("~/.local/bin/python")
-
-      -- prefer project venv if it exists
-      local project_venv = vim.fn.getcwd() .. "/.venv/bin/python"
-      if vim.fn.filereadable(project_venv) == 1 then
-        python_path = project_venv
+      -- The interpreter passed here runs the *adapter* (`-m debugpy.adapter`),
+      -- so it is the one that needs debugpy importable. It is not the
+      -- interpreter the program runs under — nvim-dap-python fills that in
+      -- itself from VIRTUAL_ENV / CONDA_PREFIX per project, which is why there
+      -- is no venv handling here.
+      --
+      -- Getting that backwards is how this came to be broken. It pointed at
+      -- ~/.local/bin/python, which `uv tool install` never creates — uv
+      -- symlinks a tool's entry points (debugpy, debugpy-adapter) and nothing
+      -- else — and then preferred a project .venv, which does not carry debugpy
+      -- either. Both branches were dead, in every project.
+      local function adapter_python()
+        local dir = vim.fn.system({ "uv", "tool", "dir" })
+        if vim.v.shell_error == 0 then
+          local p = vim.trim(dir) .. "/debugpy/bin/python"
+          if vim.fn.executable(p) == 1 then
+            return p
+          end
+        end
+        return "python3"
       end
 
-      dap_python.setup(python_path)
+      dap_python.setup(adapter_python())
 
       -- ── Signs ─────────────────────────────────────────────────────────
       vim.fn.sign_define("DapBreakpoint", { text = "●", texthl = "DiagnosticError" })
