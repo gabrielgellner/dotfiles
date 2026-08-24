@@ -85,14 +85,23 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 # to separate, and -V preserves clap's own order, which is flags first. With ~40
 # flags ahead of them the recipes are off the bottom of the screen.
 #
-# So filter in fzf instead of ordering in zsh: open with a query that hides
-# anything *starting* with a double dash. `!--` alone would hide everything,
-# because fzf-tab writes candidates as `value -- description` and so every line
-# contains one; ^ anchors it to the start, where only flags have it.
+# So drop them at the completion layer instead. ignored-patterns matches the
+# candidate *value*, which is what makes it the right tool here: `--*` takes the
+# flags, `*=` the variable assignments just also offers (BENCH_OPTS=), and `.`
+# the bare-dot path.
 #
-# This is the initial query, not a restriction — Ctrl-U in the picker clears it
-# and the flags are all still there.
-zstyle ':fzf-tab:complete:just:*' fzf-flags '--query=!^--'
+# An fzf --query was the first attempt and is the wrong layer, because fzf
+# matches the rendered line — `value -- description`. `!--` hid everything,
+# since every line contains that separator. `!^--` fixed the flags but `!=$`
+# could not reach the assignments, as fzf-tab pads the display so nothing ends
+# where you think it does. Unanchored `!=` did work, and would have silently
+# hidden any recipe whose *doc comment* contains an equals sign — three of them
+# across cenprof-ai and sdmxlib-rest, including sdmxlib-rest's `pyrefly`
+# ("preset = \"all\""). Matching values sidesteps all of it.
+#
+# Files still appear (CHANGELOG.md and friends); those come from the same
+# completer and are left alone, being at least plausible arguments.
+zstyle ':completion:*:*:just:*' ignored-patterns '--*' '*=' '.'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 

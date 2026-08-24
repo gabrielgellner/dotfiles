@@ -57,11 +57,18 @@ fzf-tab owns `Tab` (completion). Different widgets, different question.
 has nothing to separate, and `-V` keeps clap's order, which is flags first — so
 the recipes started off the bottom of the screen.
 
-`dot_zshrc` opens that picker with the query `!^--`, hiding anything that starts
-with a double dash. `Ctrl-U` in the picker clears the query if you actually want
-a flag. Note `!--` on its own would hide everything: fzf-tab renders candidates
-as `value -- description`, so every line contains a double dash somewhere; the
-`^` is what confines it to flags.
+`dot_zshrc` drops them at the completion layer instead:
+
+    zstyle ':completion:*:*:just:*' ignored-patterns '--*' '*=' '.'
+
+That matches the candidate *value*, so flags, the variable assignments just also
+offers (`BENCH_OPTS=`) and the bare `.` all go, while descriptions are not
+consulted. Filtering with an fzf `--query` was the first attempt and is the
+wrong layer — fzf matches the rendered `value -- description` line, so `!=`
+would have silently hidden any recipe whose doc comment contains an equals sign.
+
+Files (`CHANGELOG.md` and friends) still show; they come from the same completer
+and are at least plausible arguments.
 
 ## Queries
 
