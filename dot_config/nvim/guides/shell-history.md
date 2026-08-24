@@ -57,19 +57,20 @@ fzf-tab owns `Tab` (completion). Different widgets, different question.
 has nothing to separate, and `-V` keeps clap's order, which is flags first — so
 the recipes started off the bottom of the screen.
 
-`dot_zshrc` drops them at the completion layer, with a `zstyle -e` that
-recomputes per completion: ignore the flags, the variable assignments, and
-anything in the current directory that `just --summary` does not name as a
-recipe. The result is recipes and nothing else.
+clap also offers every file and directory in the cwd, and splits its
+candidates across two `_describe` calls — one for directories, one for the
+rest — so a name that is both a recipe and a directory appears **twice**. That
+is `docs`, `bench`, `config` and `slides` across six of these projects.
 
-Typing `--` still reaches the flags — zsh offers ignored matches when nothing
-else is left — so `just --su<Tab>` completes to `--summary` as usual.
+`dot_zshrc` therefore replaces the completer rather than filtering it.
+`_just_recipes_only` takes clap's own `name:description` output, keeps what
+`just --summary` calls a recipe, and describes it once — so no duplicates, no
+files, no flags in the way. A leading `-` switches it to the flags, so
+`just --su<Tab>` still completes to `--summary`.
 
-Two things make it fiddly, both recorded in the rc. Files cannot be told from
-recipes by shape, since `checkfmt` and `default` are recipes with no doc
-comment; hence subtracting a computed list rather than pattern-matching. And a
-recipe may share a name with a directory — sdmxlib has both a `docs` recipe and
-`docs/` — so the subtraction has to keep it.
+Filtering with `ignored-patterns` came first and cannot solve the duplicate:
+it matches the candidate *value*, and both `docs` entries are the same string,
+so any pattern hiding one hides both. Tried, and it silently removed the recipe.
 
 ## Queries
 

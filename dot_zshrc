@@ -79,50 +79,56 @@ zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
 # Preview the directory a completion refers to, using the eza the ls aliases use.
-# just's completion comes from clap's dynamic completer, which puts every
-# candidate — every global flag as well as every recipe — into a single
-# `_describe -V values` call. One tag, so tag-order and group-order have nothing
-# to separate, and -V preserves clap's own order, which is flags first. With ~40
-# flags ahead of them the recipes are off the bottom of the screen.
+# just's completion is replaced outright. clap's dynamic completer offers every
+# recipe, every global flag, every variable, and every file and directory in the
+# cwd — and splits them across two `_describe` calls, one for directories and one
+# for everything else. Three problems follow, and only the third needs this much:
 #
-# So drop them at the completion layer instead. ignored-patterns matches the
-# candidate *value*, which is what makes it the right tool here: `--*` takes the
-# flags, `*=` the variable assignments just also offers (BENCH_OPTS=), and `.`
-# the bare-dot path.
+#   1. ~40 flags sort ahead of the recipes, pushing them off the screen.
+#   2. Files and directories are offered as first arguments, which is noise.
+#   3. A name that is both a recipe and a directory — docs, bench, config, slides
+#      across six of these projects — is emitted by *both* calls and so appears
+#      twice.
 #
-# An fzf --query was the first attempt and is the wrong layer, because fzf
-# matches the rendered line — `value -- description`. `!--` hid everything,
-# since every line contains that separator. `!^--` fixed the flags but `!=$`
-# could not reach the assignments, as fzf-tab pads the display so nothing ends
-# where you think it does. Unanchored `!=` did work, and would have silently
-# hidden any recipe whose *doc comment* contains an equals sign — three of them
-# across cenprof-ai and sdmxlib-rest, including sdmxlib-rest's `pyrefly`
-# ("preset = \"all\""). Matching values sidesteps all of it.
+# The first two yield to `ignored-patterns`, which is where this started. The
+# third does not: ignored-patterns matches the candidate *value*, and the two
+# `docs` entries are the same string, so any pattern hiding one hides both. That
+# was tried, and it silently removed the docs recipe.
 #
-# just also offers every file and directory in the cwd, since a path is a valid
-# argument. Those cannot be matched by shape — `checkfmt` and `default` are
-# recipes with no doc comment, so "bare name" describes both — so the list is
-# computed instead: ignore anything in the cwd that `just --summary` does not
-# name as a recipe. -e makes zstyle evaluate this per completion, which is what
-# lets it follow the directory.
-#
-# Subtracting rather than blanket-ignoring matters: sdmxlib has both a `docs`
-# recipe and a docs/ directory, and the recipe has to survive. Note also that
-# `*/` would be useless here — the clap completer strips the trailing slash and
-# passes the suffix separately, so zsh sees `campaign`, not `campaign/`. That is
-# why directories leaked through the first version of this.
-#
-# ${(@)a:#pat} is the form that actually filters element-wise; both ${a:|b} and
-# ${a:#pat} without (@) silently returned the array unchanged on zsh 5.9.
-zstyle -e ':completion:*:*:just:*' ignored-patterns '
-  local -a _r _f
-  _r=(${(z)"$(just --summary 2>/dev/null)"})
-  if (( $#_r )); then
-    _f=(*(N))
-    reply=( "--*" "*=" "." ${(@)_f:#(${(j:|:)~_r})} )
+# So take clap's data — its output is `name:description` lines, which is the
+# stable part — filter it, and describe it once. `just --summary` is the
+# authority on what is a recipe. A leading `-` switches to the flags instead, so
+# `just --su<TAB>` still completes. Returning 1 when there is no justfile lets
+# zsh fall back as usual.
+_just_recipes_only() {
+  local -a cands recipes out
+  local c name desc nl cur
+  nl=$'\n'
+  cur=${words[CURRENT]}
+
+  recipes=(${(z)"$(just --summary 2>/dev/null)"})
+  (( $#recipes )) || return 1
+
+  cands=(${(f)"$(_CLAP_IFS=$nl _CLAP_COMPLETE_INDEX=$((CURRENT - 1)) JUST_COMPLETE=zsh just -- "${words[@]}" 2>/dev/null)"})
+
+  for c in $cands; do
+    name=${c%%:*}
+    if [[ $c == *:* ]]; then desc=${c#*:}; else desc=''; fi
+    if [[ $cur == -* ]]; then
+      [[ $name == -* ]] && out+=("${name}${desc:+:$desc}")
+    else
+      (( ${recipes[(I)$name]} )) && out+=("${name}${desc:+:$desc}")
+    fi
+  done
+
+  (( $#out )) || return 1
+  if [[ $cur == -* ]]; then
+    _describe -t options 'option' out
   else
-    reply=()
-  fi'
+    _describe -t recipes 'recipe' out
+  fi
+}
+compdef _just_recipes_only just
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 
