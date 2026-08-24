@@ -63,10 +63,19 @@ rest — so a name that is both a recipe and a directory appears **twice**. That
 is `docs`, `bench`, `config` and `slides` across six of these projects.
 
 `dot_zshrc` therefore replaces the completer rather than filtering it.
-`_just_recipes_only` takes clap's own `name:description` output, keeps what
-`just --summary` calls a recipe, and describes it once — so no duplicates, no
-files, no flags in the way. A leading `-` switches it to the flags, so
-`just --su<Tab>` still completes to `--summary`.
+`_just_recipes_only` takes clap's own `name:description` output and describes it
+once, so nothing appears twice. What it keeps depends on position:
+
+| Position          | Offers                                     |
+| ----------------- | ------------------------------------------ |
+| `just <Tab>`      | recipes only — no files, no flags           |
+| `just recipe <Tab>` | paths and recipes, no flags               |
+| after a `-`       | flags, at any position                      |
+
+Only the first argument is narrowed. Past it a recipe's own parameters are in
+play, and several take paths — `just reindex campaign/npcs/wrin.md` is a
+documented usage in pf2e-prep. Narrowing there too was the first version and it
+silently removed path completion for every parameterised recipe.
 
 Filtering with `ignored-patterns` came first and cannot solve the duplicate:
 it matches the candidate *value*, and both `docs` entries are the same string,
