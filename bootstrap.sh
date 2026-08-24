@@ -73,6 +73,29 @@ uv_tool_install() {
 if ! command -v brew &>/dev/null; then
     green "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    # The installer prints instructions for adding brew to a shell profile and
+    # then leaves; it does not touch PATH for the shell running this script. Its
+    # location is on no default PATH — /opt/homebrew/bin on Apple silicon,
+    # /home/linuxbrew/.linuxbrew/bin on Linux — so without this the very next
+    # brew_install call fails and `set -euo pipefail` ends the run, having
+    # installed nothing but Homebrew itself.
+    #
+    # Same three candidates and same order as dot_zshrc, which solves this for
+    # interactive shells; the rustup block below sources ~/.cargo/env for the
+    # identical reason.
+    for _brew in /home/linuxbrew/.linuxbrew/bin/brew /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        if [[ -x "$_brew" ]]; then
+            eval "$("$_brew" shellenv)"
+            break
+        fi
+    done
+    unset _brew
+
+    command -v brew &>/dev/null || {
+        yellow "  brew installed but not on PATH — cannot continue"
+        exit 1
+    }
 else
     yellow "brew already installed, skipping"
 fi
