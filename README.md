@@ -9,7 +9,7 @@ Personal dotfiles managed with [chezmoi](https://chezmoi.io).
 | **zsh**      | `dot_zshrc`                        | Shell: completions, fzf, zoxide, vi mode, aliases                      |
 | **starship** | `dot_config/private_starship.toml` | Prompt: vi mode indicators, custom uv/Python module                    |
 | **tmux**     | `dot_tmux.conf`                    | Terminal multiplexer: Ctrl-A prefix, vi keys, catppuccin theme         |
-| **neovim**   | `dot_config/nvim/`                 | Editor: lazy.nvim, LSP (basedpyright + ruff + lua_ls), DAP, treesitter |
+| **neovim**   | `dot_config/nvim/`                 | Editor: lazy.nvim, LSP (pyrefly, ruff, lua_ls, just-lsp), DAP, treesitter |
 | **scripts**  | `bin/`                             | `dev` — fzf tmux session switcher; `new-session` — session layout      |
 
 ## New machine setup
