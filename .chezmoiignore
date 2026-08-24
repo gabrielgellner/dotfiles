@@ -9,6 +9,20 @@ homebrew-taps/**
 dot_gitconfig-work
 
 {{/*
+  ~/.tmux/plugins is tpm's install directory, not ours. bootstrap.sh clones tpm
+  itself, dot_tmux.conf names the plugins and the version to pin them at, and
+  tpm fetches the rest — so the tree is fully reproducible from two files.
+
+  It used to be checked in: 246 of the repo's 330 tracked files and 4.2MB were
+  three vendored clones, .git directories and packfiles included. Beyond the
+  bulk, chezmoi managing them means it fights tpm: after a `prefix + U` the
+  plugin is newer than the source, and `chezmoi apply` reverts it.
+
+  Ignored rather than merely deleted, so `chezmoi add` cannot pull them back.
+*/ -}}
+.tmux/plugins/**
+
+{{/*
   Machine-specific inclusion. This file is always evaluated as a template — no
   .tmpl suffix — so a path can be skipped per machine. Paths here are *target*
   names (.config/i3), not source names (dot_config/i3).
