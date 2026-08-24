@@ -33,3 +33,12 @@ bootstrap.sh
 .config/i3/**
 .config/i3status/**
 {{ end -}}
+
+{{/*
+  mkv2mp4 remuxes video and needs ffmpeg, which is a large install for a
+  machine that is used for work. bootstrap.sh gates the ffmpeg package the same
+  way, so the script and its dependency arrive together or not at all.
+*/ -}}
+{{ if ne .chezmoi.os "darwin" -}}
+bin/mkv2mp4
+{{ end -}}

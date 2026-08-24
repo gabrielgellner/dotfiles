@@ -40,7 +40,8 @@ recipe carries a note about commits git-cliff silently drops.
 The same repo serves a macOS laptop and a Linux machine. Two mechanisms:
 
 - **`.chezmoiignore`** is a template, so a path can be skipped per machine.
-  `.config/i3` and `.config/i3status` apply on Linux only. Paths there are
+  `.config/i3` and `.config/i3status` apply on Linux only, and
+  `bin/mkv2mp4` on macOS only. Paths there are
   *target* names (`.config/i3`), not source names (`dot_config/i3`).
 - **`.chezmoi.toml.tmpl`** defines a `role`, asked once per machine by
   `chezmoi init` and stored in the generated (untracked)

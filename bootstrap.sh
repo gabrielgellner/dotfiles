@@ -10,6 +10,12 @@ green() { printf '\033[1;32m%b\033[0m\n' "$*"; }
 yellow() { printf '\033[1;33m%b\033[0m\n' "$*"; }
 blue() { printf '\033[1;34m%b\033[0m\n' "$*"; }
 
+# macOS-only bits are gated on this. Kept as one flag rather than repeated
+# `uname` calls so the verification pass at the bottom agrees with the install
+# section by construction.
+IS_MACOS=false
+[[ "$(uname -s)" == "Darwin" ]] && IS_MACOS=true
+
 brew_install() {
     local pkg="$1"
     if brew list --formula "$pkg" &>/dev/null; then
@@ -83,8 +89,13 @@ brew_install ripgrep
 brew_install eza
 brew_install bat
 brew_install yazi
-# bin/mkv2mp4 is a tracked script and refuses to run without this.
-brew_install ffmpeg
+
+# ffmpeg is only here for bin/mkv2mp4, which .chezmoiignore applies on macOS
+# alone — the Linux machine is for work and has no use for it. Both sides of
+# that decision have to agree, so the verification below is gated the same way.
+if $IS_MACOS; then
+    brew_install ffmpeg
+fi
 
 # editor
 brew_install neovim
@@ -216,13 +227,15 @@ missing=()
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi starship zoxide atuin direnv lazygit just uv tree-sitter ffmpeg \
+         yazi starship zoxide atuin direnv lazygit just uv tree-sitter \
          git git-cliff shellcheck stylua prettier taplo shfmt biome \
          yamlfmt yamllint lua-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done
 
 # uv tools do not all put a binary on PATH — debugpy is a library — so ask uv.
+$IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
+
 for t in basedpyright ruff debugpy djlint; do
     uv tool list 2>/dev/null | grep -q "^$t " || missing+=("uv:$t")
 done
