@@ -60,6 +60,28 @@ unset _zcompdump_stale
 # 3. fzf shell integration
 source <(fzf --zsh)
 
+# 4. fzf-tab — every TAB completion goes through fzf, not just the ** trigger.
+#
+# Wedged between fzf and zsh-autosuggestions because both neighbours constrain
+# it. It has to be the *last* plugin to bind ^I: fzf's integration above binds
+# ^I to fzf-completion, and fzf-tab calls whatever it finds there to produce the
+# candidate list. It also has to load *before* anything that wraps widgets,
+# which zsh-autosuggestions does. compinit has already run above. Move it out of
+# this gap in either direction and it stops working, quietly.
+source "$BREW_PREFIX/share/fzf-tab/fzf-tab.zsh"
+
+# `menu no` is required rather than cosmetic: zsh's own completion menu would
+# consume the unambiguous prefix before fzf-tab could see it.
+zstyle ':completion:*' menu no
+zstyle ':completion:*:descriptions' format '[%d]'
+# LS_COLORS is unset on macOS unless something exports it; this then yields an
+# empty colour list, which is harmless — candidates are simply uncoloured.
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# Preview the directory a completion refers to, using the eza the ls aliases use.
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --icons --color=always $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --icons --color=always $realpath'
+
 # Options
 # No COMPLETE_ALIASES: it stops an alias being expanded before completion, so
 # `ll --<TAB>` offered nothing where eza's own flags were wanted. No

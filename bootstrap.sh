@@ -69,6 +69,7 @@ brew install --cask font-fira-code-nerd-font
 # shell
 brew_install zsh-autosuggestions
 brew_install zsh-syntax-highlighting
+brew_install fzf-tab
 
 # prompt & navigation
 brew_install starship
