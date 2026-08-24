@@ -83,6 +83,8 @@ brew_install ripgrep
 brew_install eza
 brew_install bat
 brew_install yazi
+# bin/mkv2mp4 is a tracked script and refuses to run without this.
+brew_install ffmpeg
 
 # editor
 brew_install neovim
@@ -214,7 +216,7 @@ missing=()
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi starship zoxide atuin direnv lazygit just uv tree-sitter \
+         yazi starship zoxide atuin direnv lazygit just uv tree-sitter ffmpeg \
          git git-cliff shellcheck stylua prettier taplo shfmt biome \
          yamlfmt yamllint lua-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
