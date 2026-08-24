@@ -46,6 +46,18 @@ ensure_command() {
     fi
 }
 
+# Casks are macOS-only — linuxbrew rejects --cask outright — so every call is
+# gated on IS_MACOS by the caller. Mirrors brew_install so a re-run is quiet.
+cask_install() {
+    local pkg="$1"
+    if brew list --cask "$pkg" &>/dev/null; then
+        yellow "  cask: $pkg already installed, skipping"
+    else
+        green "  cask: installing $pkg"
+        brew install --cask "$pkg"
+    fi
+}
+
 uv_tool_install() {
     local pkg="$1"
     if uv tool list 2>/dev/null | grep -q "^$pkg "; then
@@ -70,7 +82,18 @@ fi
 blue "\nInstalling brew packages..."
 
 # fonts
-brew install --cask font-fira-code-nerd-font
+# kitty.conf and fontconfig/fonts.conf both name FiraCode Nerd Font, so this is
+# a real dependency, not decoration — without it the icons in eza, starship and
+# yazi fall back to boxes. It was also the one install in this script that was
+# neither guarded against a re-run nor gated by OS: `brew install --cask` fails
+# on linuxbrew, and with `set -euo pipefail` that aborted the entire bootstrap
+# on the Linux machine before it reached anything else.
+#
+# The Linux machine still wants the font; it just cannot come from a cask.
+# Install it there by hand, or through the distribution's package manager.
+if $IS_MACOS; then
+    cask_install font-fira-code-nerd-font
+fi
 
 # shell
 brew_install zsh-autosuggestions
