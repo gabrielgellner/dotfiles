@@ -12,3 +12,11 @@
   Safe to delete this file once both machines have applied once.
 */ -}}
 bin/regenerate-completions
+
+{{/*
+  .config/bat/themes held a 64KB Catppuccin Mocha .tmTheme. Three separate
+  reasons it did nothing: bat only loads a custom theme after `bat cache
+  --build` and no cache was ever built, bat 0.26 ships all four Catppuccin
+  themes built in, and the config asks for Frappe, not Mocha.
+*/ -}}
+.config/bat/themes
