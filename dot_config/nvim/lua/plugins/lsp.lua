@@ -155,6 +155,12 @@ return {
           -- statically would be the slow version of the same thing, and a
           -- second writer of the key is one more thing to keep in sync.
           workspace = { checkThirdParty = false },
+          -- Duplicated in .luarc.json at the root of the dotfiles repo, and
+          -- that copy wins wherever it exists — lua_ls prefers a workspace
+          -- .luarc.json over anything the client sends, which is verifiable by
+          -- adding a name to one file and not the other. This list is therefore
+          -- the fallback, for lua buffers outside such a workspace. Add a global
+          -- to both or it resolves in one place and not the other.
           diagnostics = { globals = { "vim", "Snacks" } },
           telemetry = { enable = false },
         },
