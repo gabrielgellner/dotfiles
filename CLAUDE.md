@@ -56,6 +56,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 
 | File                               | Destination               | Purpose                                                       |
 | ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| `dot_zshenv`                       | `~/.zshenv`               | PATH for non-interactive zsh; read before `.zshrc`            |
 | `dot_zshrc`                        | `~/.zshrc`                | Zsh config: completions, fzf, zoxide, starship, aliases       |
 | `dot_tmux.conf`                    | `~/.tmux.conf`            | Tmux: Ctrl-A prefix, vi keys, catppuccin frappe               |
 | `bin/executable_dev`               | `~/bin/dev`               | fzf-based tmux session/project switcher                       |

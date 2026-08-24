@@ -1,0 +1,11 @@
+# Read by every zsh, interactive or not, and before .zshrc.
+#
+# .zshrc sets the same path further down, which covers interactive shells; this
+# is what puts ~/.local/bin in front for non-interactive ones — scripts with a
+# `#!/usr/bin/env zsh` line, `zsh -c`, and anything a tool spawns. uv installs
+# there (ruff, basedpyright, debugpy, djlint via bootstrap.sh).
+#
+# $HOME rather than a literal path: uv's installer wrote this file with
+# /Users/gabrielgellner hardcoded, which would have expanded to nothing useful
+# on the Linux machine had it ever been synced.
+export PATH="$HOME/.local/bin:$PATH"
