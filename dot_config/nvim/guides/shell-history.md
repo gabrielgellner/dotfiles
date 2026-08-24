@@ -18,8 +18,8 @@ zsh-autosuggestions. Local only — no account, nothing leaves the machine.
 | `Ctrl-T`      | insert | fzf file picker — still fzf, untouched   |
 | `k` `/`       | normal | still vi motions, deliberately restored  |
 
-Inside the search UI, atuin prints its own hint line: `<esc>: exit, <tab>: edit, <enter>: run,
-<ctrl-o>: inspect`. Two more are not in it:
+Inside the search UI, atuin prints its own hint line — `<esc>: exit,
+<tab>: edit, <enter>: run, <ctrl-o>: inspect`. Two more are not in it:
 
 | Key       | Does                                                    |
 | --------- | ------------------------------------------------------- |
@@ -66,8 +66,12 @@ Placeholders: `{command}` `{directory}` `{duration}` `{exit}` `{time}`
 **Promotion.** Decide what deserves a `just` recipe from evidence rather than
 guesswork. In a project:
 
-    atuin search --cwd . --format "{command}" --limit 5000 \
-      | sort | uniq -c | sort -rn | head -20
+    atuin search --cwd . --include-duplicates --format "{command}" \
+      --limit 5000 | sort | uniq -c | sort -rn | head -20
+
+`--include-duplicates` is not optional here. Without it a non-interactive
+search returns each distinct command once, so every count comes back as 1 and
+the ranking is silently meaningless.
 
 Recipes show up as `just check`, so anything near the top that is *not* a `just`
 invocation is a command being typed raw — a promotion candidate. Seeing
@@ -100,6 +104,10 @@ prefix-matched, so the feel is unchanged.
 Imported history has **no directory or exit code** — `unknown` and `-1`. The old
 file never recorded them. Only commands run since the switch carry context, so
 `--cwd` and `--exit` get more useful over the first few weeks.
+
+Non-interactive `atuin search` collapses duplicates unless you pass
+`--include-duplicates`. Fine for "what did I run", wrong for "how often" — and
+it fails quietly, as a list of 1s.
 
 `atuin import auto` is **not idempotent**. Running it twice duplicates
 everything. `bootstrap.sh` guards on the database already existing.
