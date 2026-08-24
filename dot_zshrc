@@ -79,6 +79,20 @@ zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
 # Preview the directory a completion refers to, using the eza the ls aliases use.
+# just's completion comes from clap's dynamic completer, which puts every
+# candidate — every global flag as well as every recipe — into a single
+# `_describe -V values` call. One tag, so tag-order and group-order have nothing
+# to separate, and -V preserves clap's own order, which is flags first. With ~40
+# flags ahead of them the recipes are off the bottom of the screen.
+#
+# So filter in fzf instead of ordering in zsh: open with a query that hides
+# anything *starting* with a double dash. `!--` alone would hide everything,
+# because fzf-tab writes candidates as `value -- description` and so every line
+# contains one; ^ anchors it to the start, where only flags have it.
+#
+# This is the initial query, not a restriction — Ctrl-U in the picker clears it
+# and the flags are all still there.
+zstyle ':fzf-tab:complete:just:*' fzf-flags '--query=!^--'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 
@@ -101,7 +115,24 @@ SAVEHIST=10000
 source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # Prompt
-eval "$(starship init zsh)"
+# Guarded so it runs once per shell *process*, not once per source. Starship's
+# init preserves any existing zle-keymap-select widget and wraps it, to redraw
+# the prompt when the vi mode changes. Sourced a third time that wrapping eats
+# itself: the second run leaves the widget as starship_zle-keymap-select-wrapped,
+# so the third preserves *that* name and then redefines the function under it to
+# call the preserved name — i.e. itself. The result is
+#
+#     starship_zle-keymap-select-wrapped:1: maximum nested function level
+#     reached; increase FUNCNEST?
+#
+# on every Esc, once `source ~/.zshrc` has been run three times in one shell.
+# The flag is deliberately not exported: a nested shell is a new process and must
+# initialise starship itself, which an exported guard (STARSHIP_SHELL is the
+# obvious candidate) would wrongly suppress.
+if [[ -z "${_STARSHIP_INIT_DONE:-}" ]]; then
+    eval "$(starship init zsh)"
+    typeset -g _STARSHIP_INIT_DONE=1
+fi
 
 export EDITOR=nvim
 export VISUAL=nvim

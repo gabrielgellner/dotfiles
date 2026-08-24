@@ -1,4 +1,4 @@
-# Shell history — atuin
+# Shell history and completion
 
 Atuin records every command into SQLite with its **directory**, **exit code** and
 **duration**. That is the whole point: a flat `.zsh_history` has nowhere to put
@@ -16,6 +16,9 @@ zsh-autosuggestions. Local only — no account, nothing leaves the machine.
 | `Ctrl-P/N`    | insert | step back/forward, prefix match — unchanged |
 | `Ctrl-Y`      | insert | accept the ghost suggestion — unchanged  |
 | `Ctrl-T`      | insert | fzf file picker — still fzf, untouched   |
+| `Tab`         | insert | fzf-tab — completion through fzf         |
+| `**` `Tab`    | insert | fzf's own file picker, still available   |
+| `Alt-C`       | insert | fzf cd widget — unchanged                |
 | `k` `/`       | normal | still vi motions, deliberately restored  |
 
 Inside the search UI, atuin prints its own hint line — `<esc>: exit,
@@ -33,6 +36,32 @@ Inside the search UI, atuin prints its own hint line — `<esc>: exit,
 `Ctrl-R` cycling the filter is the one worth learning: press it three more times
 after opening and the indicator reads `[ DIRECTORY ]`, scoping every subsequent
 keystroke to this repo.
+
+## Completion — fzf-tab
+
+Every `Tab` is an fzf picker now, not just the `**` trigger. It is fuzzy, so a
+couple of characters is usually faster than reading the list.
+
+    git checkout <Tab>    branches
+    just <Tab>            recipes, with their doc comments
+    kill <Tab>            processes
+    cd <Tab>              directories, with an eza preview
+
+fzf-tab and atuin never collide: atuin owns `Ctrl-R` and `Up` (history),
+fzf-tab owns `Tab` (completion). Different widgets, different question.
+
+### just, and why it needed a nudge
+
+`just` completes through clap's dynamic completer, which puts recipes *and* all
+~40 global flags into one `_describe -V values` call. One tag means `tag-order`
+has nothing to separate, and `-V` keeps clap's order, which is flags first — so
+the recipes started off the bottom of the screen.
+
+`dot_zshrc` opens that picker with the query `!^--`, hiding anything that starts
+with a double dash. `Ctrl-U` in the picker clears the query if you actually want
+a flag. Note `!--` on its own would hide everything: fzf-tab renders candidates
+as `value -- description`, so every line contains a double dash somewhere; the
+`^` is what confines it to flags.
 
 ## Queries
 
