@@ -138,6 +138,8 @@ return {
 
       -- ── Git review (codediff) ───────────────────────────────────────────
       { "<leader>gv", desc = "Review working tree" },
+      { "<leader>gd", desc = "Review this file" },
+      { "<leader>gD", desc = "Review this file vs HEAD~" },
       { "<leader>gm", desc = "Review branch vs base (MR)" },
       { "<leader>gM", desc = "Branch commits" },
       { "<leader>gh", desc = "File history" },

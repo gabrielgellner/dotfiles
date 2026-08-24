@@ -66,6 +66,16 @@ return {
   },
   keys = {
     { "<leader>gv", "<cmd>CodeDiff<cr>", desc = "Git: Review working tree" },
+    -- The same working-tree review, narrowed to the current file. `--` is git's
+    -- pathspec separator, and %:p rather than % because the pathspec resolves
+    -- against the repo, not against nvim's cwd, which need not be the repo root.
+    -- Unlike the gitsigns diffthis this replaces, staged and unstaged changes
+    -- stay in separate groups rather than merged into one diff.
+    { "<leader>gd", "<cmd>CodeDiff -- %:p<cr>", desc = "Git: Review this file" },
+    -- Same view, one commit further back. `CodeDiff file HEAD~` also works but
+    -- opens its own tab with no explorer — a different shape from every other
+    -- key here.
+    { "<leader>gD", "<cmd>CodeDiff HEAD~ -- %:p<cr>", desc = "Git: Review this file vs HEAD~" },
     -- The merge-request key. `...` is git's merge-base syntax, so this shows
     -- what the branch adds, not everything that has landed on the base since it
     -- was cut.

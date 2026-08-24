@@ -78,10 +78,13 @@ return {
       -- line. gB came free when blame moved off gb/gB so the branches picker
       -- could have gb.
       map("<leader>gB", gs.blame, "Blame file")
-      map("<leader>gd", gs.diffthis, "Diff this")
-      map("<leader>gD", function()
-        gs.diffthis("~")
-      end, "Diff this ~")
+      -- gd/gD used to be gs.diffthis here. They are codediff now (see
+      -- plugins/codediff.lua) so that every git *review* key renders the same
+      -- way — inline, explorer on the left — instead of gd alone dropping into
+      -- native vimdiff. What that gave up: diffthis against the index opens an
+      -- editable index buffer, so do/dp could stage individual lines and :w
+      -- wrote them back. Nothing else here replaces that — gs stages a whole
+      -- hunk. Bring diffthis back if line-level staging is ever wanted.
 
       -- ── Text object — ih selects the hunk ───────────────────────────────
       vim.keymap.set(
