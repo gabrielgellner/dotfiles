@@ -35,12 +35,6 @@ This installs brew packages, uv Python tools (basedpyright, ruff, debugpy), rust
 
 Start tmux, then press `Ctrl-A + I` to install plugins via tpm.
 
-### 4. Generate chezmoi completions (once)
-
-```bash
-chezmoi completion zsh > "$(brew --prefix)/share/zsh/site-functions/_chezmoi"
-```
-
 ## Working on the dotfiles
 
 Edit files directly in the chezmoi source directory (`~/.local/share/chezmoi`), then apply:

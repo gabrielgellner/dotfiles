@@ -29,10 +29,12 @@ stty -ixon
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 
-## Compleetion setups
-# 0. do this once to make the autocompletes once, then comment out
-# chezmoi completion zsh > "$BREW_PREFIX/share/zsh/site-functions/_chezmoi"
-# just --completions zsh > "$BREW_PREFIX/share/zsh/site-functions/_just"
+## Completion setup
+# Nothing to generate by hand. Every completion in site-functions is a symlink
+# brew maintains into the Cellar, so they follow their formula on upgrade. This
+# used to carry `chezmoi completion zsh > .../_chezmoi` and the same for just,
+# to be run once — but writing a plain file over brew's symlink replaces a
+# self-updating completion with one frozen at the version it was generated from.
 
 # 1. fpath first
 fpath=("$BREW_PREFIX/share/zsh/site-functions" $fpath)

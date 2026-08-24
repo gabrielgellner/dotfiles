@@ -1,0 +1,14 @@
+{{/*
+  Targets to delete on apply. chezmoi does not remove a file just because it
+  left the source tree — it stops managing it — so a script that is being
+  retired needs naming here to actually leave the machines it reached.
+
+  bin/regenerate-completions wrote _just and _chezmoi into brew's
+  site-functions. Every completion there is a symlink brew maintains into the
+  Cellar, so running it downgraded a self-updating completion to a static file
+  frozen at whatever version generated it. Nothing replaces it; there is
+  nothing to generate.
+
+  Safe to delete this file once both machines have applied once.
+*/ -}}
+bin/regenerate-completions
