@@ -68,15 +68,57 @@ preview() {
   fi
 }
 
+# Live sessions, most-recently-attached first. Alphabetical order made the list
+# stable but made swapping between two sessions a reading exercise: the one you
+# just came from sat wherever its name fell. This is the alt-tab ordering — the
+# session you were in last is the top entry, so the common case is one keypress.
+#
+# The current session is pushed to the end of the group rather than dropped. It
+# sorts newest by definition, so leaving it in place would park the one session
+# you cannot switch to in exactly the slot the cursor starts on; but it is still
+# worth showing, not least so ctrl-x can reach it.
+#
+# session_last_attached is empty for a session that has never had a client. Those
+# sort as 0, i.e. last among the active ones, which is the right place for them.
+#
+# Only this group is reordered. The project list below stays alphabetical: it is
+# long and browsed by name, and churn there would cost more than it gave.
+active_sessions() {
+  local current=""
+  [[ -n "$TMUX" ]] && current=$(tmux display-message -p '#{session_name}' 2>/dev/null)
+
+  local -a names
+  names=(${(f)"$(tmux list-sessions -F $'#{session_last_attached}\t#{session_name}' 2>/dev/null \
+    | sort -t $'\t' -k1,1nr | cut -f2)"})
+
+  local -a ordered
+  local n
+  for n in $names; do
+    [[ "$n" == "$current" ]] || ordered+=("$n")
+  done
+  # Re-add the current session last, but only if it really was in the list.
+  if [[ -n "$current" ]]; then
+    for n in $names; do
+      [[ "$n" == "$current" ]] && ordered+=("$n") && break
+    done
+  fi
+  print -l -- $ordered
+}
+
 list_items() {
-  local active
-  active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
-  echo "$active" | grep -v '^$' | sed 's/^/● /'
+  local -a active
+  active=(${(f)"$(active_sessions)"})
+
+  local s
+  for s in $active; do
+    print -r -- "● $s"
+  done
+
   ls -1 "$DEV_DIR" | while IFS= read -r proj; do
-    echo "$active" | grep -qx "$proj" || echo "$proj"
+    (( ${active[(I)$proj]} )) || echo "$proj"
   done
   for proj in ${(k)EXTRA_PROJECTS}; do
-    echo "$active" | grep -qx "$proj" || echo "$proj"
+    (( ${active[(I)$proj]} )) || echo "$proj"
   done
 }
 
