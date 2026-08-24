@@ -37,6 +37,11 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 # self-updating completion with one frozen at the version it was generated from.
 
 # 1. fpath first
+# -U for the same reason as `path` further down: this directory is added by
+# /etc/zshrc, by brew shellenv and by kitty's shell integration as well as here,
+# so without it fpath carried six copies of site-functions and compinit walked
+# each one. Declared before the assignment so that one is deduped too.
+typeset -U fpath
 fpath=("$BREW_PREFIX/share/zsh/site-functions" $fpath)
 
 # 2. compinit with 24hr cache
