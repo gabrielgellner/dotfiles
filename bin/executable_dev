@@ -8,6 +8,15 @@
 # pinax against pinax-{ai,harmonization,suite-docs} and sdmxlib against
 # sdmxlib-rest. The kill binding matters most: ctrl-x on pinax would otherwise
 # kill pinax-ai, silently.
+#
+# That binding writes the target as \={-1}, and the backslash is load-bearing.
+# fzf runs an execute binding through $SHELL, which is zsh here, and substitutes
+# {-1} already single-quoted — so a bare ={-1} reaches zsh as ='name', where a
+# leading = is EQUALS expansion (=foo means "the path to command foo"). zsh
+# reported "name not found" and tmux never ran, so ctrl-x silently stopped
+# killing anything. Double-quoting cannot fix it: fzf supplies its own quotes
+# inside, which would end up in the target name. The backslash suppresses the
+# expansion and leaves the word as =name.
 DEV_DIR="$HOME/dev"
 
 # Extra projects outside DEV_DIR: display_name -> absolute path
@@ -95,7 +104,7 @@ choice=$(
     --header='ctrl-x: kill session' \
     --bind='ctrl-f:preview-down' \
     --bind='ctrl-b:preview-up' \
-    --bind="ctrl-x:execute-silent(tmux kill-session -t ={-1} 2>/dev/null)+reload($SELF --list)" \
+    --bind="ctrl-x:execute-silent(tmux kill-session -t \={-1} 2>/dev/null)+reload($SELF --list)" \
     --info=inline
 ) || exit 0
 
