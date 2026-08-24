@@ -210,12 +210,41 @@ fi
 
 blue "\nVerifying..."
 missing=()
+
+# Binaries. Formula name and command name differ often enough (neovim/nvim,
+# ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi starship zoxide atuin direnv lazygit just uv tree-sitter; do
+         yazi starship zoxide atuin direnv lazygit just uv tree-sitter \
+         git git-cliff shellcheck stylua prettier taplo shfmt biome \
+         yamlfmt yamllint lua-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done
+
+# uv tools do not all put a binary on PATH — debugpy is a library — so ask uv.
+for t in basedpyright ruff debugpy djlint; do
+    uv tool list 2>/dev/null | grep -q "^$t " || missing+=("uv:$t")
+done
+
+# Rust components live behind rustup, not on PATH until a toolchain is active.
+if command -v rustup &>/dev/null; then
+    for component in rust-analyzer clippy rustfmt; do
+        rustup component list --installed 2>/dev/null | grep -q "^${component}" \
+            || missing+=("rustup:$component")
+    done
+else
+    missing+=("rustup")
+fi
+
+# zsh plugins are sourced by path and have no binary; dot_zshrc sources these
+# unguarded, so a missing one breaks every new shell.
+for plug in zsh-autosuggestions/zsh-autosuggestions.zsh \
+            zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+            fzf-tab/fzf-tab.zsh; do
+    [[ -f "$(brew --prefix)/share/$plug" ]] || missing+=("plugin:${plug%%/*}")
+done
+
 if (( ${#missing[@]} )); then
-    yellow "  not on PATH: ${missing[*]}"
+    yellow "  missing: ${missing[*]}"
     yellow "  (a new shell may be needed first, or these genuinely failed to install)"
 else
     green "  all expected tools present"
