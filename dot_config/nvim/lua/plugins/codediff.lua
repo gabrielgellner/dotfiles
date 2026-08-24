@@ -46,6 +46,25 @@ local function with_base(fmt)
   end
 end
 
+---Scope a review to the current file, optionally against a revision.
+---
+---The pathspec has to be expanded here. codediff expands `%` in *path*
+---arguments (which is why `CodeDiff history %` works) but hands the operands
+---after `--` to git verbatim, so `CodeDiff -- %` asks git for a file literally
+---named "%", matches nothing, and reports "No changes to show" — a wrong answer
+---that looks like a right one.
+---@param rev string?
+local function this_file(rev)
+  return function()
+    local file = vim.api.nvim_buf_get_name(0)
+    if file == "" then
+      vim.notify("codediff: this buffer has no file to review", vim.log.levels.WARN)
+      return
+    end
+    vim.cmd(("CodeDiff %s-- %s"):format(rev and (rev .. " ") or "", vim.fn.fnameescape(file)))
+  end
+end
+
 return {
   "esmuellert/codediff.nvim",
   cmd = "CodeDiff",
@@ -66,16 +85,14 @@ return {
   },
   keys = {
     { "<leader>gv", "<cmd>CodeDiff<cr>", desc = "Git: Review working tree" },
-    -- The same working-tree review, narrowed to the current file. `--` is git's
-    -- pathspec separator, and %:p rather than % because the pathspec resolves
-    -- against the repo, not against nvim's cwd, which need not be the repo root.
-    -- Unlike the gitsigns diffthis this replaces, staged and unstaged changes
-    -- stay in separate groups rather than merged into one diff.
-    { "<leader>gd", "<cmd>CodeDiff -- %:p<cr>", desc = "Git: Review this file" },
+    -- The same working-tree review, narrowed to the current file. Unlike the
+    -- gitsigns diffthis this replaces, staged and unstaged changes stay in
+    -- separate groups rather than merged into one diff.
+    { "<leader>gd", this_file(), desc = "Git: Review this file" },
     -- Same view, one commit further back. `CodeDiff file HEAD~` also works but
     -- opens its own tab with no explorer — a different shape from every other
     -- key here.
-    { "<leader>gD", "<cmd>CodeDiff HEAD~ -- %:p<cr>", desc = "Git: Review this file vs HEAD~" },
+    { "<leader>gD", this_file("HEAD~"), desc = "Git: Review this file vs HEAD~" },
     -- The merge-request key. `...` is git's merge-base syntax, so this shows
     -- what the branch adds, not everything that has landed on the base since it
     -- was cut.
