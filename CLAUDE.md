@@ -111,8 +111,8 @@ because `"v"` includes select mode.
 
 Installed by `bootstrap.sh`, which skips anything already present. Core:
 `tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `zoxide`,
-`starship`, `direnv`, `lazygit`, `zk`, `just`, `git-cliff`, `tree-sitter`,
-`uv` (Python).
+`atuin`, `starship`, `direnv`, `lazygit`, `zk`, `just`, `git-cliff`,
+`tree-sitter`, `uv` (Python).
 
 Language servers: `lua-language-server`, `pyrefly`, `ruff`, `just-lsp`.
 `basedpyright` is installed but deliberately *not* enabled in nvim — it is the

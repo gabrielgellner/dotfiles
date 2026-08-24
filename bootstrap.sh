@@ -73,6 +73,7 @@ brew_install zsh-syntax-highlighting
 # prompt & navigation
 brew_install starship
 brew_install zoxide
+brew_install atuin
 
 # file tools
 brew_install fd
@@ -175,6 +176,20 @@ else
     git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
 fi
 
+# ── atuin history import ──────────────────────────────────────────────────────
+
+blue "\nChecking atuin history..."
+# atuin keeps its own SQLite database; `import auto` seeds it from the existing
+# shell HISTFILE. Guarded on the database already having rows, because import is
+# not idempotent — running it twice duplicates every entry.
+ATUIN_DB="$HOME/.local/share/atuin/history.db"
+if [[ -s "$ATUIN_DB" ]]; then
+    yellow "atuin history db already exists, skipping import"
+else
+    green "Importing existing shell history into atuin..."
+    atuin import auto
+fi
+
 # ── yazi flavors ──────────────────────────────────────────────────────────────
 
 blue "\nChecking yazi catppuccin flavor..."
@@ -195,7 +210,7 @@ fi
 blue "\nVerifying..."
 missing=()
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi starship zoxide direnv lazygit just uv tree-sitter; do
+         yazi starship zoxide atuin direnv lazygit just uv tree-sitter; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done
 if (( ${#missing[@]} )); then

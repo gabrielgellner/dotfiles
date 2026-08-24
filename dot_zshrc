@@ -102,6 +102,32 @@ bindkey '^P' history-search-backward
 bindkey '^N' history-search-forward
 bindkey '^Y' autosuggest-accept
 
+# Atuin — SQLite-backed history, replacing fzf's C-r. Records cwd, exit code and
+# duration per command, which is what makes `--cwd .` and `--exit 0` possible;
+# a flat HISTFILE has nowhere to put them.
+#
+# Placed here because it has to come after all three of:
+#   * fzf, which binds C-r above — atuin must run later to take it.
+#   * zsh-autosuggestions, which must already have set ZSH_AUTOSUGGEST_STRATEGY.
+#     atuin *prepends* itself, so sourced first it becomes ("atuin") alone and
+#     silently drops the history fallback instead of ("atuin" "history").
+#   * bindkey -v, so the keymaps it binds into are the ones in use.
+#
+# --disable-ai drops `bindkey '?' self-atuin-ai-question-mark`, which atuin emits
+# with no -M and so lands in whatever keymap is current — viins here. It does
+# fall through to self-insert, but rebinding a bare `?` in insert mode is not a
+# risk worth carrying for a feature this config does not use.
+eval "$(atuin init zsh --disable-ai)"
+
+# Give vi normal mode back its two motions. atuin binds vicmd `k` to its search
+# UI — unconditionally, unless the buffer is multi-line — and vicmd `/` likewise,
+# which leaves normal mode unable to move up a line or start a search. That is
+# broken vi rather than a different history tool, and C-r and Up already reach
+# atuin from insert mode, which is where the feature actually lives.
+# Delete these two lines to run atuin's stock bindings.
+bindkey -M vicmd 'k' up-line-or-history
+bindkey -M vicmd '/' vi-history-search-backward
+
 # use direnv for automatic .env loading
 eval "$(direnv hook zsh)"
 
