@@ -5,7 +5,6 @@ justfile
 LICENSE
 README.md
 bootstrap.sh
-homebrew-taps/**
 dot_gitconfig-work
 
 {{/*
