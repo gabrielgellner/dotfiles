@@ -48,7 +48,9 @@ The same repo serves a macOS laptop and a Linux machine. Two mechanisms:
   express. Guard uses of it: `{{ if eq (.role | default "personal") "work" }}`.
 
 Machine-local secrets stay out of the repo entirely — `dot_gitconfig` includes
-`~/.gitconfig.local`, which is not tracked.
+`~/.gitconfig.local`, which is not tracked. The global ignore file
+(`dot_config/git/ignore`) *is* tracked, since its rules should hold on both
+machines; git finds it at the XDG default, with `core.excludesfile` unset.
 
 ## Key Files and Their Roles
 
