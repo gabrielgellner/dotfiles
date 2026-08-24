@@ -15,17 +15,29 @@ return {
       -- has one too, but it is keg-only on purpose — putting that bin directory
       -- on PATH shadows the system clang — so it is reached by full path rather
       -- than by exporting anything.
+      -- Homebrew's llvm is tried before the Command Line Tools copy, and the
+      -- order matters. rustaceanvim sets runInTerminal = true, and Apple's
+      -- lldb-dap fails that handshake on macOS 26:
+      --
+      --   launch failed: Failed to attach to the target process. Timed out
+      --   trying to get messages from the runInTerminal launcher
+      --
+      -- nvim-dap does spawn the terminal and reports a pid back; Apple's
+      -- adapter then times out reading its own comm-file. LLVM 22's lldb-dap
+      -- launches the same target, hits breakpoints and runs to exit 0. The CLT
+      -- path stays as a fallback because it is present on any Mac with Xcode
+      -- tools, and a debugger that may fail to launch beats none at all.
       local function lldb_dap()
+        local brewed = "/opt/homebrew/opt/llvm/bin/lldb-dap"
+        if vim.fn.executable(brewed) == 1 then
+          return brewed
+        end
         if vim.fn.executable("lldb-dap") == 1 then
           return "lldb-dap"
         end
         local found = vim.fn.system({ "xcrun", "-f", "lldb-dap" })
         if vim.v.shell_error == 0 and vim.trim(found) ~= "" then
           return vim.trim(found)
-        end
-        local brewed = "/opt/homebrew/opt/llvm/bin/lldb-dap"
-        if vim.fn.executable(brewed) == 1 then
-          return brewed
         end
       end
 
