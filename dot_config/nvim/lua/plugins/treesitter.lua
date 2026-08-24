@@ -20,6 +20,10 @@ return {
         "markdown_inline",
         "bash",
         "diff",
+        -- noice highlights the cmdline through treesitter and asks for this one
+        -- by name; without it `:checkhealth noice` reports cmdline highlighting
+        -- for `regex` as possibly broken.
+        "regex",
         "just",
         "rust",
         "scheme",
