@@ -57,18 +57,19 @@ fzf-tab owns `Tab` (completion). Different widgets, different question.
 has nothing to separate, and `-V` keeps clap's order, which is flags first — so
 the recipes started off the bottom of the screen.
 
-`dot_zshrc` drops them at the completion layer instead:
+`dot_zshrc` drops them at the completion layer, with a `zstyle -e` that
+recomputes per completion: ignore the flags, the variable assignments, and
+anything in the current directory that `just --summary` does not name as a
+recipe. The result is recipes and nothing else.
 
-    zstyle ':completion:*:*:just:*' ignored-patterns '--*' '*=' '.'
+Typing `--` still reaches the flags — zsh offers ignored matches when nothing
+else is left — so `just --su<Tab>` completes to `--summary` as usual.
 
-That matches the candidate *value*, so flags, the variable assignments just also
-offers (`BENCH_OPTS=`) and the bare `.` all go, while descriptions are not
-consulted. Filtering with an fzf `--query` was the first attempt and is the
-wrong layer — fzf matches the rendered `value -- description` line, so `!=`
-would have silently hidden any recipe whose doc comment contains an equals sign.
-
-Files (`CHANGELOG.md` and friends) still show; they come from the same completer
-and are at least plausible arguments.
+Two things make it fiddly, both recorded in the rc. Files cannot be told from
+recipes by shape, since `checkfmt` and `default` are recipes with no doc
+comment; hence subtracting a computed list rather than pattern-matching. And a
+recipe may share a name with a directory — sdmxlib has both a `docs` recipe and
+`docs/` — so the subtraction has to keep it.
 
 ## Queries
 

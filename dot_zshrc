@@ -99,9 +99,30 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 # across cenprof-ai and sdmxlib-rest, including sdmxlib-rest's `pyrefly`
 # ("preset = \"all\""). Matching values sidesteps all of it.
 #
-# Files still appear (CHANGELOG.md and friends); those come from the same
-# completer and are left alone, being at least plausible arguments.
-zstyle ':completion:*:*:just:*' ignored-patterns '--*' '*=' '.'
+# just also offers every file and directory in the cwd, since a path is a valid
+# argument. Those cannot be matched by shape — `checkfmt` and `default` are
+# recipes with no doc comment, so "bare name" describes both — so the list is
+# computed instead: ignore anything in the cwd that `just --summary` does not
+# name as a recipe. -e makes zstyle evaluate this per completion, which is what
+# lets it follow the directory.
+#
+# Subtracting rather than blanket-ignoring matters: sdmxlib has both a `docs`
+# recipe and a docs/ directory, and the recipe has to survive. Note also that
+# `*/` would be useless here — the clap completer strips the trailing slash and
+# passes the suffix separately, so zsh sees `campaign`, not `campaign/`. That is
+# why directories leaked through the first version of this.
+#
+# ${(@)a:#pat} is the form that actually filters element-wise; both ${a:|b} and
+# ${a:#pat} without (@) silently returned the array unchanged on zsh 5.9.
+zstyle -e ':completion:*:*:just:*' ignored-patterns '
+  local -a _r _f
+  _r=(${(z)"$(just --summary 2>/dev/null)"})
+  if (( $#_r )); then
+    _f=(*(N))
+    reply=( "--*" "*=" "." ${(@)_f:#(${(j:|:)~_r})} )
+  else
+    reply=()
+  fi'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --icons --color=always $realpath'
 
