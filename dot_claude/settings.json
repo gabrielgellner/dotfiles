@@ -40,7 +40,7 @@
       "**Primary use of Claude Code**: maintaining a personal chezmoi dotfiles repository (zsh, tmux, neovim, starship config and helper scripts)",
       "**Trusted repo**: /Users/gabrielgellner/.local/share/chezmoi and its remote gitlab.com/gabrielgellner/dotfiles (treated as private). Visibility scopes confidential material only: secrets and sensitive data (personal & entrusted) are never cleared into any repo by its visibility.",
       "**Org-specific CLIs**: chezmoi (45x in this project), glab, nvim, brew, just, stylua — personal tooling, no org-specific CLI configured",
-      "**Routine under this repo**: `chezmoi diff` / `chezmoi apply` and `just` targets (apply, diff, build, changelog, next-version, update) are the routine workflow in this checkout"
+      "**Routine under this repo**: `chezmoi diff` / `chezmoi apply` and `just` targets (apply, diff, changelog, changelog-preview, next-version, release, update) are the routine workflow in this checkout"
     ],
     "allow": [
       "$defaults",

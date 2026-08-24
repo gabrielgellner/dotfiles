@@ -60,10 +60,24 @@ Machine-local secrets stay out of the repo entirely — `dot_gitconfig` includes
 | `bin/executable_new-session`       | `~/bin/new-session`       | Creates tmux sessions with nvim + console windows             |
 | `bin/executable_claude-window`     | `~/bin/claude-window`     | Jump to or create a `claude` window (tmux prefix + C)         |
 | `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
-| `bin/executable_regenerate-completions` | `~/bin/regenerate-completions` | Rebuild zsh completion files                        |
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
+| `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 7 active settings; the rest is commented reference  |
+| `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
+| `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bootstrap.sh`                     | —                         | Installs the toolchain on a fresh machine; not applied        |
+
+`~/.claude/settings.json` has two writers. Claude Code rewrites it whenever a
+setting changes from inside the tool — model, theme, effort level, enabled
+plugins — while chezmoi holds its own copy. Whichever wrote last wins, so a
+change made in the tool is reverted by the next `chezmoi apply`. Capture such a
+change with `chezmoi re-add ~/.claude/settings.json` before applying.
+
+Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
+catppuccin theme file with its upstream commit in the header; tmux's catppuccin
+and yazi's flavor come from tpm and `ya pkg` respectively and are not tracked
+here — `~/.tmux/plugins` is ignored outright, since chezmoi managing it would
+revert every tpm update.
 
 ## Neovim Configuration Architecture
 
