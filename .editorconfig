@@ -1,0 +1,14 @@
+# Read by shfmt, which conform runs on every shell buffer. Without this file
+# conform passes `-i <shiftwidth>`, which is 4 here, and formatting any of the
+# 2-space scripts in bin/ reindented the whole file. shfmt reads .editorconfig
+# only when it is given no command-line args, and conform omits them precisely
+# when this file exists — so the two styles below are what actually holds.
+root = true
+
+[*.sh]
+indent_style = space
+indent_size = 4
+
+[bin/executable_*]
+indent_style = space
+indent_size = 2

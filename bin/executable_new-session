@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # new-session - create a tmux session laid out for a project, then go to it.
 #
 # Called by `dev` when it finds no session for the chosen project, and usable
@@ -8,7 +8,7 @@ SESSION=$1
 DIR=$2
 
 if [[ -z "$SESSION" || -z "$DIR" ]]; then
-  print -u2 "usage: new-session <session-name> <directory>"
+  echo "usage: new-session <session-name> <directory>" >&2
   exit 2
 fi
 

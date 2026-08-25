@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # Remux one or more MKV files to MP4 without re-encoding the video/audio.
 # Streams are stream-copied (fast, lossless); subtitles are converted to
@@ -11,29 +11,33 @@
 set -euo pipefail
 
 if [ "$#" -eq 0 ]; then
-  print -u2 "usage: mkv2mp4 <file.mkv> [more.mkv ...]"
+  echo "usage: mkv2mp4 <file.mkv> [more.mkv ...]" >&2
   exit 1
 fi
 
 if ! command -v ffmpeg >/dev/null 2>&1; then
-  print -u2 "error: ffmpeg not found on PATH"
+  echo "error: ffmpeg not found on PATH" >&2
   exit 1
 fi
 
 for input in "$@"; do
   if [ ! -f "$input" ]; then
-    print -u2 "skipping: $input (not a file)"
+    echo "skipping: $input (not a file)" >&2
     continue
   fi
 
-  output="${input:r}.mp4"
+  # zsh's ${input:r} strips the extension from the last path component only.
+  # A bare ${input%.*} is not the same thing: given dir.v2/noext it eats the
+  # directory and writes dir.mp4. Split first, then strip.
+  base="${input##*/}"
+  output="${input%"$base"}${base%.*}.mp4"
 
   if [ -e "$output" ]; then
-    print -u2 "skipping: $output already exists"
+    echo "skipping: $output already exists" >&2
     continue
   fi
 
-  print "remuxing: $input -> $output"
+  echo "remuxing: $input -> $output"
 
   # -map 0        take every stream from the input
   # -c copy       stream-copy audio/video (no re-encode)
@@ -42,7 +46,7 @@ for input in "$@"; do
   # the copy fails and retry without subtitles.
   if ! ffmpeg -hide_banner -loglevel warning -stats \
         -i "$input" -map 0 -c copy -c:s mov_text "$output"; then
-    print -u2 "subtitle conversion failed, retrying without subtitles"
+    echo "subtitle conversion failed, retrying without subtitles" >&2
     rm -f "$output"
     ffmpeg -hide_banner -loglevel warning -stats \
       -i "$input" -map 0 -c copy -sn "$output"

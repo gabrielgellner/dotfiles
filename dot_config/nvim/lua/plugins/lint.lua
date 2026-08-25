@@ -7,10 +7,9 @@ return {
     lint.linters_by_ft = {
       python = { "ruff" }, -- ruff as linter (separate from ruff LSP)
       yaml = { "yamllint" },
-      -- `sh`, not `bash`: nvim gives every shell script filetype `sh` and
-      -- records the dialect in `b:is_bash`, so a table keyed on `bash` never
-      -- matched anything. shellcheck reads the shebang itself anyway.
-      sh = { "shellcheck" },
+      -- No `sh` entry: bash-language-server runs shellcheck itself and turns
+      -- its findings into code actions (see plugins/lsp.lua). Linting here as
+      -- well reported everything twice.
       -- markdown = { "markdownlint" }, -- uncomment if you want this
     }
 

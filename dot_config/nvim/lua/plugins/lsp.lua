@@ -128,6 +128,27 @@ return {
     })
     vim.lsp.enable("ruff")
 
+    -- ── bashls ────────────────────────────────────────────────────────────
+    -- bash-language-server (brew install bash-language-server): completion,
+    -- goto-definition for functions and sourced files, rename, and hover that
+    -- pulls the flag descriptions out of explainshell.
+    --
+    -- It shells out to shellcheck for diagnostics itself, and offers the
+    -- fixes as code actions, which nvim-lint cannot do — so shellcheck was
+    -- removed from plugins/lint.lua when this went in. Running both reports
+    -- every finding twice.
+    --
+    -- `sh` only, never `zsh`: Neovim gives every shell script filetype `sh`
+    -- regardless of dialect, and this server would parse zsh as bash and
+    -- invent errors. The zsh scripts in bin/ have no server.
+    vim.lsp.config("bashls", {
+      capabilities = capabilities,
+      cmd = { "bash-language-server", "start" },
+      filetypes = { "sh" },
+      root_markers = { ".git" },
+    })
+    vim.lsp.enable("bashls")
+
     -- ── just_lsp ──────────────────────────────────────────────────────────
     -- terror/just-lsp (brew install just-lsp): completion for builtin
     -- functions/constants, goto-definition and rename for recipes/variables,

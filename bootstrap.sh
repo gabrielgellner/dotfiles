@@ -150,6 +150,10 @@ brew_install neovim
 brew_install lua-language-server
 brew_install stylua
 
+# shell. bash-language-server shells out to shellcheck for its diagnostics,
+# so the two go together; nvim's `sh` filetype covers bash and sh alike.
+brew_install bash-language-server
+
 # formatters
 brew_install prettier
 brew_install taplo
@@ -275,7 +279,7 @@ missing=()
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
          yazi starship zoxide atuin direnv lazygit just uv tree-sitter \
          git git-cliff shellcheck stylua prettier taplo shfmt biome \
-         yamlfmt yamllint lua-language-server; do
+         yamlfmt yamllint lua-language-server bash-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done
 

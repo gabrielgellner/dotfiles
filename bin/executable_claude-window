@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # claude-window - jump to (or create) a `claude` window in the current tmux session.
 #
 # Bound to prefix + C (see dot_tmux.conf). Claude runs as a normal full-terminal
