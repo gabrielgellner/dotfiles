@@ -55,7 +55,11 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
   callback = function()
-    vim.highlight.on_yank({ higroup = "IncSearch", timeout = 150 })
+    -- vim.hl, not vim.highlight: renamed in Neovim 0.11 and listed in
+    -- :help deprecated.txt. The old name is still an alias — same function
+    -- object — so this was working, and would have kept working until the
+    -- release that drops it.
+    vim.hl.on_yank({ higroup = "IncSearch", timeout = 150 })
   end,
 })
 
