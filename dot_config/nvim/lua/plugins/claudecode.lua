@@ -347,11 +347,49 @@ return {
         --
         -- Say so plainly instead. Yanking and pasting into the float is the way
         -- to send text with no file behind it.
-        if vim.api.nvim_buf_get_name(0) == "" then
+        if vim.api.nvim_buf_get_name(0) ~= "" then
+          vim.cmd("ClaudeCodeSend")
+          return
+        end
+
+        -- No buffer name, but a codediff review pane still concerns a real
+        -- file: under <leader>gm the pane is buftype=nofile with an empty
+        -- name, while the session knows the path. Ask it.
+        local ok, acc = pcall(require, "codediff.ui.lifecycle.accessors")
+        local paths = ok and select(2, pcall(acc.get_paths, vim.api.nvim_get_current_tabpage())) or nil
+        local target = type(paths) == "table" and paths.absolute or nil
+        if not target or target == "" then
           vim.notify("Claude: this buffer has no file to reference", vim.log.levels.WARN)
           return
         end
-        vim.cmd("ClaudeCodeSend")
+
+        local first, last = vim.fn.line("v"), vim.fn.line(".")
+        if first > last then
+          first, last = last, first
+        end
+
+        -- Send line numbers only when they still describe the file on disk.
+        -- The inline layout draws deletions as virtual lines, so buffer line N
+        -- is file line N — but the pane may be showing a revision rather than
+        -- the working tree, and then the numbers would point at the wrong
+        -- place. Comparing the selected lines is cheap and settles it; when
+        -- they disagree the file is referenced without a range, which is vague
+        -- rather than wrong.
+        local shown = vim.api.nvim_buf_get_lines(0, first - 1, last, false)
+        local on_disk = vim.fn.readfile(target, "", last)
+        local same = true
+        for i, line in ipairs(shown) do
+          if on_disk[first + i - 1] ~= line then
+            same = false
+            break
+          end
+        end
+
+        local cmd = "ClaudeCodeAdd " .. vim.fn.fnameescape(target)
+        if same then
+          cmd = ("%s %d %d"):format(cmd, first, last)
+        end
+        vim.cmd(cmd)
       end,
       mode = "x",
       desc = "Send selection",
