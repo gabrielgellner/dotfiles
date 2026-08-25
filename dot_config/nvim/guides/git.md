@@ -39,12 +39,11 @@ additions — which is the unified layout GitLab shows a merge request in. Press
 > and `]f` is next function. Inside a codediff view they're hunk and file. Same
 > for `<leader>e`, which is normally the diagnostic float.
 
-> **`]h` is not the key here, even though it sometimes works.** gitsigns attaches
-> to the working-tree view (`<leader>gv`, `<leader>gd`) because those buffers map
-> to tracked files, so `]h` happens to move there. It does not attach to
-> `<leader>gm` or `<leader>gM`, where the buffer is a revision snapshot — `]h` is
-> silently dead in exactly the review you reach for most. `]c` works in all of
-> them.
+> **One key for "next change", everywhere.** `]c`/`[c` is vim's own diff motion
+> (`:help ]c`), so it now means next/previous hunk in gitsigns, next/previous
+> hunk in codediff, and next/previous change in plain vimdiff. gitsigns' `]h` is
+> gone: it worked in the working-tree review and silently did nothing under
+> `<leader>gm`, because gitsigns attaches to the first and not the second.
 
 If the squashed diff is too big to read in one sitting, `<leader>gM` gives the
 same range **commit by commit** instead, so you can follow the author's steps.
@@ -63,7 +62,7 @@ gitsigns, in the buffer, no separate UI.
 
 | Key | Does |
 | --- | --- |
-| `]h` / `[h` | next / previous hunk; works after an operator (`d]h`) |
+| `]c` / `[c` | next / previous hunk; works after an operator (`d]c`) |
 | `ih` | the hunk as a text object — `dih`, `vih` |
 | `<leader>gp` | preview the hunk in a popup |
 | `<leader>gP` | preview it inline instead |
@@ -107,7 +106,7 @@ commit.
 in the same view. From the explorer, `-` toggles a file staged, `S` stages
 everything and `U` unstages it.
 
-**Stage only part of a messy file.** In the buffer, `]h` to the hunk, `<leader>gp`
+**Stage only part of a messy file.** In the buffer, `]c` to the hunk, `<leader>gp`
 to check it, `<leader>gs` to stage it. For less than a whole hunk, select the
 lines in visual mode first — `<leader>gs` then takes only those.
 

@@ -24,13 +24,13 @@ return {
       end
 
       -- ── Navigation ──────────────────────────────────────────────────────
-      -- n/x/o, so a hunk works as an operator target: d]h, y[h, v]h. The
+      -- n/x/o, so a hunk works as an operator target: d]c, y[c, v]c. The
       -- `normal!` bang is what keeps the diff-mode branch working now that ]c
       -- is the treesitter class motion — it ignores mappings and reaches vim's
       -- native next-change.
       local MOTION = { "n", "x", "o" }
 
-      map("]h", function()
+      map("]c", function()
         if vim.wo.diff then
           vim.cmd.normal({ "]c", bang = true })
         else
@@ -38,7 +38,7 @@ return {
         end
       end, "Next hunk", MOTION)
 
-      map("[h", function()
+      map("[c", function()
         if vim.wo.diff then
           vim.cmd.normal({ "[c", bang = true })
         else

@@ -146,8 +146,8 @@ return {
       { "<leader>gH", desc = "Repo history" },
 
       -- ── Git hunk motions ────────────────────────────────────────────────
-      { "]h", desc = "Next hunk" },
-      { "[h", desc = "Prev hunk" },
+      { "]c", desc = "Next hunk / change" },
+      { "[c", desc = "Prev hunk / change" },
 
       -- ── Todo motions ────────────────────────────────────────────────────
       { "]t", desc = "Next todo" },
