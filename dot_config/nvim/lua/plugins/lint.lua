@@ -25,8 +25,16 @@ return {
     -- never linted until it was saved. Lint it here.
     lint.try_lint()
 
-    -- manual trigger
-    vim.keymap.set("n", "<leader>xl", function()
+    -- Manual trigger. `<leader>xr` and not `<leader>xl`: xl is trouble's
+    -- location list, and this line used to overwrite it. Not visibly — lazy
+    -- installs trouble's key stub at startup and this config() runs later, on
+    -- the BufReadPost that loads nvim-lint, so the mapping said "Location list"
+    -- until the first file was opened and "Lint current file" ever after.
+    --
+    -- xr pairs with `<leader>xR` in config/keymaps.lua, which runs ruff over the
+    -- whole project: same idea, wider scope, which is the rule guides/keymaps.md
+    -- sets out for a capital.
+    vim.keymap.set("n", "<leader>xr", function()
       lint.try_lint()
       vim.notify("Linting " .. vim.fn.expand("%:t"), vim.log.levels.INFO)
     end, { desc = "Lint current file" })
