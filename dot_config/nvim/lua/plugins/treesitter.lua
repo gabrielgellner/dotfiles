@@ -131,6 +131,16 @@ return {
 
       -- attach move keymaps per buffer on FileType
       local function attach(buf)
+        -- Only where a parser exists. The guard inside each mapping already
+        -- makes them no-ops elsewhere, but a no-op mapping is still a mapping:
+        -- snacks' picker help (`?`) lists a buffer's keymaps verbatim, so all
+        -- fourteen filled most of the popup for a prompt buffer that can never
+        -- use them. Checked by parser rather than by buftype, so a codediff
+        -- pane or a preview — nofile buffers holding real code — keeps them.
+        if not vim.treesitter.get_parser(buf, nil, { error = false }) then
+          return
+        end
+
         local all_moves = {
           goto_next_start = opts.move.goto_next_start or {},
           goto_next_end = opts.move.goto_next_end or {},
