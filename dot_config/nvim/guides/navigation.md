@@ -180,6 +180,24 @@ The single biggest reading upgrade: jump freely, because returning is one key.
 | `<leader>f;`                           | reopen the last picker                              |
 | `<leader>fS`                           | workspace symbols                                   |
 
+## Between windows
+
+| Key                             | Does                                 |
+| ------------------------------- | ------------------------------------ |
+| `<C-h>` `<C-j>` `<C-k>` `<C-l>` | move to the split left/down/up/right |
+
+Splits live under `<leader>w`: `<leader>w-` horizontal, `<leader>w|` vertical,
+`<leader>wd` to close. They are prose rather than another table row because the
+vertical one is a pipe, and a pipe inside a table cell has to be written `\|`,
+backslash and all, in the rendered view.
+
+These were vim-tmux-navigator's for a while, which carried the same movement on
+into a neighbouring tmux pane when nvim ran out of splits. There has never been
+a second tmux pane to reach — work is divided into tmux *windows*, `prefix` and
+`1`/`2`/`3` — so the plugin is gone and these are plain `wincmd` now.
+
+`<C-h>` means something else inside an oil buffer: see [Files](files.md).
+
 ## The rest of the bracket family
 
 Everything `[`/`]` is bound to, in one place:
