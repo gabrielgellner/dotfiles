@@ -12,9 +12,16 @@ return {
   -- pretty view too (at the cost of vim.print's return value, which nothing
   -- here relies on).
   init = function()
+    -- The two disables are about this repo, not this code. lua_ls has the
+    -- applied copy of the config on its library path, so editing the chezmoi
+    -- source sees `_G.dd` assigned in two files and calls it a duplicate.
+    -- Every file here exists twice; only these two assign a global, so this is
+    -- the whole of the fallout. Editing ~/.config/nvim directly shows nothing.
+    ---@diagnostic disable-next-line: duplicate-set-field
     _G.dd = function(...)
       Snacks.debug.inspect(...)
     end
+    ---@diagnostic disable-next-line: duplicate-set-field
     _G.bt = function()
       Snacks.debug.backtrace()
     end
