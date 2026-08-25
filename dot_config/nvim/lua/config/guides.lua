@@ -111,11 +111,16 @@ end
 function M.open(path)
   Snacks.win({
     file = path,
-    -- Absolute, not a fraction. These are reference documents whose tables are
-    -- written to fit 80 columns, and 0.7 of a narrow terminal was 54 — narrower
-    -- than the content, so tables overflowed. 86 is 80 plus the border and a
-    -- little breathing room; Snacks clamps it when the editor is smaller.
-    width = 86,
+    -- Absolute, not a fraction: 0.7 of a narrow terminal was 54 — narrower than
+    -- the content, so tables overflowed.
+    --
+    -- Prose in these files wraps at 80 (.prettierrc), but prettier pads table
+    -- cells to the widest one and never wraps a table, so the real ceiling is
+    -- set by the widest row — 96 in navigation.md. 100 clears that with room
+    -- for the border. If a new table overflows, the number to check is
+    --   awk '{ if (length($0)>m) m=length($0) } END { print m }' guides/*.md
+    -- Snacks clamps this when the editor is smaller.
+    width = 100,
     height = 0.9,
     border = "rounded",
     title = " " .. (title_of(path) or vim.fn.fnamemodify(path, ":t")) .. " ",

@@ -18,22 +18,23 @@ This is the merge-request flow. `<leader>gm` is the key.
 
 It resolves the base from `origin/HEAD` (falling back to main, then master), and
 diffs with `base...HEAD` — git's merge-base syntax, so you see **what the branch
-adds**, not everything that has landed on the base since the branch was cut. That
-distinction is the whole point: `..` would show you other people's work too.
+adds**, not everything that has landed on the base since the branch was cut.
+That distinction is the whole point: `..` would show you other people's work
+too.
 
 The view opens **inline** — one window, deletions as virtual lines above the
 additions — which is the unified layout GitLab shows a merge request in. Press
 `t` for side-by-side when a change reads better that way.
 
-| Inside the view | Does |
-| --- | --- |
-| `]c` / `[c` | next / previous hunk |
-| `]f` / `[f` | next / previous file |
-| `t` | toggle inline ↔ side-by-side |
-| `gc` | toggle compact — collapse unchanged context |
-| `<leader>e` / `<leader>b` | focus / toggle the file explorer |
-| `g?` | full keymap help |
-| `q` | quit |
+| Inside the view           | Does                                        |
+| ------------------------- | ------------------------------------------- |
+| `]c` / `[c`               | next / previous hunk                        |
+| `]f` / `[f`               | next / previous file                        |
+| `t`                       | toggle inline ↔ side-by-side                |
+| `gc`                      | toggle compact — collapse unchanged context |
+| `<leader>e` / `<leader>b` | focus / toggle the file explorer            |
+| `g?`                      | full keymap help                            |
+| `q`                       | quit                                        |
 
 > **These keys mean different things here.** Everywhere else `]f` is next
 > function. Inside a codediff view it's next file. Same for `<leader>e`, which
@@ -48,13 +49,13 @@ additions — which is the unified layout GitLab shows a merge request in. Press
 If the squashed diff is too big to read in one sitting, `<leader>gM` gives the
 same range **commit by commit** instead, so you can follow the author's steps.
 
-| Key | Does |
-| --- | --- |
-| `<leader>gm` | review branch vs base — the MR view |
-| `<leader>gM` | the same range, commit by commit |
+| Key          | Does                                                |
+| ------------ | --------------------------------------------------- |
+| `<leader>gm` | review branch vs base — the MR view                 |
+| `<leader>gM` | the same range, commit by commit                    |
 | `<leader>gv` | review the working tree — your own uncommitted work |
-| `<leader>gh` | history of the current file |
-| `<leader>gH` | history of the repo |
+| `<leader>gh` | history of the current file                         |
+| `<leader>gH` | history of the repo                                 |
 
 ## Getting back to your file
 
@@ -62,58 +63,58 @@ codediff opens its review in a **new tab**, so the file you were editing is
 still there, one tab over. The tabline at the top names them — `m.py` next to
 `2 CodeDiff History [3]` — and it is clickable, but the keyboard is faster.
 
-| Key | Does |
-| --- | --- |
-| `g<Tab>` | the tab you were in last — the alt-tab of tabs |
-| `gt` / `gT` | next / previous tab |
-| `3gt` | tab 3 directly |
-| `<C-w>T` | move this window out into a tab of its own |
+| Key         | Does                                           |
+| ----------- | ---------------------------------------------- |
+| `g<Tab>`    | the tab you were in last — the alt-tab of tabs |
+| `gt` / `gT` | next / previous tab                            |
+| `3gt`       | tab 3 directly                                 |
+| `<C-w>T`    | move this window out into a tab of its own     |
 
-`g<Tab>` is the one to learn. Reviewing is two tabs — your work and the
-review — and it flips between them, so you never count or cycle. All four are
-Neovim builtins; nothing here configures them.
+`g<Tab>` is the one to learn. Reviewing is two tabs — your work and the review —
+and it flips between them, so you never count or cycle. All four are Neovim
+builtins; nothing here configures them.
 
-Tabs can accumulate if you open several reviews, and `gt` cycling gets old
-past about four. That is the point at which numbered jumps
-(`<leader>1`…`<leader>9`) would be worth adding; they are not bound today.
+Tabs can accumulate if you open several reviews, and `gt` cycling gets old past
+about four. That is the point at which numbered jumps (`<leader>1`…`<leader>9`)
+would be worth adding; they are not bound today.
 
 ## While you're working
 
 gitsigns, in the buffer, no separate UI.
 
-| Key | Does |
-| --- | --- |
-| `]c` / `[c` | next / previous hunk; works after an operator (`d]c`) |
-| `ih` | the hunk as a text object — `dih`, `vih` |
-| `<leader>gp` | preview the hunk in a popup |
-| `<leader>gP` | preview it inline instead |
-| `<leader>gs` | stage the hunk — in visual, just the selected lines |
-| `<leader>gS` | stage the whole buffer |
-| `<leader>gr` | reset the hunk — in visual, just the selected lines |
-| `<leader>gR` | reset the whole buffer |
+| Key          | Does                                                  |
+| ------------ | ----------------------------------------------------- |
+| `]c` / `[c`  | next / previous hunk; works after an operator (`d]c`) |
+| `ih`         | the hunk as a text object — `dih`, `vih`              |
+| `<leader>gp` | preview the hunk in a popup                           |
+| `<leader>gP` | preview it inline instead                             |
+| `<leader>gs` | stage the hunk — in visual, just the selected lines   |
+| `<leader>gS` | stage the whole buffer                                |
+| `<leader>gr` | reset the hunk — in visual, just the selected lines   |
+| `<leader>gR` | reset the whole buffer                                |
 
-`<leader>gs` is also **unstage**: on a hunk that's already staged it takes it back
-out. gitsigns removed the separate undo-stage action, and staged hunks get their
-own sign so you can see which you're aiming at.
+`<leader>gs` is also **unstage**: on a hunk that's already staged it takes it
+back out. gitsigns removed the separate undo-stage action, and staged hunks get
+their own sign so you can see which you're aiming at.
 
 ## Who wrote this, and when
 
-| Key | Does |
-| --- | --- |
-| `<leader>gl` | blame this line — popup, full commit message |
+| Key          | Does                                          |
+| ------------ | --------------------------------------------- |
+| `<leader>gl` | blame this line — popup, full commit message  |
 | `<leader>gL` | toggle persistent inline blame for every line |
-| `<leader>gB` | blame the whole file in a scrollbound split |
-| `<leader>gd` | diff this file against the index |
-| `<leader>gD` | diff it against `HEAD~` |
+| `<leader>gB` | blame the whole file in a scrollbound split   |
+| `<leader>gd` | diff this file against the index              |
+| `<leader>gD` | diff it against `HEAD~`                       |
 
 ## Jumping to things
 
-| Key | Does |
-| --- | --- |
+| Key          | Does                                     |
+| ------------ | ---------------------------------------- |
 | `<leader>gf` | changed files — `git status` as a picker |
-| `<leader>gb` | branches |
-| `<leader>gc` | commits (log) |
-| `<leader>gg` | lazygit, for anything not covered here |
+| `<leader>gb` | branches                                 |
+| `<leader>gc` | commits (log)                            |
+| `<leader>gg` | lazygit, for anything not covered here   |
 
 ## Recipes
 
@@ -127,12 +128,13 @@ commit.
 in the same view. From the explorer, `-` toggles a file staged, `S` stages
 everything and `U` unstages it.
 
-**Stage only part of a messy file.** In the buffer, `]c` to the hunk, `<leader>gp`
-to check it, `<leader>gs` to stage it. For less than a whole hunk, select the
-lines in visual mode first — `<leader>gs` then takes only those.
+**Stage only part of a messy file.** In the buffer, `]c` to the hunk,
+`<leader>gp` to check it, `<leader>gs` to stage it. For less than a whole hunk,
+select the lines in visual mode first — `<leader>gs` then takes only those.
 
-**Work out when a line broke.** `<leader>gl` for the commit that last touched it.
-If that isn't the one, `<leader>gh` for the file's history and read backwards.
+**Work out when a line broke.** `<leader>gl` for the commit that last touched
+it. If that isn't the one, `<leader>gh` for the file's history and read
+backwards.
 
 **Undo a change you just made.** `<leader>gr` resets the hunk under the cursor.
 `[u` / `]u` walk Neovim's own undo states, which is the finer-grained tool.

@@ -21,14 +21,14 @@ gl / gL   blame line / toggle inline       cc / cC   nearest / enclosing class
 nothing to reason from, so the reader has to memorise which is which. Give them
 separate letters instead:
 
-| Was | Became | Why case was wrong |
-| --- | --- | --- |
-| `cb` / `cB` decode / encode | `cbe` / `cbd` | carried *direction* |
-| `mr` / `mR` render / refresh | refresh → `mf` | different plugins |
-| `ac` / `aC` toggle / continue | continue → `al` | unrelated actions |
+| Was                           | Became          | Why case was wrong  |
+| ----------------------------- | --------------- | ------------------- |
+| `cb` / `cB` decode / encode   | `cbe` / `cbd`   | carried _direction_ |
+| `mr` / `mR` render / refresh  | refresh → `mf`  | different plugins   |
+| `ac` / `aC` toggle / continue | continue → `al` | unrelated actions   |
 
 When a genuine scope pair is backwards, **swap it**. When it was never a pair,
-**move the odd one out** — and move the *rarer* half, so the common action keeps
+**move the odd one out** — and move the _rarer_ half, so the common action keeps
 the cheaper keystroke.
 
 ## A doubled key is the ordinary case
@@ -43,10 +43,10 @@ every longer sequence a race.
 
 But it only matters if losing the race does something **wrong**:
 
-- `gr` was references *and* the prefix for `grn`/`gra`/`gri`. A slow third
+- `gr` was references _and_ the prefix for `grn`/`gra`/`gri`. A slow third
   keystroke opened a picker instead of running a code action. **Fixed** — `gr`
   is now a pure prefix.
-- `<leader>w` was `:write` *and* the prefix for `<leader>wd`. **Fixed** — splits
+- `<leader>w` was `:write` _and_ the prefix for `<leader>wd`. **Fixed** — splits
   and close moved under it, save went back to `:w`.
 - `gc` is an operator, so timing out leaves it pending and `c` then gives the
   linewise variant — the same result. **Harmless.**
@@ -61,10 +61,10 @@ wins".
 This was the single most common fault found, and it is always silent.
 
 It had killed Trouble's diagnostic integration (`lsp.lua` bound `]d`
-buffer-locally over `trouble.lua`'s global), neogen's docstring key (`<leader>cf`
-under LSP format), the Snacks branches picker (`<leader>gb` under gitsigns
-blame), and `:lnext`/`:lprevious` (`[l` under a treesitter motion) — each in
-exactly the buffers where you'd want the shadowed half.
+buffer-locally over `trouble.lua`'s global), neogen's docstring key
+(`<leader>cf` under LSP format), the Snacks branches picker (`<leader>gb` under
+gitsigns blame), and `:lnext`/`:lprevious` (`[l` under a treesitter motion) —
+each in exactly the buffers where you'd want the shadowed half.
 
 **When a key seems to do nothing, or the wrong thing, check both scopes first:**
 
@@ -93,36 +93,36 @@ that ate the next keystroke. Use `"x"` unless you specifically mean select mode.
 ## which-key
 
 **Group entries need an explicit mode list.** which-key defaults a spec entry to
-normal mode (`mapping.mode or { "n" }`), so a group named only there goes back to
-"+N keymaps" the moment you have a selection. `mode` is an inheriting field, so
-nesting the groups under one entry covers them all.
+normal mode (`mapping.mode or { "n" }`), so a group named only there goes back
+to "+N keymaps" the moment you have a selection. `mode` is an inheriting field,
+so nesting the groups under one entry covers them all.
 
 **Naming a group costs nothing.** which-key prunes a group node with no keymaps
 beneath it, so plugin groups can be declared unconditionally and appear only
 where that plugin loaded — that's how conjure's `\e`/`\l`/… and haskell-tools'
 `<leader>h`/`<leader>r` are handled.
 
-**Desc-only entries are *not* pruned.** Claiming `]b` in visual mode would invent
-a row for a mapping that only exists in normal mode. Only groups get the blanket
-treatment.
+**Desc-only entries are _not_ pruned.** Claiming `]b` in visual mode would
+invent a row for a mapping that only exists in normal mode. Only groups get the
+blanket treatment.
 
 ## When two designs legitimately want the same keys
 
 Usually a collision means one side is wrong. Once it didn't.
 
-Neovim puts incremental selection on `an`/`in` — grow to the parent node,
-shrink to the child. mini.ai also maps `an`/`in`, as "around/inside the
-**next** textobject": `n` and `l` are its next/last modifiers, and that axis
-runs through every textobject it defines. Both uses are load-bearing.
+Neovim puts incremental selection on `an`/`in` — grow to the parent node, shrink
+to the child. mini.ai also maps `an`/`in`, as "around/inside the **next**
+textobject": `n` and `l` are its next/last modifiers, and that axis runs through
+every textobject it defines. Both uses are load-bearing.
 
-The resolution was to **move the operation, not break either grammar**. `a`
-and `i` mean "find a region around the cursor"; grow and shrink act on the
-selection you already have, which is a different kind of operation that
-never really belonged in the textobject namespace. They now sit on Helix's
-own keys, `<M-o>` and `<M-i>`.
+The resolution was to **move the operation, not break either grammar**. `a` and
+`i` mean "find a region around the cursor"; grow and shrink act on the selection
+you already have, which is a different kind of operation that never really
+belonged in the textobject namespace. They now sit on Helix's own keys, `<M-o>`
+and `<M-i>`.
 
-The lesson generalises: when a key is contested, ask whether one of the two
-is in the wrong namespace to begin with. Moving it beats picking a winner.
+The lesson generalises: when a key is contested, ask whether one of the two is
+in the wrong namespace to begin with. Moving it beats picking a winner.
 
 ## Fighting upstream is a standing commitment
 
@@ -141,8 +141,8 @@ things earlier passes had called clean:
 
 - `<leader>z` has 5 mappings in a Lua buffer and 14 in markdown — 8 carry
   `ft = "markdown"`.
-- A scheme buffer holds 122 mappings from conjure and paredit that exist
-  nowhere else.
+- A scheme buffer holds 122 mappings from conjure and paredit that exist nowhere
+  else.
 - blink's 9 insert keymaps are applied **buffer-locally on BufEnter**, so they
   never appear in the global table at all.
 
@@ -154,8 +154,8 @@ The four questions worth asking of any namespace:
 1. Is any key both a complete action and a prefix — and does losing the race do
    something wrong?
 2. Is any key defined both globally and buffer-locally?
-3. Do two keys share a description, or does one key's case partner mean something
-   unrelated?
+3. Do two keys share a description, or does one key's case partner mean
+   something unrelated?
 4. Does anything advertised actually work?
 
 ---
