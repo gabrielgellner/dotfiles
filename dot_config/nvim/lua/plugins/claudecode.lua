@@ -333,7 +333,29 @@ return {
     { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select model" },
     -- Context
     { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "Add current buffer" },
-    { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "x", desc = "Send selection" },
+    {
+      "<leader>as",
+      function()
+        -- A buffer with no file cannot be at-mentioned, and the plugin does not
+        -- stop itself: its sanity check compares the tracked selection's
+        -- filePath against the buffer name, which for a scratch or no-name
+        -- buffer are both "" and so compare equal. It then formats that empty
+        -- string and throws, surfacing as
+        --
+        --   Failed to send at-mention: format_path_for_at_mention:
+        --   file_path must be a non-empty string
+        --
+        -- Say so plainly instead. Yanking and pasting into the float is the way
+        -- to send text with no file behind it.
+        if vim.api.nvim_buf_get_name(0) == "" then
+          vim.notify("Claude: this buffer has no file to reference", vim.log.levels.WARN)
+          return
+        end
+        vim.cmd("ClaudeCodeSend")
+      end,
+      mode = "x",
+      desc = "Send selection",
+    },
     {
       "<leader>as",
       "<cmd>ClaudeCodeTreeAdd<cr>",
