@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # dev - fuzzy-pick an active tmux session or project from ~/dev
 
 # Every tmux -t target below is written "=$name". The leading = forces an exact
@@ -10,29 +10,44 @@
 # kill pinax-ai, silently.
 #
 # That binding writes the target as \={-1}, and the backslash is load-bearing.
-# fzf runs an execute binding through $SHELL, which is zsh here, and substitutes
-# {-1} already single-quoted — so a bare ={-1} reaches zsh as ='name', where a
-# leading = is EQUALS expansion (=foo means "the path to command foo"). zsh
-# reported "name not found" and tmux never ran, so ctrl-x silently stopped
-# killing anything. Double-quoting cannot fix it: fzf supplies its own quotes
-# inside, which would end up in the target name. The backslash suppresses the
-# expansion and leaves the word as =name.
+# fzf runs an execute binding through $SHELL — *not* through the shell this
+# script is written in, which is why the backslash survived the move to bash;
+# tested by launching fzf from bash and having the binding report $0, which came
+# back /bin/zsh. fzf substitutes {-1} already single-quoted, so a bare ={-1}
+# reaches zsh as ='name', where a leading = is EQUALS expansion (=foo means "the
+# path to command foo"). zsh reported "name not found" and tmux never ran, so
+# ctrl-x silently stopped killing anything. Double-quoting cannot fix it: fzf
+# supplies its own quotes inside, which would end up in the target name. The
+# backslash suppresses the expansion and leaves the word as =name.
+#
+# Written for bash 3.2, the version macOS ships, so /bin/bash runs it. That
+# rules out associative arrays and mapfile; see EXTRA_PROJECTS below.
 DEV_DIR="$HOME/dev"
 
-# Extra projects outside DEV_DIR: display_name -> absolute path
-typeset -A EXTRA_PROJECTS
-EXTRA_PROJECTS=(
-  dotfiles "$HOME/.local/share/chezmoi"
-)
+# Extra projects outside DEV_DIR, one "name<TAB>path" per line. This is the
+# single source of both the names and their paths — bash 3.2 has no
+# associative arrays, and two parallel lists would be one more thing to keep
+# in step.
+EXTRA_PROJECTS="dotfiles	$HOME/.local/share/chezmoi"
+
+extra_names() {
+  printf '%s\n' "$EXTRA_PROJECTS" | cut -f1
+}
 
 resolve_dir() {
-  local name="$1"
-  echo "${EXTRA_PROJECTS[$name]:-$DEV_DIR/$name}"
+  local name="$1" path
+  path=$(printf '%s\n' "$EXTRA_PROJECTS" | awk -F'\t' -v n="$name" '$1 == n { print $2; exit }')
+  if [[ -n "$path" ]]; then
+    printf '%s\n' "$path"
+  else
+    printf '%s\n' "$DEV_DIR/$name"
+  fi
 }
 
 preview() {
   local name="$1"
-  local dir="${EXTRA_PROJECTS[$name]:-$DEV_DIR/$name}"
+  local dir
+  dir=$(resolve_dir "$name")
 
   if tmux has-session -t "=$name" 2>/dev/null; then
     echo -e "\033[1;32m● active session\033[0m\n"
@@ -40,11 +55,15 @@ preview() {
     return
   fi
 
-  echo -e       "\033[1;34m── Files ──────────────────────────────\033[0m"
-  COLUMNS=$FZF_PREVIEW_COLUMNS eza --icons --grid --group-directories-first "$dir" 2>/dev/null | head -20
+  echo -e "\033[1;34m── Files ──────────────────────────────\033[0m"
+  # eza needs a width for --grid. fzf exports FZF_PREVIEW_COLUMNS, but this
+  # script is also runnable by hand, and bash passes an unset variable through
+  # as COLUMNS="", which eza reads as no room at all and prints one long line.
+  # zsh happened to leave it usable, so the fallback is new here.
+  COLUMNS="${FZF_PREVIEW_COLUMNS:-${COLUMNS:-80}}" eza --icons --grid --group-directories-first "$dir" 2>/dev/null | head -20
 
   if [[ -d "$dir/.git" ]]; then
-    echo -e   "\n\033[1;34m── Git log ────────────────────────────\033[0m"
+    echo -e "\n\033[1;34m── Git log ────────────────────────────\033[0m"
     git -C "$dir" log --oneline --color=always -7 2>/dev/null
     local git_status
     git_status=$(git -C "$dir" status --short 2>/dev/null)
@@ -55,15 +74,15 @@ preview() {
   fi
 
   if [[ -f "$dir/pyproject.toml" ]]; then
-    echo -e   "\n\033[1;34m── pyproject.toml ─────────────────────\033[0m"
+    echo -e "\n\033[1;34m── pyproject.toml ─────────────────────\033[0m"
     bat --color=always --line-range=:25 "$dir/pyproject.toml" 2>/dev/null
   fi
   if [[ -f "$dir/Cargo.toml" ]]; then
-    echo -e   "\n\033[1;34m── Cargo.toml ─────────────────────────\033[0m"
+    echo -e "\n\033[1;34m── Cargo.toml ─────────────────────────\033[0m"
     bat --color=always --line-range=:25 "$dir/Cargo.toml" 2>/dev/null
   fi
   if [[ -f "$dir/README.md" ]]; then
-    echo -e   "\n\033[1;34m── README ─────────────────────────────\033[0m"
+    echo -e "\n\033[1;34m── README ─────────────────────────────\033[0m"
     bat --color=always --line-range=:20 "$dir/README.md" 2>/dev/null
   fi
 }
@@ -84,41 +103,54 @@ preview() {
 # Only this group is reordered. The project list below stays alphabetical: it is
 # long and browsed by name, and churn there would cost more than it gave.
 active_sessions() {
-  local current=""
+  local current="" names n
   [[ -n "$TMUX" ]] && current=$(tmux display-message -p '#{session_name}' 2>/dev/null)
 
-  local -a names
-  names=(${(f)"$(tmux list-sessions -F $'#{session_last_attached}\t#{session_name}' 2>/dev/null \
-    | sort -t $'\t' -k1,1nr | cut -f2)"})
+  names=$(tmux list-sessions -F "#{session_last_attached}$(printf '\t')#{session_name}" 2>/dev/null |
+    sort -t "$(printf '\t')" -k1,1nr | cut -f2)
+  [[ -z "$names" ]] && return
 
-  local -a ordered
-  local n
-  for n in $names; do
-    [[ "$n" == "$current" ]] || ordered+=("$n")
-  done
+  while IFS= read -r n; do
+    [[ -n "$n" && "$n" != "$current" ]] && printf '%s\n' "$n"
+  done <<<"$names"
+
   # Re-add the current session last, but only if it really was in the list.
   if [[ -n "$current" ]]; then
-    for n in $names; do
-      [[ "$n" == "$current" ]] && ordered+=("$n") && break
-    done
+    while IFS= read -r n; do
+      if [[ "$n" == "$current" ]]; then
+        printf '%s\n' "$n"
+        break
+      fi
+    done <<<"$names"
   fi
-  print -l -- $ordered
+}
+
+# Is $1 one of the newline-separated names in $2?
+is_active() {
+  [[ -n "$2" ]] && printf '%s\n' "$2" | grep -qxF -- "$1"
 }
 
 list_items() {
-  local -a active
-  active=(${(f)"$(active_sessions)"})
+  local active s proj
+  active=$(active_sessions)
 
-  local s
-  for s in $active; do
-    print -r -- "● $s"
+  if [[ -n "$active" ]]; then
+    while IFS= read -r s; do
+      printf '● %s\n' "$s"
+    done <<<"$active"
+  fi
+
+  # A glob rather than `ls -1`: same alphabetical order and same set (both skip
+  # dotfiles), but nothing has to parse a filename back out of a listing.
+  local path
+  for path in "$DEV_DIR"/*; do
+    [[ -e "$path" ]] || continue
+    proj="${path##*/}"
+    is_active "$proj" "$active" || printf '%s\n' "$proj"
   done
 
-  ls -1 "$DEV_DIR" | while IFS= read -r proj; do
-    (( ${active[(I)$proj]} )) || echo "$proj"
-  done
-  for proj in ${(k)EXTRA_PROJECTS}; do
-    (( ${active[(I)$proj]} )) || echo "$proj"
+  extra_names | while IFS= read -r proj; do
+    is_active "$proj" "$active" || printf '%s\n' "$proj"
   done
 }
 
@@ -150,7 +182,7 @@ choice=$(
     --info=inline
 ) || exit 0
 
-name=$(echo "$choice" | sed 's/^● //')
+name="${choice#● }"
 
 if tmux has-session -t "=$name" 2>/dev/null; then
   if [[ -n "$TMUX" ]]; then
