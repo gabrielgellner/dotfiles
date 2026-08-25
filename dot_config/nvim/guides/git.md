@@ -39,6 +39,13 @@ additions — which is the unified layout GitLab shows a merge request in. Press
 > and `]f` is next function. Inside a codediff view they're hunk and file. Same
 > for `<leader>e`, which is normally the diagnostic float.
 
+> **`]h` is not the key here, even though it sometimes works.** gitsigns attaches
+> to the working-tree view (`<leader>gv`, `<leader>gd`) because those buffers map
+> to tracked files, so `]h` happens to move there. It does not attach to
+> `<leader>gm` or `<leader>gM`, where the buffer is a revision snapshot — `]h` is
+> silently dead in exactly the review you reach for most. `]c` works in all of
+> them.
+
 If the squashed diff is too big to read in one sitting, `<leader>gM` gives the
 same range **commit by commit** instead, so you can follow the author's steps.
 
