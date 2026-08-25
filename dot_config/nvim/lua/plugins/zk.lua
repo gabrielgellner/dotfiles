@@ -37,13 +37,21 @@ end
 -- Normal go-to-definition (matches the global `gd` — snacks picker if present).
 local function lsp_def()
   local ok, snacks = pcall(require, "snacks")
-  if ok and snacks.picker then snacks.picker.lsp_definitions() else vim.lsp.buf.definition() end
+  if ok and snacks.picker then
+    snacks.picker.lsp_definitions()
+  else
+    vim.lsp.buf.definition()
+  end
 end
 
 -- Typed rules-reference links: [Display](type:slug) -> rules/<dir>/<slug>.md.
 local RULES_DIRS = {
-  spell = "spells", condition = "conditions", action = "actions",
-  feat = "feats", creature = "creatures", item = "items",
+  spell = "spells",
+  condition = "conditions",
+  action = "actions",
+  feat = "feats",
+  creature = "creatures",
+  item = "items",
 }
 
 -- Lazily read spell_aliases.toml (legacy slug -> remaster slug) from the repo
@@ -51,13 +59,17 @@ local RULES_DIRS = {
 -- spell name still resolves. Cached after first read.
 local spell_aliases
 local function load_spell_aliases(root)
-  if spell_aliases then return spell_aliases end
+  if spell_aliases then
+    return spell_aliases
+  end
   spell_aliases = {}
   local f = root and io.open(vim.fs.dirname(root) .. "/spell_aliases.toml", "r")
   if f then
     for l in f:lines() do
       local legacy, remaster = l:match('^%s*"([^"]+)"%s*=%s*"([^"]+)"')
-      if legacy then spell_aliases[legacy] = remaster end
+      if legacy then
+        spell_aliases[legacy] = remaster
+      end
     end
     f:close()
   end
@@ -67,11 +79,17 @@ end
 -- Read a YAML frontmatter scalar `key:` from a buffer's opening lines.
 local function frontmatter_field(bufnr, key)
   local head = vim.api.nvim_buf_get_lines(bufnr, 0, 50, false)
-  if head[1] ~= "---" then return nil end
+  if head[1] ~= "---" then
+    return nil
+  end
   for i = 2, #head do
-    if head[i] == "---" then return nil end
+    if head[i] == "---" then
+      return nil
+    end
     local v = head[i]:match("^" .. key .. ":%s*(.+)$")
-    if v then return (v:gsub("%s+$", "")) end
+    if v then
+      return (v:gsub("%s+$", ""))
+    end
   end
   return nil
 end
@@ -104,7 +122,9 @@ local function follow_typed_link(line, col, root)
   local init = 1
   while true do
     local s, e, dest = line:find("%[.-%]%((.-)%)", init)
-    if not s then return false end
+    if not s then
+      return false
+    end
     if col >= s and col <= e then
       local typ, slug = dest:match("^(%a+):/?/?(.+)$")
       if typ == "room" then
@@ -112,15 +132,21 @@ local function follow_typed_link(line, col, root)
         return true
       end
       local dir = typ and RULES_DIRS[typ]
-      if not dir or not root then return false end
+      if not dir or not root then
+        return false
+      end
       local path = root .. "/rules/" .. dir .. "/" .. slug .. ".md"
       if vim.fn.filereadable(path) == 0 and typ == "spell" then
         local alias = load_spell_aliases(root)[slug]
-        if alias then path = root .. "/rules/spells/" .. alias .. ".md" end
+        if alias then
+          path = root .. "/rules/spells/" .. alias .. ".md"
+        end
       elseif vim.fn.filereadable(path) == 0 and typ == "item" then
         -- custom shop items aren't in the rules DB; look under campaign/items/.
         local hit = vim.fn.globpath(root .. "/items", "**/" .. slug .. ".md", false, true)[1]
-        if hit then path = hit end
+        if hit then
+          path = hit
+        end
       end
       if vim.fn.filereadable(path) == 1 then
         vim.cmd.edit(vim.fn.fnameescape(path))
@@ -141,19 +167,30 @@ end
 local function follow_link()
   local line, col = vim.api.nvim_get_current_line(), vim.fn.col(".")
   local root = notebook_root(vim.fs.dirname(vim.api.nvim_buf_get_name(0)))
-  if follow_typed_link(line, col, root) then return end
+  if follow_typed_link(line, col, root) then
+    return
+  end
 
   local target, init = nil, 1
   while true do -- find the [[...]] span under the cursor
     local s, e, inner = line:find("%[%[(.-)%]%]", init)
-    if not s then break end
-    if col >= s and col <= e then target = inner break end
+    if not s then
+      break
+    end
+    if col >= s and col <= e then
+      target = inner
+      break
+    end
     init = e + 1
   end
-  if not target then return lsp_def() end
+  if not target then
+    return lsp_def()
+  end
   target = target:gsub("|.*$", "") -- strip |display alias
   local file, anchor = target:match("^(.-)#(.+)$")
-  if not anchor then return lsp_def() end -- no anchor: let the LSP resolve it
+  if not anchor then
+    return lsp_def()
+  end -- no anchor: let the LSP resolve it
   local path
   if file == "" then
     path = vim.api.nvim_buf_get_name(0) -- [[#heading]] — same file
@@ -162,7 +199,9 @@ local function follow_link()
   elseif root then
     path = vim.fn.globpath(root, "**/" .. file .. ".md", false, true)[1] -- bare filename
   end
-  if not path or vim.fn.filereadable(path) == 0 then return lsp_def() end
+  if not path or vim.fn.filereadable(path) == 0 then
+    return lsp_def()
+  end
   vim.cmd.edit(vim.fn.fnameescape(path))
   vim.fn.cursor(1, 1)
   vim.fn.search([[\c^#\+\s\+]] .. vim.fn.escape(anchor, [[\.*$^~[]/]]), "cw")
@@ -178,14 +217,20 @@ end
 local function link_selection()
   local s, e = vim.fn.getpos("'<"), vim.fn.getpos("'>")
   local srow, scol, erow, ecol = s[2], s[3], e[2], e[3]
-  if srow == 0 then return end
+  if srow == 0 then
+    return
+  end
   -- clamp the inclusive end column to the line (handles `$`/v:maxcol selections)
   local last = vim.api.nvim_buf_get_lines(0, erow - 1, erow, false)[1] or ""
   ecol = math.min(ecol, #last)
   local ok, chunks = pcall(vim.api.nvim_buf_get_text, 0, srow - 1, scol - 1, erow - 1, ecol, {})
-  if not ok then return end
+  if not ok then
+    return
+  end
   local sel = vim.trim(table.concat(chunks, " "):gsub("[%[%]|]", ""))
-  if sel == "" then return end
+  if sel == "" then
+    return
+  end
 
   require("zk.api").list(nil, { select = { "title", "path" }, match = { sel } }, function(a, b)
     local notes = (type(a) == "table" and a) or (type(b) == "table" and b) or {}
@@ -194,9 +239,13 @@ local function link_selection()
     end
     vim.ui.select(notes, {
       prompt = "Link “" .. sel .. "” → ",
-      format_item = function(n) return n.title and (n.title .. "  ·  " .. n.path) or n.path end,
+      format_item = function(n)
+        return n.title and (n.title .. "  ·  " .. n.path) or n.path
+      end,
     }, function(choice)
-      if not choice then return end
+      if not choice then
+        return
+      end
       local stem = vim.fn.fnamemodify(choice.path, ":t:r")
       local link = (stem == sel) and ("[[" .. stem .. "]]") or ("[[" .. stem .. "|" .. sel .. "]]")
       vim.api.nvim_buf_set_text(0, srow - 1, scol - 1, erow - 1, ecol, { link })
@@ -218,18 +267,20 @@ return {
       pattern = "*.md",
       callback = function(args)
         local name = vim.api.nvim_buf_get_name(args.buf)
-        if name == "" or not notebook_root(vim.fs.dirname(name)) then return end
+        if name == "" or not notebook_root(vim.fs.dirname(name)) then
+          return
+        end
         reindex(name)
         -- anchor-aware follow: gd jumps to a [[note#heading]] section (zk-nvim#193).
-        vim.keymap.set("n", "gd", follow_link,
-          { buffer = args.buf, desc = "zk: follow link (jump to #heading)" })
+        vim.keymap.set("n", "gd", follow_link, { buffer = args.buf, desc = "zk: follow link (jump to #heading)" })
       end,
       desc = "zk: reindex + anchor-aware gd in notebook notes",
     })
     -- Backs the visual <leader>zl mapping (see keys). A user command so the
     -- `:<C-u>` invocation leaves visual mode before the `'<`/`'>` marks are read.
-    vim.api.nvim_create_user_command("ZkLinkSelection", function() link_selection() end,
-      { range = true, desc = "zk: link visual selection to a note (alias-preserving)" })
+    vim.api.nvim_create_user_command("ZkLinkSelection", function()
+      link_selection()
+    end, { range = true, desc = "zk: link visual selection to a note (alias-preserving)" })
   end,
   opts = function()
     -- Resolve the notebook for this session, most-specific first:
@@ -304,10 +355,7 @@ return {
     {
       "<leader>zb",
       function()
-        require("zk").edit(
-          { linkTo = { vim.api.nvim_buf_get_name(0) } },
-          { title = "Backlinks" }
-        )
+        require("zk").edit({ linkTo = { vim.api.nvim_buf_get_name(0) } }, { title = "Backlinks" })
       end,
       ft = "markdown",
       desc = "Backlinks to this note",
@@ -315,10 +363,7 @@ return {
     {
       "<leader>zl",
       function()
-        require("zk").edit(
-          { linkedBy = { vim.api.nvim_buf_get_name(0) } },
-          { title = "Links from note" }
-        )
+        require("zk").edit({ linkedBy = { vim.api.nvim_buf_get_name(0) } }, { title = "Links from note" })
       end,
       ft = "markdown",
       desc = "Notes this note links to",
