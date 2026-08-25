@@ -49,8 +49,13 @@ map({ "n", "x" }, "<C-y>", "3<C-y>", { desc = "Scroll view up" })
 -- way to take the next bigger one *without* naming it: a table entry, a match
 -- arm, one link of a chained call — anything with no textobject of its own.
 --
--- [n/]n and [N/]N are Neovim's and were never shadowed; only grow and shrink
--- needed rehoming.
+-- [n/]n and [N/]N are Neovim's and were never shadowed. Note what they do,
+-- though: `:help v_]N` is "Expands selection to [count]th next node" — they use
+-- vim.treesitter.select's extend_next/extend_prev targets and *grow* the
+-- selection over the sibling. <M-n>/<M-p> below pass plain next/prev, which
+-- *moves* the selection onto the sibling instead. Different operations, so both
+-- are worth having; they only looked redundant because they read the same in
+-- which-key, the builtins being described as "Select next sibling node" too.
 ---@param target "parent"|"child"|"next"|"prev"
 ---@param lsp? integer direction for the no-parser fallback, if it has one
 local function select_node(target, lsp)
@@ -67,8 +72,8 @@ end
 
 map("x", "<M-o>", select_node("parent", 1), { desc = "Grow selection to parent node" })
 map("x", "<M-i>", select_node("child", -1), { desc = "Shrink selection to child node" })
-map("x", "<M-n>", select_node("next"), { desc = "Select next sibling node" })
-map("x", "<M-p>", select_node("prev"), { desc = "Select previous sibling node" })
+map("x", "<M-n>", select_node("next"), { desc = "Move selection to next sibling" })
+map("x", "<M-p>", select_node("prev"), { desc = "Move selection to prev sibling" })
 
 -- ── Windows ───────────────────────────────────────────────────────────────────
 -- <C-hjkl> are bound in plugins/tmux-navigator.lua, not here. They used to be
