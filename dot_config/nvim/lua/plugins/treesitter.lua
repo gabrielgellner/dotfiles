@@ -148,6 +148,20 @@ return {
               .. (key:sub(2, 2):match("%u") and " end" or " start")
 
             vim.keymap.set({ "n", "x", "o" }, key, function()
+              -- A buffer with no parser throws rather than doing nothing: the
+              -- plugin's scoring function indexes a range that was never
+              -- produced and raises "E5108: attempt to perform arithmetic on
+              -- local 'score' (a nil value)". Every one of these motions did it,
+              -- in any filetype without a parser — plain text being the one you
+              -- hit daily.
+              --
+              -- Only a missing parser is the problem. toml, json, markdown and
+              -- sh all have parsers but no class query, and the plugin returns
+              -- quietly there, so this guard is deliberately about the parser
+              -- and not about whether the query exists.
+              if not vim.treesitter.get_parser(buf, nil, { error = false }) then
+                return
+              end
               require("nvim-treesitter-textobjects.move")[method](query, "textobjects")
             end, { buffer = buf, desc = desc, silent = true })
           end
