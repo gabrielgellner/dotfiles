@@ -4,3 +4,15 @@
 indent_type = "Spaces"
 indent_width = 2
 column_width = 120
+
+# sort_requires is off by default. On to match folke, who ships this exact file
+# with every plugin this config leans on — lazy.nvim, snacks, trouble,
+# which-key, noice, todo-comments, lazydev and flash.
+#
+# It changes nothing today: sorting applies to runs of consecutive
+# `local x = require(...)` lines, and this config has none — every require
+# stands alone, or sits inside a lazy spec. Set for the day one appears, and so
+# the file matches the setup the ecosystem converged on rather than being a
+# subset of it.
+[sort_requires]
+enabled = true
