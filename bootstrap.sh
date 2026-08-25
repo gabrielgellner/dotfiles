@@ -308,6 +308,18 @@ for plug in zsh-autosuggestions/zsh-autosuggestions.zsh \
     [[ -f "$(brew --prefix)/share/$plug" ]] || missing+=("plugin:${plug%%/*}")
 done
 
+# What .config/i3 launches, on the machine that applies it. None of these come
+# from brew — i3 arrives with the distribution and rofi and the browser with its
+# package manager — so this reports rather than installs. It is here because the
+# i3 config names them and nothing else in this repo would ever notice they were
+# absent: a fresh Linux machine gets a window manager config whose terminal,
+# launcher and browser may none of them exist.
+if ! $IS_MACOS; then
+    for c in i3 kitty rofi google-chrome xset; do
+        command -v "$c" &>/dev/null || missing+=("i3-dep:$c")
+    done
+fi
+
 if (( ${#missing[@]} )); then
     yellow "  missing: ${missing[*]}"
     yellow "  (a new shell may be needed first, or these genuinely failed to install)"
