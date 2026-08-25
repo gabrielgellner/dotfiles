@@ -5,11 +5,18 @@ return {
     local lint = require("lint")
 
     lint.linters_by_ft = {
-      python = { "ruff" }, -- ruff as linter (separate from ruff LSP)
       yaml = { "yamllint" },
+      -- No `python` entry either, for the same reason as `sh` below. ruff runs
+      -- as an LSP server (plugins/lsp.lua) and publishes its own diagnostics,
+      -- so linting with it here reported every finding twice — literally the
+      -- same message from the same tool, under source "Ruff" from the server
+      -- and "ruff" from nvim-lint.
+      --
       -- No `sh` entry: bash-language-server runs shellcheck itself and turns
       -- its findings into code actions (see plugins/lsp.lua). Linting here as
       -- well reported everything twice.
+      --
+      -- yamllint stays because nothing else covers yaml.
       -- markdown = { "markdownlint" }, -- uncomment if you want this
     }
 
