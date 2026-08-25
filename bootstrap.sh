@@ -260,6 +260,13 @@ blue "\nChecking yazi catppuccin flavor..."
 YAZI_FLAVOR_DIR="$HOME/.config/yazi/flavors/catppuccin-frappe.yazi"
 if [[ -d "$YAZI_FLAVOR_DIR" ]]; then
     yellow "catppuccin-frappe.yazi already installed, skipping"
+elif [[ -f "$HOME/.config/yazi/package.toml" ]]; then
+    # `install`, not `add`. package.toml is tracked and records a rev, so this
+    # checks out the pinned commit rather than whatever is current — the same
+    # relationship lazy-lock.json has with :Lazy install. chezmoi apply runs
+    # before this script (see README), so the file is already in place.
+    green "Installing yazi packages from the pinned package.toml..."
+    ya pkg install
 else
     green "Installing catppuccin-frappe flavor via ya pkg..."
     ya pkg add yazi-rs/flavors:catppuccin-frappe

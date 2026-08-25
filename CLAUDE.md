@@ -87,10 +87,16 @@ because nothing else here can express it: `dot_config/kitty/kitty.conf` tried
 the same remap and kitty rejected it as an unknown key.
 
 Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
-catppuccin theme file with its upstream commit in the header; tmux's catppuccin
-and yazi's flavor come from tpm and `ya pkg` respectively and are not tracked
-here — `~/.tmux/plugins` is ignored outright, since chezmoi managing it would
-revert every tpm update.
+catppuccin theme file with its upstream commit in the header. tmux's catppuccin
+comes from tpm and is not tracked at all — `~/.tmux/plugins` is ignored
+outright, since chezmoi managing it would revert every tpm update.
+
+yazi sits between the two. `dot_config/yazi/package.toml` **is** tracked: it
+names the flavor and the commit it is pinned to, so `ya pkg install` reproduces
+the tree, which is the relationship `lazy-lock.json` has with lazy.nvim. The
+fetched content under `.config/yazi/flavors` is ignored. To move the pin,
+`ya pkg upgrade` and then `chezmoi re-add ~/.config/yazi/package.toml`, the same
+two steps as `:Lazy update` followed by committing the lockfile.
 
 ## Neovim Configuration Architecture
 
