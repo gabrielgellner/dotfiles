@@ -66,7 +66,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
-| `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 7 active settings; the rest is commented reference  |
+| `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 8 active settings; the rest is commented reference  |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bootstrap.sh`                     | —                         | Installs the toolchain on a fresh machine; not applied        |
