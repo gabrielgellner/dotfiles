@@ -115,6 +115,13 @@ end
 ---@return table[]|nil items, string? err
 function M.recipes()
   local dir = context_dir()
+  -- vim.system's list form raises ENOENT when the binary is missing, rather
+  -- than returning a non-zero code — so without this the error path below,
+  -- which exists precisely to say what went wrong, was skipped and the picker
+  -- threw instead.
+  if vim.fn.executable("just") ~= 1 then
+    return nil, "just is not installed"
+  end
   local res = vim.system({ "just", "--dump", "--dump-format", "json" }, { cwd = dir, text = true }):wait()
   if res.code ~= 0 then
     local err = vim.trim(res.stderr or "")

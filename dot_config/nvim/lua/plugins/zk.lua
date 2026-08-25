@@ -25,7 +25,11 @@ end
 local function reindex(bufpath)
   local root = notebook_root(bufpath and bufpath ~= "" and vim.fs.dirname(bufpath) or nil)
     or notebook_root(vim.uv.cwd())
-  if root then
+  -- executable() first: this runs from an autocmd, and vim.system's list form
+  -- raises ENOENT for a missing binary rather than returning a code, so on a
+  -- machine without zk every note opened would report an error instead of
+  -- quietly skipping the index.
+  if root and vim.fn.executable("zk") == 1 then
     vim.system({ "zk", "index" }, { cwd = root })
   end
 end
