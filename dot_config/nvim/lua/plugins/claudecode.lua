@@ -157,6 +157,25 @@ end
 -- consumes. Normal mode is for scrolling and yanking Claude's output; `i` goes
 -- back to typing at it.
 
+-- The file a buffer is "about", which is not always its name. A codediff
+-- review pane under <leader>gm is buftype=nofile with an empty name, yet it
+-- concerns a real file and the session knows which: get_paths returns
+-- { absolute, relative } for the pane. Used by both context mappings below, so
+-- neither has to care which kind of buffer it is looking at.
+---@return string|nil
+local function buffer_file()
+  local name = vim.api.nvim_buf_get_name(0)
+  if name ~= "" then
+    return name
+  end
+  local ok, acc = pcall(require, "codediff.ui.lifecycle.accessors")
+  local paths = ok and select(2, pcall(acc.get_paths, vim.api.nvim_get_current_tabpage())) or nil
+  local target = type(paths) == "table" and paths.absolute or nil
+  if target and target ~= "" then
+    return target
+  end
+end
+
 return {
   "coder/claudecode.nvim",
   dependencies = { "folke/snacks.nvim" },
@@ -332,7 +351,21 @@ return {
     { "<leader>al", "<cmd>ClaudeCode --continue<cr>", desc = "Continue last session" },
     { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select model" },
     -- Context
-    { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "Add current buffer" },
+    {
+      "<leader>ab",
+      function()
+        -- `ClaudeCodeAdd %` expands to nothing in a buffer with no name, and
+        -- the plugin logs "No file path provided" — accurate, but it fires in
+        -- a codediff pane where there *is* a file to add.
+        local target = buffer_file()
+        if not target then
+          vim.notify("Claude: this buffer has no file to reference", vim.log.levels.WARN)
+          return
+        end
+        vim.cmd("ClaudeCodeAdd " .. vim.fn.fnameescape(target))
+      end,
+      desc = "Add current buffer",
+    },
     {
       "<leader>as",
       function()
@@ -352,13 +385,8 @@ return {
           return
         end
 
-        -- No buffer name, but a codediff review pane still concerns a real
-        -- file: under <leader>gm the pane is buftype=nofile with an empty
-        -- name, while the session knows the path. Ask it.
-        local ok, acc = pcall(require, "codediff.ui.lifecycle.accessors")
-        local paths = ok and select(2, pcall(acc.get_paths, vim.api.nvim_get_current_tabpage())) or nil
-        local target = type(paths) == "table" and paths.absolute or nil
-        if not target or target == "" then
+        local target = buffer_file()
+        if not target then
           vim.notify("Claude: this buffer has no file to reference", vim.log.levels.WARN)
           return
         end
