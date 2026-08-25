@@ -12,8 +12,10 @@ return {
       toml = { "taplo" },
       css = { "biome" },
       html = { "prettier" },
+      -- `sh` covers bash and dash too: Neovim gives every shell script that
+      -- filetype and keeps the dialect in `b:is_bash`. A `bash` entry here
+      -- matched nothing, the same way plugins/lint.lua's did.
       sh = { "shfmt" },
-      bash = { "shfmt" },
       jinja = { "djlint" },
       jinja2 = { "djlint" },
       htmldjango = { "djlint" },

@@ -2,6 +2,24 @@ local function augroup(name)
   return vim.api.nvim_create_augroup("nvim_" .. name, { clear = true })
 end
 
+-- ── Jinja templates ───────────────────────────────────────────────────────────
+-- Neovim detects `.jinja` and nothing else, so `.j2` and `.jinja2` opened with
+-- no filetype at all: no highlighting, no formatter. plugins/formatting.lua has
+-- had djlint wired to `jinja`, `jinja2` and `htmldjango` all along, and only the
+-- first of those three was a filetype anything could produce.
+--
+-- `*.html.j2` is the htmldjango case — a full HTML document with template tags,
+-- which djlint wants to know about, since it indents the HTML around them.
+vim.filetype.add({
+  extension = {
+    j2 = "jinja",
+    jinja2 = "jinja",
+  },
+  pattern = {
+    [".*%.html%.j2"] = "htmldjango",
+  },
+})
+
 -- --- Detect filetype even if unset ----------------------------------------------
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   group = augroup("filetype_detect"),
