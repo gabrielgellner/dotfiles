@@ -29,11 +29,8 @@ cd ~/.local/share/chezmoi
 ./bootstrap.sh
 ```
 
-This installs brew packages, uv Python tools (basedpyright, ruff, debugpy), rustup, and tpm. Safe to re-run.
+This installs brew packages, uv Python tools (basedpyright, ruff, debugpy) and rustup. Safe to re-run.
 
-### 3. Finish tmux plugin install
-
-Start tmux, then press `Ctrl-A + I` to install plugins via tpm.
 
 ## Working on the dotfiles
 

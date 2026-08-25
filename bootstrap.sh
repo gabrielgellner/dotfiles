@@ -229,17 +229,6 @@ for component in rust-analyzer clippy rustfmt; do
     fi
 done
 
-# ── tmux plugin manager ───────────────────────────────────────────────────────
-
-blue "\nChecking tmux plugin manager (tpm)..."
-TPM_DIR="$HOME/.tmux/plugins/tpm"
-if [[ -d "$TPM_DIR" ]]; then
-    yellow "tpm already present, skipping"
-else
-    green "Cloning tpm..."
-    git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
-fi
-
 # ── atuin history import ──────────────────────────────────────────────────────
 
 blue "\nChecking atuin history..."
@@ -329,4 +318,3 @@ fi
 # ── Done ──────────────────────────────────────────────────────────────────────
 
 blue "\nAll done. Open a new shell or run: exec zsh"
-blue "Then start tmux and press prefix + I to install tmux plugins."

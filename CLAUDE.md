@@ -90,9 +90,10 @@ Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
 catppuccin theme file with its upstream commit in the header, and `dot_tmux.conf`
 carries tmux's frappe colours inline — that was a tpm plugin, 3.4MB of shell to
 produce a dozen `set -g` lines, so the resolved output was read off the server
-and pasted in. `~/.tmux/plugins` is still ignored outright, since chezmoi
-managing it would revert every tpm update; tpm itself remains, for
-vim-tmux-navigator.
+and pasted in. There is no tmux plugin manager any more: tpm's only other plugin
+was vim-tmux-navigator, and its tmux half went unused because work here is
+divided into windows (`prefix + 1/2/3`), never panes. `.tmux/plugins` stays in
+`.chezmoiignore` as a guard.
 
 yazi sits between the two. `dot_config/yazi/package.toml` **is** tracked: it
 names the flavor and the commit it is pinned to, so `ya pkg install` reproduces
@@ -117,8 +118,7 @@ Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
 
 Plugin categories: LSP + completion (blink.cmp), DAP debugging, treesitter,
 formatting/linting, UI (noice, snacks, mini), navigation (flash, spider, oil),
-git (gitsigns, codediff), tmux integration (vim-tmux-navigator), Rust, Haskell,
-Scheme (conjure, paredit).
+git (gitsigns, codediff), Rust, Haskell, Scheme (conjure, paredit).
 
 ## Keymap Conventions
 

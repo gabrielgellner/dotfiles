@@ -76,9 +76,17 @@ map("x", "<M-n>", select_node("next"), { desc = "Move selection to next sibling"
 map("x", "<M-p>", select_node("prev"), { desc = "Move selection to prev sibling" })
 
 -- ── Windows ───────────────────────────────────────────────────────────────────
--- <C-hjkl> are bound in plugins/tmux-navigator.lua, not here. They used to be
--- plain <C-w>h/j/k/l, which stopped at the outermost window; the plugin carries
--- the same movement on into the neighbouring tmux pane instead.
+-- <C-hjkl> move between splits. These lived in plugins/tmux-navigator.lua for a
+-- while, which carried the same movement on into a neighbouring tmux pane once
+-- nvim ran out of windows. That handoff needs a tmux pane to hand off to, and
+-- there has never been one — every window in every session holds a single pane,
+-- because panes are not how this setup divides work; windows are, reached with
+-- prefix + 1/2/3. So the plugin is gone and the keys are plain wincmd again.
+map("n", "<C-h>", "<C-w>h", { desc = "Window left" })
+map("n", "<C-j>", "<C-w>j", { desc = "Window down" })
+map("n", "<C-k>", "<C-w>k", { desc = "Window up" })
+map("n", "<C-l>", "<C-w>l", { desc = "Window right" })
+
 -- Splits sit under <leader>w with the rest of the window commands. <leader>-
 -- used to be the horizontal one and did nothing: plugins/oil.lua binds the same
 -- key to `Oil --float` and, being a lazy key registered later, won.

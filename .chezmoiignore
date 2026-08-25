@@ -7,16 +7,13 @@ README.md
 bootstrap.sh
 
 {{/*
-  ~/.tmux/plugins is tpm's install directory, not ours. bootstrap.sh clones tpm
-  itself, dot_tmux.conf names the plugins and the version to pin them at, and
-  tpm fetches the rest — so the tree is fully reproducible from two files.
-
-  It used to be checked in: 246 of the repo's 330 tracked files and 4.2MB were
-  three vendored clones, .git directories and packfiles included. Beyond the
-  bulk, chezmoi managing them means it fights tpm: after a `prefix + U` the
-  plugin is newer than the source, and `chezmoi apply` reverts it.
-
-  Ignored rather than merely deleted, so `chezmoi add` cannot pull them back.
+  ~/.tmux/plugins was tpm's install directory. tpm is gone — its two plugins
+  were catppuccin, now written out inline in dot_tmux.conf, and
+  vim-tmux-navigator, whose tmux half was never used. The rule stays as a guard:
+  if a plugin manager is ever tried again, `chezmoi add` must not pull the tree
+  in. It did once — 246 of the repo's 330 tracked files and 4.2MB were three
+  vendored clones, .git directories and packfiles included — and beyond the bulk,
+  chezmoi managing them means it fights the plugin manager on every update.
 */ -}}
 .tmux/plugins/**
 

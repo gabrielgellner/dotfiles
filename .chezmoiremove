@@ -14,6 +14,16 @@
 bin/regenerate-completions
 
 {{/*
+  plugins/tmux-navigator.lua declared the Neovim half of vim-tmux-navigator. Its
+  four <C-hjkl> mappings moved to config/keymaps.lua as plain wincmd, and the
+  plugin went with the tmux half. Deleting the source entry stops chezmoi
+  managing the file; it does not remove it, and lazy.nvim keeps loading whatever
+  lua/plugins/*.lua it finds — so the plugin stayed installed and its lazy key
+  stubs kept shadowing the new mappings until this line existed.
+*/ -}}
+.config/nvim/lua/plugins/tmux-navigator.lua
+
+{{/*
   .config/bat/themes held a 64KB Catppuccin Mocha .tmTheme. Three separate
   reasons it did nothing: bat only loads a custom theme after `bat cache
   --build` and no cache was ever built, bat 0.26 ships all four Catppuccin
