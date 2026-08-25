@@ -153,16 +153,15 @@ the second, `p`, then select where the first was and `p` again.
 
 The single biggest reading upgrade: jump freely, because returning is one key.
 
-<!-- prettier-ignore -->
-| Key | Does |
-| --- | --- |
+| Key               | Does                                                |
+| ----------------- | --------------------------------------------------- |
 | `<C-o>` / `<C-i>` | back / forward through the jumplist (crosses files) |
-| `[j` / `]j` | the same list as a bracket motion, with counts |
-| `''` | back to the line you were on before the last jump |
-| `` `` `` | back to the exact position |
-| `` `. `` | the position of the last edit |
-| `g;` / `g,` | walk backward / forward through the changelist |
-| `<C-^>` | toggle to the alternate (previously edited) buffer |
+| `[j` / `]j`       | the same list as a bracket motion, with counts      |
+| `''`              | back to the line you were on before the last jump   |
+| `` `` ``          | back to the exact position                          |
+| `` `. ``          | the position of the last edit                       |
+| `g;` / `g,`       | walk backward / forward through the changelist      |
+| `<C-^>`           | toggle to the alternate (previously edited) buffer  |
 
 ## Across files
 
