@@ -35,9 +35,9 @@ additions — which is the unified layout GitLab shows a merge request in. Press
 | `g?` | full keymap help |
 | `q` | quit |
 
-> **These keys mean different things here.** Everywhere else `]c` is next class
-> and `]f` is next function. Inside a codediff view they're hunk and file. Same
-> for `<leader>e`, which is normally the diagnostic float.
+> **These keys mean different things here.** Everywhere else `]f` is next
+> function. Inside a codediff view it's next file. Same for `<leader>e`, which
+> is normally the diagnostic float.
 
 > **One key for "next change", everywhere.** `]c`/`[c` is vim's own diff motion
 > (`:help ]c`), so it now means next/previous hunk in gitsigns, next/previous
@@ -55,6 +55,27 @@ same range **commit by commit** instead, so you can follow the author's steps.
 | `<leader>gv` | review the working tree — your own uncommitted work |
 | `<leader>gh` | history of the current file |
 | `<leader>gH` | history of the repo |
+
+## Getting back to your file
+
+codediff opens its review in a **new tab**, so the file you were editing is
+still there, one tab over. The tabline at the top names them — `m.py` next to
+`2 CodeDiff History [3]` — and it is clickable, but the keyboard is faster.
+
+| Key | Does |
+| --- | --- |
+| `g<Tab>` | the tab you were in last — the alt-tab of tabs |
+| `gt` / `gT` | next / previous tab |
+| `3gt` | tab 3 directly |
+| `<C-w>T` | move this window out into a tab of its own |
+
+`g<Tab>` is the one to learn. Reviewing is two tabs — your work and the
+review — and it flips between them, so you never count or cycle. All four are
+Neovim builtins; nothing here configures them.
+
+Tabs can accumulate if you open several reviews, and `gt` cycling gets old
+past about four. That is the point at which numbered jumps
+(`<leader>1`…`<leader>9`) would be worth adding; they are not bound today.
 
 ## While you're working
 

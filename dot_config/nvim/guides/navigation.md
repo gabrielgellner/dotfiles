@@ -55,7 +55,7 @@ you want to land on.
 | Key | Does |
 | --- | --- |
 | `]f` `[f` | next / previous function start (`]F` `[F` for the end) |
-| `]c` `[c` | next / previous class (`]C` `[C` for the end) |
+| `]k` `[k` | next / previous class (`]K` `[K` for the end) |
 | `]a` `[a` | next / previous argument |
 | `]?` `[?` | next / previous conditional |
 | `]r` `[r` | next / previous loop |
