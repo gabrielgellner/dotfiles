@@ -120,22 +120,6 @@ return {
       { "u", desc = "Undo" },
       { "<C-R>", desc = "Redo" },
 
-      -- ── Treesitter motions ──────────────────────────────────────────────
-      { "]f", desc = "Next function" },
-      { "[f", desc = "Prev function" },
-      { "]F", desc = "End of next function" },
-      { "[F", desc = "End of prev function" },
-      { "]c", desc = "Next class" },
-      { "[c", desc = "Prev class" },
-      { "]C", desc = "End of next class" },
-      { "[C", desc = "End of prev class" },
-      { "]a", desc = "Next argument" },
-      { "[a", desc = "Prev argument" },
-      { "]?", desc = "Next conditional" },
-      { "[?", desc = "Prev conditional" },
-      { "]r", desc = "Next loop" },
-      { "[r", desc = "Prev loop" },
-
       -- ── Git review (codediff) ───────────────────────────────────────────
       { "<leader>gv", desc = "Review working tree" },
       { "<leader>gd", desc = "Review this file" },
