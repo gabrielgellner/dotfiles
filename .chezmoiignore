@@ -32,6 +32,17 @@ bootstrap.sh
 {{ end -}}
 
 {{/*
+  The .spl beside the spell file is a build artifact: Neovim compiles it from
+  en.utf-8.add and rewrites it whenever a word is added with zg. Tracking the
+  source list is the point (config/options.lua explains why the path is set
+  explicitly); tracking its compiled form would put a binary in the repo that
+  goes stale the moment either machine learns a word. Ignored rather than merely
+  left alone, because `chezmoi add ~/.config/nvim/spell` pulls it in otherwise —
+  verified with --dry-run.
+*/ -}}
+.config/nvim/spell/*.spl
+
+{{/*
   ~/.config/yazi/flavors is `ya pkg`'s install directory, the same relationship
   ~/.tmux/plugins has with tpm. package.toml *is* tracked — it records the
   flavor and the commit it is pinned to, so `ya pkg install` reproduces the
