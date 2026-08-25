@@ -35,6 +35,21 @@ bootstrap.sh
 {{ end -}}
 
 {{/*
+  Karabiner-Elements is macOS-only. The profile it holds is the whole reason
+  ctrl is reachable from both hands here — caps_lock and right_command both
+  become control, and right_option becomes command so that hand keeps one too.
+  Worth tracking precisely because nothing else in this repo can express it:
+  kitty rejected the same remap outright (see dot_config/kitty/kitty.conf).
+
+  Karabiner rewrites this file itself whenever the GUI changes a setting, the
+  same two-writer situation as ~/.claude/settings.json — `chezmoi re-add` after
+  changing anything in the app, or the next apply reverts it.
+*/ -}}
+{{ if ne .chezmoi.os "darwin" -}}
+.config/karabiner/**
+{{ end -}}
+
+{{/*
   mkv2mp4 remuxes video and needs ffmpeg, which is a large install for a
   machine that is used for work. bootstrap.sh gates the ffmpeg package the same
   way, so the script and its dependency arrive together or not at all.

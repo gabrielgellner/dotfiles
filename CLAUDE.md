@@ -41,7 +41,7 @@ The same repo serves a macOS laptop and a Linux machine. Two mechanisms:
 
 - **`.chezmoiignore`** is a template, so a path can be skipped per machine.
   `.config/i3` and `.config/i3status` apply on Linux only, and
-  `bin/mkv2mp4` on macOS only. Paths there are
+  `bin/mkv2mp4` and `.config/karabiner` on macOS only. Paths there are
   *target* names (`.config/i3`), not source names (`dot_config/i3`).
 - **`.chezmoi.toml.tmpl`** defines a `role`, asked once per machine by
   `chezmoi init` and stored in the generated (untracked)
@@ -65,6 +65,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `bin/executable_claude-window`     | `~/bin/claude-window`     | Jump to or create a `claude` window (tmux prefix + C)         |
 | `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
+| `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 8 active settings; the rest is commented reference  |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
@@ -76,6 +77,14 @@ setting changes from inside the tool — model, theme, effort level, enabled
 plugins — while chezmoi holds its own copy. Whichever wrote last wins, so a
 change made in the tool is reverted by the next `chezmoi apply`. Capture such a
 change with `chezmoi re-add ~/.claude/settings.json` before applying.
+
+`~/.config/karabiner/karabiner.json` has the same shape of problem: Karabiner
+rewrites it whenever a setting changes in its GUI, so re-add before applying
+after touching the app. It holds three simple modifications — `caps_lock` and
+`right_command` both to control, `right_option` to command — which is what
+makes control and command each reachable from either hand. It is tracked
+because nothing else here can express it: `dot_config/kitty/kitty.conf` tried
+the same remap and kitty rejected it as an unknown key.
 
 Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
 catppuccin theme file with its upstream commit in the header; tmux's catppuccin
