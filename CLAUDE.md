@@ -87,9 +87,12 @@ because nothing else here can express it: `dot_config/kitty/kitty.conf` tried
 the same remap and kitty rejected it as an unknown key.
 
 Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
-catppuccin theme file with its upstream commit in the header. tmux's catppuccin
-comes from tpm and is not tracked at all — `~/.tmux/plugins` is ignored
-outright, since chezmoi managing it would revert every tpm update.
+catppuccin theme file with its upstream commit in the header, and `dot_tmux.conf`
+carries tmux's frappe colours inline — that was a tpm plugin, 3.4MB of shell to
+produce a dozen `set -g` lines, so the resolved output was read off the server
+and pasted in. `~/.tmux/plugins` is still ignored outright, since chezmoi
+managing it would revert every tpm update; tpm itself remains, for
+vim-tmux-navigator.
 
 yazi sits between the two. `dot_config/yazi/package.toml` **is** tracked: it
 names the flavor and the commit it is pinned to, so `ya pkg install` reproduces
