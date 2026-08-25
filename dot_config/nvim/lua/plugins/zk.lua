@@ -264,6 +264,8 @@ return {
   -- shells out to `zk`, and is a no-op outside a notebook.
   init = function()
     vim.api.nvim_create_autocmd("BufReadPost", {
+      -- Grouped so a reload replaces this rather than adding another copy.
+      group = vim.api.nvim_create_augroup("zk_notebook", { clear = true }),
       pattern = "*.md",
       callback = function(args)
         local name = vim.api.nvim_buf_get_name(args.buf)

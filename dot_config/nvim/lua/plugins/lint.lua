@@ -13,8 +13,12 @@ return {
       -- markdown = { "markdownlint" }, -- uncomment if you want this
     }
 
-    -- run on open and save
+    -- Run on open and save. Grouped with clear = true, like every autocmd in
+    -- config/autocmds.lua: without a group, reloading this plugin while editing
+    -- the config registers a second copy of all three events, and they stack —
+    -- one reload took the count from 6 to 9 and made every save lint twice.
     vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
+      group = vim.api.nvim_create_augroup("nvim_lint_run", { clear = true }),
       callback = function()
         lint.try_lint()
       end,
