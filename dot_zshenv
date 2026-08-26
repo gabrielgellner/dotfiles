@@ -6,11 +6,10 @@
 # there (ruff, basedpyright, debugpy, djlint via bootstrap.sh).
 #
 # The three directories are the same three .zshrc lists, in the same order. ~/bin
-# used to be missing from this copy, so the scripts in it — dev, new-session,
-# claude-window — resolved only in an interactive shell. Everything still worked,
-# because tmux is started from one and hands its environment to the popup and to
-# run-shell, but the moment that chain does not begin interactively the picker
-# cannot find new-session and prefix + C cannot find claude-window.
+# used to be missing from this copy, so the scripts in it — dev and new-session —
+# resolved only in an interactive shell. Everything still worked, because tmux is
+# started from one and hands its environment to the popup, but the moment that
+# chain does not begin interactively the picker cannot find new-session.
 #
 # $HOME rather than a literal path: uv's installer wrote this file with
 # /Users/gabrielgellner hardcoded, which would have expanded to nothing useful

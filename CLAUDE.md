@@ -62,7 +62,6 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_tmux.conf`                    | `~/.tmux.conf`            | Tmux: Ctrl-A prefix, vi keys, catppuccin frappe               |
 | `bin/executable_dev`               | `~/bin/dev`               | fzf-based tmux session/project switcher                       |
 | `bin/executable_new-session`       | `~/bin/new-session`       | Creates tmux sessions with nvim + console windows             |
-| `bin/executable_claude-window`     | `~/bin/claude-window`     | Jump to or create a `claude` window (tmux prefix + C)         |
 | `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |

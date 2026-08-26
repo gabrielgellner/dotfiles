@@ -30,3 +30,12 @@ bin/regenerate-completions
   themes built in, and the config asks for Frappe, not Mocha.
 */ -}}
 .config/bat/themes
+
+{{/*
+  bin/claude-window opened Claude as a full-terminal tmux window on prefix + C,
+  alongside the in-editor integration rather than instead of it. Only one of the
+  two is used: claudecode.nvim's float, which keeps the selection, the @-mention
+  keys and the diff view that a bare terminal has none of. The tmux binding went
+  with it.
+*/ -}}
+bin/claude-window
