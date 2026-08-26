@@ -139,12 +139,34 @@ beats any global. A global option is not automatically authoritative.
 An audit only sees the buffer and mode it runs in. Three separate rounds found
 things earlier passes had called clean:
 
-- `<leader>z` has 5 mappings in a Lua buffer and 14 in markdown — 8 carry
-  `ft = "markdown"`.
-- A scheme buffer holds 122 mappings from conjure and paredit that exist nowhere
-  else.
-- blink's 9 insert keymaps are applied **buffer-locally on BufEnter**, so they
-  never appear in the global table at all.
+- `<leader>z` has 5 mappings in a Lua buffer and 14 in markdown — the extra 9
+  are buffer-local, from the 12 lazy keys across `plugins/zk.lua`,
+  `plugins/markdown.lua` and `plugins/snacks.lua` that carry `ft = "markdown"`.
+- A scheme buffer holds 146 buffer-local mappings against a Lua buffer's 67.
+- blink's 9 insert keymaps are applied **buffer-locally**, and only once you
+  have entered insert mode in that buffer. Count before doing so and you get
+  zero, which is what makes them easy to miss entirely.
+
+Those figures assume a protocol, and change without it: a fresh Neovim, one
+file opened, insert mode visited once. The same Lua buffer counts 56 before
+that insert-mode visit and 67 after, and the difference is entirely blink's —
+insert goes 0 to 9 and select 0 to 2, while normal, visual and
+operator-pending do not move at all:
+
+```
+cold: n=23 x=17 o=16 i=0 s=0
+warm: n=23 x=17 o=16 i=9 s=2
+```
+
+Counting a buffer opened *after* several others gives higher numbers again,
+because their plugins have loaded by then.
+
+So quote the protocol with the number, or re-derive:
+
+```lua
+:lua local n = 0 for _, m in ipairs({"n","x","o","i","s"}) do
+  n = n + #vim.api.nvim_buf_get_keymap(0, m) end print(n)
+```
 
 So: run the checks in more than one filetype, with an LSP client and gitsigns
 actually attached, and look at buffer-local maps as well as global ones.
