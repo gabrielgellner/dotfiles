@@ -12,15 +12,25 @@ would hide the match you're watching. Ghost text still shows there.
 
 | Key               | Does                                            | From  |
 | ----------------- | ----------------------------------------------- | ----- |
-| `<Tab>`           | show the menu, or accept when only one match    | blink |
+| `<Tab>`           | accept if one match, else show and put the selection on the line | blink |
 | `<S-Tab>`         | same, selecting from the bottom                 | blink |
 | `<C-n>` / `<C-p>` | next / previous match                           | blink |
 | `<C-y>`           | accept the selection                            | blink |
 | `<C-e>`           | dismiss the menu                                | blink |
 | `<C-space>`       | force the menu (this is how you get it for `/`) | blink |
-| `<C-d>`           | list all matches without a menu                 | vim   |
+| `<C-d>`           | list all matches — dismiss the menu first       | vim   |
 | `<C-a>`           | insert _every_ match at once                    | vim   |
 | `<C-l>`           | complete to the longest unambiguous prefix      | vim   |
+
+**The menu is fuzzy, not prefix-matched.** `:e src/o` offers both `one.txt` and
+`two.txt`, because `o` appears in `two`. Two things follow. "Accept when only
+one match" is rarer than it sounds, so `<Tab>` usually puts a *selection* on the
+line rather than finishing your word — look before pressing `<CR>`. And an item
+you did not expect is not a bug.
+
+The three vim keys below the line still work, but `<C-d>` needs the blink menu
+out of the way first: it prints its list into the message area, which the menu
+sits on top of. `<C-e>` then `<C-d>`.
 
 Arrow keys move the cursor, not the selection — `<Left>`/`<Right>` are handed
 back deliberately, since with the menu open most of the time you want them for
