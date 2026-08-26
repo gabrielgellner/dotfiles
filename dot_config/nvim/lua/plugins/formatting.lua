@@ -1,5 +1,8 @@
 return {
   "stevearc/conform.nvim",
+  -- :ConformInfo is the command you reach for when formatting misbehaves,
+  -- which is exactly when the plugin may not have loaded yet.
+  cmd = "ConformInfo",
   event = "BufWritePre",
   opts = {
     formatters_by_ft = {

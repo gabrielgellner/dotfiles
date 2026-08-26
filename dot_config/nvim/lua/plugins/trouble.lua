@@ -1,5 +1,10 @@
 return {
   "folke/trouble.nvim",
+  -- `cmd` as well as `keys`: without it lazy registers no stub and
+  -- `:Trouble diagnostics toggle` — the interface the plugin's own README
+  -- documents — answered "Not an editor command" until one of the keys below
+  -- had been pressed at least once.
+  cmd = "Trouble",
   opts = {
     modes = {
       diagnostics = {
