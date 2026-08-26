@@ -266,8 +266,21 @@ local function dispatch(cmdline, opts)
 
   local sess = session()
   if not sess then
-    -- Outside tmux there's no console window to own the output.
-    Snacks.terminal(cmdline, { win = { position = "float" }, interactive = true })
+    -- Outside tmux there's no console window to own the output, so it goes in a
+    -- float instead.
+    --
+    -- `interactive = false`, and it matters. In snacks that flag is a shortcut
+    -- for start_insert, auto_insert *and* auto_close together, all defaulting
+    -- to its value — so asking for an interactive terminal asked for one that
+    -- closes the moment the process exits. A recipe that finishes quickly
+    -- flickered and left nothing behind: `just marker`, echoing a string that
+    -- appears nowhere in the justfile, never put that string on screen at all.
+    -- Only a recipe with a `sleep` in it looked like it worked.
+    --
+    -- Off, the float stays in normal mode with the output in it, scrollable and
+    -- dismissable with q — which is what the tmux path gives you, and the point
+    -- of running a task at all.
+    Snacks.terminal(cmdline, { win = { position = "float" }, interactive = false })
     return
   end
 
