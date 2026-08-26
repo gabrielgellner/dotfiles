@@ -183,6 +183,41 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- ── Notice files edited outside Neovim ───────────────────────────────
+-- 'autoread' is already on — it is a Neovim default, unlike Vim — but it only
+-- acts at the moments Neovim happens to stat the file, which is essentially
+-- never while you sit in a buffer. The missing half is a `:checktime` to
+-- provoke the check; without it a file rewritten underneath you (chezmoi apply,
+-- a formatter, an agent editing the repo) leaves a stale buffer.
+--
+-- The visible symptom is not the text — it is gitsigns. Signs are computed
+-- against the *buffer*, so a stale buffer diffed against a moved HEAD marks
+-- lines as removed that are present on disk.
+--
+-- FocusGained covers alt-tabbing back. CursorHold covers staying put inside
+-- Neovim, which FocusGained never fires for; at updatetime=250 that is a stat
+-- a quarter-second after you stop typing, not a poll.
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI", "TermLeave" }, {
+  group = augroup("checktime"),
+  callback = function()
+    -- E11 in the command-line window, and a checktime is meaningless for a
+    -- buffer with no file behind it (terminals, pickers, the dashboard).
+    if vim.fn.getcmdwintype() ~= "" or vim.bo.buftype ~= "" then
+      return
+    end
+    vim.cmd("checktime")
+  end,
+})
+
+-- Say so when it happens. A buffer changing under the cursor with no message is
+-- worse than a stale one: an undo now crosses a reload boundary.
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+  group = augroup("checktime_notify"),
+  callback = function()
+    vim.notify("Reloaded from disk (changed outside Neovim)", vim.log.levels.INFO)
+  end,
+})
+
 -- ── Auto-resize splits on window resize ──────────────────────────────────────
 vim.api.nvim_create_autocmd("VimResized", {
   group = augroup("resize_splits"),
