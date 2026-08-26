@@ -53,6 +53,22 @@ pdb          the menu offers pdb, pudb, ipdb …    accept with <C-y>
 fori<C-k>    expands straight away, no menu       the trigger is enough
 ```
 
+The trigger route is not just a shortcut. **A snippet is rarely the preselected
+item**, because the language server usually has something to say about the same
+prefix and LSP items sort first. Typing `def` in a python buffer offers this,
+in this order:
+
+```
+def                             Keyword   LSP
+def~                            Snippet   Snippets
+deft~                           Snippet   Snippets
+```
+
+`<C-y>` there accepts the *keyword* and inserts `def`. To get the snippet from
+the menu you have to `<C-n>` past the LSP items first — or type the trigger and
+press `<C-k>`, which never has this problem because it does not consult the
+menu at all.
+
 | Key     | Does                                          |
 | ------- | --------------------------------------------- |
 | `<C-k>` | expand the trigger under the cursor, or jump to the next placeholder |
