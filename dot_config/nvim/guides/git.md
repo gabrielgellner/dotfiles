@@ -84,7 +84,7 @@ gitsigns, in the buffer, no separate UI.
 
 | Key          | Does                                                  |
 | ------------ | ----------------------------------------------------- |
-| `]c` / `[c`  | next / previous hunk; works after an operator (`d]c`) |
+| `]c` / `[c`  | next / previous hunk — normal and visual, not operators |
 | `ih`         | the hunk as a text object — `dih`, `vih`              |
 | `<leader>gp` | preview the hunk in a popup                           |
 | `<leader>gP` | preview it inline instead                             |
@@ -92,6 +92,12 @@ gitsigns, in the buffer, no separate UI.
 | `<leader>gS` | stage the whole buffer                                |
 | `<leader>gr` | reset the hunk — in visual, just the selected lines   |
 | `<leader>gR` | reset the whole buffer                                |
+
+> **Not after an operator.** `v]c` extends a selection to the next hunk, but
+> `d]c` deletes nothing at all, silently. gitsigns moves the cursor from a
+> scheduled callback — immediately after `nav_hunk()` returns the cursor has not
+> moved yet, and only a tick later does it land — so an operator has already
+> resolved against no movement. Use `v]c` then `d`.
 
 `<leader>gs` is also **unstage**: on a hunk that's already staged it takes it
 back out. gitsigns removed the separate undo-stage action, and staged hunks get

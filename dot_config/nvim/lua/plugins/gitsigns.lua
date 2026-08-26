@@ -24,10 +24,18 @@ return {
       end
 
       -- ── Navigation ──────────────────────────────────────────────────────
-      -- n/x/o, so a hunk works as an operator target: d]c, y[c, v]c. The
-      -- `normal!` bang is what keeps the diff-mode branch working now that ]c
-      -- is the treesitter class motion — it ignores mappings and reaches vim's
-      -- native next-change.
+      -- n/x/o. Visual works — `v]c` extends to the next hunk — but operators
+      -- do not: `d]c` deletes nothing, silently. gs.nav_hunk moves the cursor
+      -- from a scheduled callback, so immediately after it returns the cursor
+      -- is still where it was and the operator resolves against no movement.
+      -- Measured: line 1 on return, line 2 a tick later. The o-mode mapping is
+      -- kept anyway so the key is not simply dead there, and because an expr
+      -- mapping computing the target line synchronously would make it work if
+      -- it ever matters enough.
+      --
+      -- The `normal!` bang is what keeps the diff-mode branch working now that
+      -- ]c is the treesitter class motion — it ignores mappings and reaches
+      -- vim's native next-change.
       local MOTION = { "n", "x", "o" }
 
       map("]c", function()
