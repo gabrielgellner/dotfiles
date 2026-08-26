@@ -57,6 +57,49 @@ same range **commit by commit** instead, so you can follow the author's steps.
 | `<leader>gh` | history of the current file                         |
 | `<leader>gH` | history of the repo                                 |
 
+## Working the code, not just reading it
+
+The diff panes are **not real buffers**. Under `<leader>gm` both sides are
+historical content, so the pane is `nofile`, unnamed, unmodifiable, and has no
+LSP client attached. `gd`, `gr`, hover and rename all do nothing there. This is
+not a misconfiguration — there is no file on disk for a server to answer about.
+
+Three things work anyway, and between them they cover most of why you wanted
+`gd`.
+
+**`<leader>fw` — what else touches this.** Grep for the word under the cursor,
+straight from the diff pane. It searches the working tree rather than asking a
+language server, so the pane being virtual doesn't matter. For "what does this
+change impact", the list of every use is usually more informative than the one
+definition `gd` would have given you. `<C-y>` copies a result out — see
+[pickers.md](pickers.md).
+
+**`]c` then `yih` — copy a hunk.** `ih` is a hunk textobject, so `yih` yanks the
+whole change under the cursor. Pair it with `]c` and you can walk the diff
+lifting hunks into a message or a review comment.
+
+**`gf` — leave for the real file.** This is the escape hatch to a buffer where
+every LSP key works normally.
+
+`gf` is **anchored on the line's text**, not its number. codediff's own version
+copies the cursor position across verbatim, which is right only while the file
+on disk still matches the side under review — and wrong silently when it
+doesn't. With five lines added at the top of a file, a `gf` from a line reading
+`TARGET MARKER` landed five lines short on unrelated code, with no warning.
+
+So the mapping here lets codediff navigate, then checks where it landed:
+
+```
+same text          nothing to say, you are on the right line
+text found nearby  cursor corrected, "line moved 51 -> 56 in the working copy"
+text not found     warned: "this line is not in the working copy"
+```
+
+`gF` is codediff's original, kept for when you mean "go to line N" literally.
+Everywhere outside a diff pane, `gf` is still vim's own go-to-file.
+
+The round trip is `gf`, work in the real file, `g<Tab>` back to the review.
+
 ## Getting back to your file
 
 codediff opens its review in a **new tab**, so the file you were editing is

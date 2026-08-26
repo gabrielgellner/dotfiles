@@ -79,4 +79,5 @@ Multi-select drives `<C-q>` (send to quickfix), not the copy keys: `<C-y>` and
 - [completion.md](completion.md) — `<C-y>` also accepts a completion; same
   finger, different window
 - [files.md](files.md) — the file pickers and the oil handoff
-- [git.md](git.md) — the git sources and codediff
+- [git.md](git.md) — the git sources, and `<leader>fw` as the way to chase a
+  symbol out of a codediff review

@@ -65,6 +65,88 @@ local function this_file(rev)
   end
 end
 
+---Does `buf` carry a buffer-local normal-mode mapping for `lhs`?
+---
+---maparg() only ever answers for the current buffer, so it cannot be used to
+---test a buffer we are merely iterating over.
+---@param buf integer
+---@param lhs string
+local function has_map(buf, lhs)
+  for _, km in ipairs(vim.api.nvim_buf_get_keymap(buf, "n")) do
+    if km.lhs == lhs then
+      return true
+    end
+  end
+  return false
+end
+
+---Jump from a diff pane to the same line in the real file, anchored on the
+---line's *text* rather than its number.
+---
+---codediff's own `gf` copies the cursor position verbatim
+---(nvim_win_set_cursor with the diff pane's line), which is correct exactly
+---when the file on disk still matches the side being reviewed. For
+---`<leader>gm` — base...HEAD, on the branch you have checked out — that
+---normally holds, and in inline layout the diff pane's line numbers *are* the
+---new file's, because deletions are virtual lines and take up no numbering.
+---
+---It stops holding the moment the working tree is dirty, and it fails
+---silently. Measured on a 60-line file with three hunks: with five lines
+---added at the top, `gf` from a line reading "TARGET MARKER" landed on
+---"line 045 original" five lines short, with no warning.
+---
+---So: let codediff navigate (it knows how to resolve the path and pick the
+---tab), then check where we landed. If the text does not match, look for it
+---nearby and say so; if it is not in the file at all, say that too rather
+---than leave the cursor somewhere arbitrary.
+local function open_anchored()
+  local want = vim.api.nvim_get_current_line()
+  local from = vim.api.nvim_win_get_cursor(0)[1]
+
+  -- gF is codediff's open_in_prev_tab, moved off gf in opts below.
+  --
+  -- "mx", not "nx". The x executes the keys before this function continues,
+  -- which is what lets the landing be checked below — but n means *noremap*,
+  -- and with it the gF went through as vim's builtin gF rather than
+  -- codediff's mapping, leaving the cursor in the diff pane. m remaps.
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("gF", true, false, true), "mx", false)
+
+  -- Nothing to anchor to. A blank or near-blank line matches everywhere, so
+  -- checking it would produce noise, not safety.
+  if vim.trim(want) == "" then
+    return
+  end
+
+  local landed = vim.api.nvim_get_current_line()
+  if landed == want then
+    return
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local best
+  for i, line in ipairs(lines) do
+    if line == want then
+      -- Nearest to where codediff put us, so a line that legitimately repeats
+      -- resolves to the copy the diff was showing rather than the first one.
+      if not best or math.abs(i - from) < math.abs(best - from) then
+        best = i
+      end
+    end
+  end
+
+  if not best then
+    vim.notify(
+      ("codediff: this line is not in the working copy.\nShowing line %d, which may be unrelated."):format(from),
+      vim.log.levels.WARN
+    )
+    return
+  end
+
+  vim.api.nvim_win_set_cursor(0, { best, 0 })
+  vim.cmd("normal! zz")
+  vim.notify(("codediff: line moved %d -> %d in the working copy"):format(from, best), vim.log.levels.INFO)
+end
+
 return {
   "esmuellert/codediff.nvim",
   cmd = "CodeDiff",
@@ -82,7 +164,36 @@ return {
       initial_focus = "diff",
     },
     history = { position = "bottom" },
+    -- gf is rebound below to open_anchored(), which calls this one and then
+    -- checks the landing. Kept reachable as gF: when the working tree is
+    -- clean the two agree, and gF is the way to say "go to line N" and mean it.
+    keymaps = { view = { open_in_prev_tab = "gF" } },
   },
+  init = function()
+    -- Dispatched at press time rather than bound when a diff opens.
+    --
+    -- The obvious hooks both lose a race. codediff claims its view keymaps
+    -- buffer-locally on the session's panes, but its User CodeDiffOpen event
+    -- fires from the *placeholder* view, before the git read returns — during
+    -- that callback gF is absent from every window in the tabpage and present
+    -- immediately after. BufEnter has the same problem from the other side:
+    -- you enter the pane once, before the mappings exist, and never again.
+    --
+    -- Asking the question when the key is pressed has no ordering to get
+    -- wrong. gF is codediff's open_in_prev_tab (moved off gf in opts above),
+    -- so a buffer-local gF is a reliable marker for "this is a diff pane" —
+    -- better than buftype or filetype, which the explorer and history share.
+    -- Everywhere else this falls through to vim's own gf.
+    vim.keymap.set("n", "gf", function()
+      if has_map(0, "gF") then
+        return open_anchored()
+      end
+      -- normal! so this cannot recurse into the mapping. The count matters:
+      -- vim's gf takes one as a line number to land on.
+      vim.cmd("normal! " .. (vim.v.count > 0 and vim.v.count or "") .. "gf")
+    end, { desc = "Go to file (anchored on line text inside a codediff pane)" })
+  end,
+
   keys = {
     { "<leader>gv", "<cmd>CodeDiff<cr>", desc = "Git: Review working tree" },
     -- The same working-tree review, narrowed to the current file. Unlike the
