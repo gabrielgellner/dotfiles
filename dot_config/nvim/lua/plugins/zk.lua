@@ -57,13 +57,33 @@ local RULES_DIRS = {
 -- Lazily read spell_aliases.toml (legacy slug -> remaster slug) from the repo
 -- root (the parent of the notebook), so a link written with a pre-remaster
 -- spell name still resolves. Cached after first read.
-local spell_aliases
+local spell_aliases, spell_aliases_key
 local function load_spell_aliases(root)
-  if spell_aliases then
+  if not root then
+    return {}
+  end
+  local path = vim.fs.dirname(root) .. "/spell_aliases.toml"
+  -- Keyed on the path *and* the file's mtime, so the table is reparsed when
+  -- either changes. Caching on "have we ever read one" was wrong twice over.
+  --
+  -- The file is generated (`pf2e-prep index spell-aliases`), so it moves under
+  -- a running session: adding an alias and following a link that needs it kept
+  -- reporting "No rules file for spell://…" until Neovim was restarted, while a
+  -- fresh session resolved the same link from the same bytes.
+  --
+  -- And `root` was accepted, used once, then ignored for the rest of the
+  -- session — a second notebook would have been handed the first one's aliases.
+  -- The header asks for one notebook per session, but nothing enforced it.
+  --
+  -- config/rules_lookup.lua reads this same file and already stamps it this
+  -- way; the two loaders had simply drifted apart.
+  local st = vim.uv.fs_stat(path)
+  local key = path .. "\0" .. (st and (st.mtime.sec .. "." .. st.mtime.nsec) or "-")
+  if spell_aliases and spell_aliases_key == key then
     return spell_aliases
   end
-  spell_aliases = {}
-  local f = root and io.open(vim.fs.dirname(root) .. "/spell_aliases.toml", "r")
+  spell_aliases, spell_aliases_key = {}, key
+  local f = io.open(path, "r")
   if f then
     for l in f:lines() do
       local legacy, remaster = l:match('^%s*"([^"]+)"%s*=%s*"([^"]+)"')
