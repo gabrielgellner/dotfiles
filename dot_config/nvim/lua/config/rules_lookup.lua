@@ -26,11 +26,22 @@ local M = {}
 -- and putting it after them keeps those resolving where they always did.
 -- hazards and player-core collide with nothing.
 --
+-- abilities goes last for the same reason, and was missing entirely until the
+-- audit went looking: 55 files, and their names are exactly what this module
+-- exists to catch — "aquatic ambush" appears as bare prose in four creature
+-- stat blocks, "All-Around Vision" inside Belcorra's Effect line. Six of the 55
+-- slugs already live in an earlier directory (change-shape, reactive-strike and
+-- retributive-strike in actions; darkvision, telepathy and tremorsense in
+-- spells), so trailing placement leaves every one of those resolving where it
+-- did and reaches the other 49.
+--
 -- Not everything under campaign/rules/ is here. feats (5408) and items (5466)
 -- dwarf the rest, and pulling them in would quadruple the corpus this globs and
 -- bury the picker in feats. The cost is that they cannot be reached at all —
--- including a few item files with accents in their names.
-local LOOKUP_ORDER = { "spells", "conditions", "actions", "creatures", "hazards", "gm-core", "player-core" }
+-- including a few item files with accents in their names. skills/ is empty, so
+-- listing it would buy nothing.
+local LOOKUP_ORDER =
+  { "spells", "conditions", "actions", "creatures", "hazards", "gm-core", "player-core", "abilities" }
 local MAX_WORDS = 4
 
 ---Repo root = the directory holding spell_aliases.toml, found upward from buf.
