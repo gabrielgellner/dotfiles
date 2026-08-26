@@ -191,17 +191,22 @@ return {
   /\_/\    /\_/\
   ( o.o )--( o.o )
   > ^ <    > ^ <]],
-        -- Snacks' own default list, minus its `Restore Session` entry. That one
-        -- carried `section = "session"`, which scans for a session manager and
-        -- accepts mini.nvim as one — the monorepo is installed here for
-        -- mini.bracketed and friends, so it matched. But mini.sessions is never
-        -- set up, so pressing `s` only ever produced "(mini.sessions) There are
-        -- no detected sessions". Naming the keys here replaces the list
-        -- wholesale; there is no merge, so the other seven are repeated.
+        -- Snacks' own default list, less two entries.
+        --
+        -- `Restore Session` carried `section = "session"` instead of an action,
+        -- which scans for a session manager and accepts mini.nvim as one — the
+        -- monorepo is installed here for mini.bracketed and friends, so it
+        -- matched. mini.sessions is never set up, so pressing `s` only ever
+        -- produced "(mini.sessions) There are no detected sessions".
+        --
+        -- `Find Text` is dropped as redundant: <leader>fg reaches the same
+        -- picker from anywhere, dashboard included.
+        --
+        -- Naming the keys here replaces the list wholesale; there is no merge,
+        -- so the remaining six are repeated verbatim, icons included.
         keys = {
           { icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
           { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
-          { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
           { icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
           {
             icon = " ",
