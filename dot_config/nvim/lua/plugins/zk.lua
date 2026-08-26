@@ -283,7 +283,13 @@ return {
   -- up and their links resolve. Runs from startup (not lazy) since it only
   -- shells out to `zk`, and is a no-op outside a notebook.
   init = function()
-    vim.api.nvim_create_autocmd("BufReadPost", {
+    -- BufNewFile as well as BufReadPost. A note that does not exist yet fires
+    -- only the former, so `ZkNew` and `:e some-new-note.md` used to leave `gd`
+    -- on the global LSP mapping for the life of that buffer — and it is exactly
+    -- the note you are writing that accumulates the [[link#heading]]s this
+    -- override exists to follow. Verified: an existing note reported gd as
+    -- buffer-local, a brand-new one reported "LSP definitions".
+    vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
       -- Grouped so a reload replaces this rather than adding another copy.
       group = vim.api.nvim_create_augroup("zk_notebook", { clear = true }),
       pattern = "*.md",
