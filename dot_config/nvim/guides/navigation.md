@@ -141,6 +141,18 @@ The spider one is the easiest to trip over, because it applies **after an
 operator too**: `dw` on `getUserName` deletes only `get`. `dW` is the vanilla
 behaviour, and `daw` still takes the whole word.
 
+There is a second edge to it, and this one is silent: on the **last word of a
+line**, `dw` and `de` do nothing at all. Spider's motion has nowhere to go, so
+the operator gets an empty range and no error. Nothing to do with subwords —
+`alpha beta` with the cursor on `beta` behaves the same way.
+
+```
+alpha beta   dw    ->  "alpha beta"   no-op, no message
+alpha beta   dW    ->  "alpha "       the space stays
+alpha beta   D     ->  "alpha "       same
+alpha beta   daw   ->  "alpha"        aw eats the space too
+```
+
 Two that are _not_ taken, despite looking like they should be: `r` still
 replaces a character and `R` still enters Replace mode — flash only claims those
 in operator-pending and visual, where they weren't vim commands to begin with.
