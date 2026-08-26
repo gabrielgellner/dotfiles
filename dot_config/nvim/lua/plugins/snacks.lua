@@ -30,6 +30,47 @@ return {
   opts = {
     -- ── picker (telescope replacement) ──────────────────────────────────────
     picker = {
+      -- ── Copy an item out of any picker ────────────────────────────────────
+      -- snacks ships a generic `yank` action but binds it nowhere: only the
+      -- explorer, the gh sources and the git diff picker get a copy key, so in
+      -- <leader>fd, <leader>ff and most others there was no way to get text out
+      -- of a picker short of retyping it.
+      --
+      -- `reg = "+"` rather than the action's default of vim.v.register. With
+      -- clipboard=unnamedplus a plain yank already reaches the system
+      -- clipboard, but setreg() on the unnamed register does not, and copying
+      -- from a picker is nearly always on the way out of Neovim entirely.
+      --
+      -- The action does not close the picker, so several items can be taken in
+      -- a row. It yanks `item.text` — the one-line list entry — which is what
+      -- most sources put there; a source with something better to offer
+      -- overrides the key, as `notifications` does below with the full message.
+      actions = {
+        yank_clip = function(picker, item)
+          if not item then
+            return
+          end
+          -- Not item.text. For several sources that field is the *search
+          -- haystack*, not the display line: buffers builds it from
+          -- buf/name/filetype/buftype, so yanking it gave `1 /long/path lua`,
+          -- and diagnostics concatenates severity, code, file and source
+          -- around the message. list:format() is what the list actually
+          -- renders, so what lands in the clipboard is what was on screen.
+          local ok, text = pcall(function()
+            return (picker.list:format(item))
+          end)
+          local value = vim.trim((ok and type(text) == "string" and text ~= "") and text or (item.data or item.text))
+          vim.fn.setreg("+", value)
+          Snacks.notify(("Yanked to `+`:\n```\n%s\n```"):format(value), { title = "Snacks Picker" })
+        end,
+      },
+      win = {
+        -- <C-y> in both windows so it works whether or not you have left the
+        -- prompt; `y` only in the list, where normal mode is real and the
+        -- operator has nothing to act on anyway.
+        input = { keys = { ["<c-y>"] = { "yank_clip", mode = { "i", "n" } } } },
+        list = { keys = { ["<c-y>"] = "yank_clip", ["y"] = "yank_clip" } },
+      },
       sources = {
         -- Notification history. Everything about this source lives here rather
         -- than at the keymap so the layout and the extra actions travel
