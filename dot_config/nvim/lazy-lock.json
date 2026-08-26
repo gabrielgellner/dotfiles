@@ -16,6 +16,7 @@
   "live-server.nvim": { "branch": "main", "commit": "f98bae79fd30274524412f7514549d84391d6bb2" },
   "markdown-preview.nvim": { "branch": "main", "commit": "faf50b5e233df953a1fd6946d0a8d758bf2e38a1" },
   "mini.nvim": { "branch": "main", "commit": "e58ad4b0c9e9376096b9704f98fc00d4c9448870" },
+  "multicursor.nvim": { "branch": "1.0", "commit": "704b99f10a72cc05d370cfeb294ff83412a8ab55" },
   "neogen": { "branch": "main", "commit": "23e7e9f883d01289ebd90e98025acc860ea26366" },
   "noice.nvim": { "branch": "main", "commit": "7bfd942445fb63089b59f97ca487d605e715f155" },
   "nui.nvim": { "branch": "main", "commit": "10fc361835c856ba4233ef5ea135b919bf3dce97" },

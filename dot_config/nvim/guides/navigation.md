@@ -124,6 +124,67 @@ naming when you already know: `daf` beats four `<M-o>` presses.
 These live on Alt because Neovim puts them on `an`/`in`, which mini.ai owns. See
 [Keymap conventions](keymaps.md) for why moving them was the right call.
 
+## Many cursors, Helix style
+
+`multicursor.nvim`, on `<leader>v`. This is a different idea from the two above,
+and worth trying on its own terms rather than as "vim with more cursors".
+
+The Helix loop is: **select a region, split it into many cursors, act on all of
+them, collapse.** The split is the part vim has no equivalent for — you are not
+placing cursors one at a time, you are cutting one selection into pieces by a
+pattern and getting a cursor per piece.
+
+| Key                       | Does                                        |
+| ------------------------- | ------------------------------------------- |
+| `<leader>vs` _(visual)_   | split the selection by a regex              |
+| `<leader>vr` _(visual)_   | put a cursor on each regex match inside it  |
+| `<leader>vl` _(visual)_   | one cursor per line of the selection        |
+| `<leader>vI` `<leader>vA` | insert / append at every line's start / end |
+| `<leader>vv`              | a cursor at every match of the word in file |
+| `<leader>vn` `<leader>vN` | add a cursor at the next / previous match   |
+| `<leader>va`              | align the cursor columns                    |
+| `<leader>vu`              | restore the cursor set you just collapsed   |
+
+While more than one cursor exists, four more keys apply — and only then, so they
+mean their usual thing the rest of the time:
+
+| Key          | Does                       |
+| ------------ | -------------------------- |
+| `<Esc>`      | collapse back to one       |
+| `<Tab>`      | make the next cursor main  |
+| `<S-Tab>`    | the previous one           |
+| `<leader>vx` | drop the cursor you are on |
+
+### The one to try first
+
+```
+alpha, beta, gamma      V  <leader>vs  , <CR>     three cursors, one per piece
+                        gU$                       ALPHA, BETA, GAMMA
+```
+
+And the one that pays off daily — renaming a local where LSP rename does not
+reach:
+
+```
+foo bar foo baz foo     <leader>vv  ciwQUX<Esc>   QUX bar QUX baz QUX
+```
+
+### Why not `s` and `S`, and why not `<leader>m`
+
+Helix puts select-in-selection on `s` and split on `S`. Both are flash here (see
+[what the plugins took](#what-the-plugins-took)), and flash is the better trade
+for a vim-shaped config — it is used constantly, these a few times a day.
+
+`<leader>m` would have read better for "multi", but `m` is markdown's, and
+markdown's mappings are **buffer-local**: `<leader>mr` and `<leader>mx` would
+have meant render-toggle and checkbox-toggle inside a markdown buffer and
+multicursor everywhere else, with nothing to say which you were getting. `v` is
+where vim already keeps selecting, and *selection* is Helix's own word for these.
+
+`<leader>vn`/`vN` break the house rule that a capital means a wider scope: here
+it means the other direction, following `n`/`N`. That is the vim convention for
+search, which is what these are.
+
 ## What the plugins took
 
 Several single keys mean something other than stock vim here. Each is a
