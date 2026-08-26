@@ -132,5 +132,40 @@ return {
     lazy = true,
     version = "v2.*",
     build = "make install_jsregexp",
+    -- friendly-snippets is the collection; LuaSnip is only the engine. Without
+    -- it `snippets` sat in blink's source list returning nothing at all — zero
+    -- available for lua and for python — because nothing ever loaded any.
+    dependencies = { "rafamadriz/friendly-snippets" },
+    config = function()
+      local ls = require("luasnip")
+      -- The snippets ship in VSCode's json format, which is what this loader
+      -- reads. Called here rather than at startup: LuaSnip is lazy and pulled
+      -- in by blink, so this runs the first time completion is needed.
+      require("luasnip.loaders.from_vscode").lazy_load()
+
+      -- <C-k>/<C-j> drive a snippet directly, LuaSnip's own convention.
+      -- <Tab>/<S-Tab> above do the jumping too, through blink; the difference
+      -- is that expand_or_jump also *expands* a trigger word that was typed
+      -- without going through the completion menu — `fori<C-k>` in a lua
+      -- buffer, no popup involved.
+      --
+      -- <C-k> is vim's digraph key in insert mode — <C-k>a: for an a-umlaut.
+      -- Rather than lose it, the mapping hands it back when there is no
+      -- snippet to expand or jump in, which is almost always. `n` on feedkeys
+      -- so the fed key is not remapped straight back into this function.
+      vim.keymap.set({ "i", "s" }, "<C-k>", function()
+        if ls.expand_or_jumpable() then
+          ls.expand_or_jump()
+        else
+          vim.api.nvim_feedkeys(vim.keycode("<C-k>"), "n", false)
+        end
+      end, { silent = true, desc = "Expand snippet or jump forward" })
+
+      vim.keymap.set({ "i", "s" }, "<C-j>", function()
+        if ls.jumpable(-1) then
+          ls.jump(-1)
+        end
+      end, { silent = true, desc = "Jump to the previous placeholder" })
+    end,
   },
 }
