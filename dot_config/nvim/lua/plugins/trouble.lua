@@ -25,7 +25,14 @@ return {
     { "<leader>xq", "<cmd>Trouble qflist toggle<CR>", desc = "Quickfix list" },
     { "<leader>xl", "<cmd>Trouble loclist toggle<CR>", desc = "Location list" },
     { "<leader>xt", "<cmd>Trouble todo toggle<CR>", desc = "Todo comments (trouble)" },
-    -- these override ]d/[d to use trouble's jump when trouble is open
+    -- these override ]d/[d to use trouble's jump when trouble is open.
+    --
+    -- n and x only. `o` was in this list and did nothing: both branches move
+    -- the cursor by calling a function rather than returning a motion, so an
+    -- operator resolves against no movement and `d]d` deletes nothing at all,
+    -- silently. `v]d` does extend the selection — measured, lines 1-4 with the
+    -- diagnostic on 4 — so visual is real and worth keeping. Same shape as the
+    -- gitsigns hunk motions; see the note in plugins/gitsigns.lua.
     {
       "]d",
       function()
@@ -36,7 +43,7 @@ return {
         end
       end,
       desc = "Next diagnostic",
-      mode = { "n", "x", "o" },
+      mode = { "n", "x" },
     },
     {
       "[d",
@@ -48,7 +55,7 @@ return {
         end
       end,
       desc = "Prev diagnostic",
-      mode = { "n", "x", "o" },
+      mode = { "n", "x" },
     },
   },
 }
