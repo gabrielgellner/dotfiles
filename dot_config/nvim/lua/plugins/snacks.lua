@@ -276,7 +276,17 @@ return {
     -- Disabled: animated scroll fights this VM's redraw lag; prefer vim's
     -- instant jump.
     scroll = { enabled = false },
-    -- ── LSP progress indicator ───────────────────────────────────────────────
+    -- ── status column ────────────────────────────────────────────────────────
+    -- snacks' own "pretty status column": number, fold column and signs drawn
+    -- in one expression, which is what makes a fold marker and a gitsigns hunk
+    -- share a cell instead of each claiming their own. It really is applied —
+    -- 'statuscolumn' reads
+    -- %!v:lua.require'snacks.statuscolumn'.get() in a normal buffer.
+    --
+    -- (This said "LSP progress indicator", which is a different thing
+    -- entirely and not a snacks module at all — the notifier surfaces LSP
+    -- progress here. The picker config above already described statuscolumn
+    -- correctly, which is how the mislabel survived.)
     statuscolumn = { enabled = true },
   },
   keys = {
