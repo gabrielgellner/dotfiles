@@ -170,4 +170,7 @@ types a question mark.
 ## See also
 
 - [Command line](cmdline.md) — the zsh/vim command line itself
+- [Completion](completion.md) — the *editor* side: blink.cmp, snippets. This
+  page is the shell's, where `Tab` is fzf-tab; the two share a word and nothing
+  else.
 - [Navigation](navigation.md)

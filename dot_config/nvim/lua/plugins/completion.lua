@@ -149,15 +149,15 @@ return {
       -- without going through the completion menu — `fori<C-k>` in a lua
       -- buffer, no popup involved.
       --
-      -- <C-k> is vim's digraph key in insert mode — <C-k>a: for an a-umlaut.
-      -- Rather than lose it, the mapping hands it back when there is no
-      -- snippet to expand or jump in, which is almost always. `n` on feedkeys
-      -- so the fed key is not remapped straight back into this function.
+      -- Both are inert outside a snippet, deliberately. Each has a stock
+      -- insert-mode meaning worth suppressing rather than falling back to:
+      -- <C-k> starts a digraph (<C-k>a: for ä) and <C-j> inserts a line
+      -- break. Neither is wanted here, and a mistimed press of either — after
+      -- the snippet has ended, say — would otherwise put something in the
+      -- buffer that is tedious to notice and undo.
       vim.keymap.set({ "i", "s" }, "<C-k>", function()
         if ls.expand_or_jumpable() then
           ls.expand_or_jump()
-        else
-          vim.api.nvim_feedkeys(vim.keycode("<C-k>"), "n", false)
         end
       end, { silent = true, desc = "Expand snippet or jump forward" })
 
@@ -166,6 +166,8 @@ return {
           ls.jump(-1)
         end
       end, { silent = true, desc = "Jump to the previous placeholder" })
+      -- Nothing else in this config binds either key, so suppressing them here
+      -- is the whole story: outside a snippet they do nothing at all.
     end,
   },
 }

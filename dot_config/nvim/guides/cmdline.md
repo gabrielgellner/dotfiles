@@ -116,3 +116,9 @@ line, ready for `:argdo`.
 ---
 
 The rules behind these bindings: [Keymap conventions](keymaps.md).
+
+## See also
+
+- [Completion](completion.md) — the menu that appears while you type here, and
+  everywhere else
+- [Shell history](shell-history.md) — the same job on the zsh side
