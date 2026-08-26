@@ -26,6 +26,10 @@ return {
     { "<leader>vl", mode = { "x" }, desc = "One cursor per line" },
     { "<leader>vI", mode = { "x" }, desc = "Insert at start of each line" },
     { "<leader>vA", mode = { "x" }, desc = "Append at end of each line" },
+    { "<leader>vj", mode = { "n", "x" }, desc = "Add cursor on the line below" },
+    { "<leader>vk", mode = { "n", "x" }, desc = "Add cursor on the line above" },
+    { "<leader>vt", mode = { "n", "x" }, desc = "Rotate cursor contents forward" },
+    { "<leader>vT", mode = { "n", "x" }, desc = "Rotate cursor contents back" },
     { "<leader>vv", mode = { "n", "x" }, desc = "Cursor at every match in file" },
     { "<leader>vn", mode = { "n", "x" }, desc = "Add cursor at next match" },
     { "<leader>vN", mode = { "n", "x" }, desc = "Add cursor at prev match" },
@@ -64,6 +68,26 @@ return {
       mc.matchAddCursor(-1)
     end, "Add cursor at prev match")
 
+    -- ── The column, and rotating between cursors ──────────────────────────
+    -- Helix's C and alt-C: the plainest multi-cursor there is, and the one
+    -- reached for most. j/k because that is down and up everywhere else here.
+    map("<leader>vj", { "n", "x" }, function()
+      mc.lineAddCursor(1)
+    end, "Add cursor on the line below")
+    map("<leader>vk", { "n", "x" }, function()
+      mc.lineAddCursor(-1)
+    end, "Add cursor on the line above")
+
+    -- Helix's alt-( and alt-): rotate the *contents* between cursors, leaving
+    -- the cursors where they are. Nothing in vim does this — swapping two
+    -- function arguments is otherwise a yank, two deletes and two pastes.
+    map("<leader>vt", { "n", "x" }, function()
+      mc.transposeCursors(1)
+    end, "Rotate cursor contents forward")
+    map("<leader>vT", { "n", "x" }, function()
+      mc.transposeCursors(-1)
+    end, "Rotate cursor contents back")
+
     -- ── Housekeeping ──────────────────────────────────────────────────────
     map("<leader>va", { "n", "x" }, mc.alignCursors, "Align cursor columns")
     map("<leader>vu", { "n", "x" }, mc.restoreCursors, "Restore the last cursor set")
@@ -76,6 +100,12 @@ return {
       layer({ "n", "x" }, "<Tab>", mc.nextCursor, { desc = "Next cursor" })
       layer({ "n", "x" }, "<S-Tab>", mc.prevCursor, { desc = "Prev cursor" })
       layer({ "n", "x" }, "<leader>vx", mc.deleteCursor, { desc = "Delete this cursor" })
+      -- Helix's ctrl-a/ctrl-x, except each cursor gets a larger step than the
+      -- one before it, so a column of identical numbers becomes a sequence.
+      -- In the layer so that both keep vim's plain increment the rest of the
+      -- time — which is the same key doing the same thing, just once.
+      layer({ "n", "x" }, "<C-a>", mc.sequenceIncrement, { desc = "Increment as a sequence" })
+      layer({ "n", "x" }, "<C-x>", mc.sequenceDecrement, { desc = "Decrement as a sequence" })
       layer("n", "<Esc>", function()
         if not mc.cursorsEnabled() then
           mc.enableCursors()

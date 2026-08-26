@@ -140,34 +140,72 @@ pattern and getting a cursor per piece.
 | `<leader>vr` _(visual)_   | put a cursor on each regex match inside it  |
 | `<leader>vl` _(visual)_   | one cursor per line of the selection        |
 | `<leader>vI` `<leader>vA` | insert / append at every line's start / end |
+| `<leader>vj` `<leader>vk` | add a cursor on the line below / above      |
 | `<leader>vv`              | a cursor at every match of the word in file |
 | `<leader>vn` `<leader>vN` | add a cursor at the next / previous match   |
+| `<leader>vt` `<leader>vT` | rotate the contents between cursors         |
 | `<leader>va`              | align the cursor columns                    |
 | `<leader>vu`              | restore the cursor set you just collapsed   |
 
-While more than one cursor exists, four more keys apply — and only then, so they
+While more than one cursor exists, six more keys apply — and only then, so they
 mean their usual thing the rest of the time:
 
-| Key          | Does                       |
-| ------------ | -------------------------- |
-| `<Esc>`      | collapse back to one       |
-| `<Tab>`      | make the next cursor main  |
-| `<S-Tab>`    | the previous one           |
-| `<leader>vx` | drop the cursor you are on |
+| Key            | Does                                          |
+| -------------- | --------------------------------------------- |
+| `<Esc>`        | collapse back to one                          |
+| `<Tab>`        | make the next cursor main                     |
+| `<S-Tab>`      | the previous one                              |
+| `<leader>vx`   | drop the cursor you are on                    |
+| `<C-a>` `<C-x>` | increment / decrement, **as a sequence**     |
 
-### The one to try first
+### Worked examples
 
-```
-alpha, beta, gamma      V  <leader>vs  , <CR>     three cursors, one per piece
-                        gU$                       ALPHA, BETA, GAMMA
-```
-
-And the one that pays off daily — renaming a local where LSP rename does not
-reach:
+Renaming a local where LSP rename does not reach:
 
 ```
-foo bar foo baz foo     <leader>vv  ciwQUX<Esc>   QUX bar QUX baz QUX
+foo bar foo baz foo     <leader>vv  ciwQUX<Esc>   ->  QUX bar QUX baz QUX
 ```
+
+Numbering a list. `<C-a>` gives each cursor a larger step than the one before,
+so identical numbers come out as a sequence:
+
+```
+item 0                  Vjj  <leader>vl  f0  <C-a>       item 1
+item 0                                                   item 2
+item 0                                                   item 3
+```
+
+Swapping two arguments — the one that has no vim equivalent worth typing:
+
+```
+f(first, second)        vi(  <leader>vs  , <CR>  <leader>vt
+                        ->  f(second, first)
+```
+
+A suffix on every line of a block:
+
+```
+alpha                   <leader>vj  <leader>vj  A!<Esc>   alpha!
+beta                                                      beta!
+gamma                                                     gamma!
+```
+
+### Coming from Helix
+
+| Helix           | Here                      |
+| --------------- | ------------------------- |
+| `s`             | `<leader>vr`              |
+| `S`             | `<leader>vs`              |
+| `Alt-s`         | `<leader>vl`              |
+| `C` / `Alt-C`   | `<leader>vj` `<leader>vk` |
+| `&`             | `<leader>va`              |
+| `Alt-)` `Alt-(` | `<leader>vt` `<leader>vT` |
+| `)` `(`         | `<Tab>` `<S-Tab>`         |
+| `,`             | `<Esc>`                   |
+| `Alt-,`         | `<leader>vx`              |
+| `Ctrl-a`        | `<C-a>`, same key         |
+| `%`             | `ggVG`, vim's own         |
+| `_`             | no equivalent             |
 
 ### Why not `s` and `S`, and why not `<leader>m`
 
