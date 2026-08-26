@@ -15,6 +15,8 @@
 
 local M = {}
 
+local text = require("config.text")
+
 local QUERY = [[
   (atx_heading) @heading
   (setext_heading) @heading
@@ -61,11 +63,15 @@ function M.headings(buf)
       -- block_quote node, so this drops it for free. Title is the first line;
       -- strip the atx markers (leading, and the optional closing run).
       local raw = vim.treesitter.get_node_text(node, buf) or ""
-      local text = (raw:match("^[^\n]*") or ""):gsub("^%s*#+%s*", ""):gsub("%s*#+%s*$", ""):gsub("%s+$", "")
-      if text ~= "" then
+      local title = (raw:match("^[^\n]*") or ""):gsub("^%s*#+%s*", ""):gsub("%s*#+%s*$", ""):gsub("%s+$", "")
+      if title ~= "" then
         items[#items + 1] = {
-          text = text,
-          name = text,
+          -- `text` is the haystack, `name` what the formatter prints. They
+          -- differ only for an accented heading, where the folded copy rides
+          -- along so "deja" reaches "Déjà Vu" — snacks' matcher folds nothing
+          -- itself, and four headings in the campaign corpus need it.
+          text = text.haystack(title),
+          name = title,
           level = heading_level(node),
           buf = buf,
           pos = { srow + 1, scol },
@@ -83,13 +89,13 @@ function M.headings(buf)
 end
 
 ---Format one item: indent by level, then a dimmed `##` marker, then the title.
----Only `item.text` is matched against, so the indent never affects filtering.
+---Prints `item.name`; `item.text` is the haystack and may carry a folded copy.
 local function format(item)
   local level = item.level or 1
   return {
     { string.rep("  ", level - 1), "SnacksPickerDir" },
     { string.rep("#", level) .. " ", "@markup.heading." .. level .. ".markdown" },
-    { item.text, "SnacksPickerLabel" },
+    { item.name, "SnacksPickerLabel" },
   }
 end
 

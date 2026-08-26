@@ -17,6 +17,8 @@
 
 local M = {}
 
+local text = require("config.text")
+
 -- Searched in order, and the order is precedence: resolve() returns the first
 -- hit, so a slug living in two directories resolves to the earlier one. Spells
 -- lead because that is the common case in stat blocks.
@@ -112,52 +114,6 @@ end
 function M.slugify(s)
   local lowered = vim.fn.tolower(s)
   return (lowered:gsub("['\u{2019}]", ""):gsub("[^%w\128-\255]+", "-"):gsub("^%-+", ""):gsub("%-+$", ""))
-end
-
----Accent-folded copy, for matching only: "Déjà Vu" -> "Deja Vu". Snacks' matcher
----does ignorecase but no folding, so without this the picker cannot be reached
----by typing "deja" — and typing the accent is the whole difficulty.
----
----Both cases are listed because Lua has no UTF-8-aware upper/lower: s:lower()
----works a byte at a time and leaves "É" alone, so one half cannot be derived
----from the other. Callers can pass text straight from a heading
----(goto_rule_visual), so the uppercase half is not hypothetical.
----
----Only the characters this corpus plausibly contains are mapped; the pattern
----matches whole UTF-8 sequences, so an unmapped one passes through untouched.
--- A grid reads as a character table; one pair per line does not.
--- stylua: ignore
-local FOLD = {
-  ["à"] = "a", ["á"] = "a", ["â"] = "a", ["ä"] = "a", ["ã"] = "a", ["å"] = "a",
-  ["è"] = "e", ["é"] = "e", ["ê"] = "e", ["ë"] = "e",
-  ["ì"] = "i", ["í"] = "i", ["î"] = "i", ["ï"] = "i",
-  ["ò"] = "o", ["ó"] = "o", ["ô"] = "o", ["ö"] = "o", ["õ"] = "o",
-  ["ù"] = "u", ["ú"] = "u", ["û"] = "u", ["ü"] = "u",
-  ["ñ"] = "n", ["ç"] = "c", ["ý"] = "y",
-  ["À"] = "A", ["Á"] = "A", ["Â"] = "A", ["Ä"] = "A", ["Ã"] = "A", ["Å"] = "A",
-  ["È"] = "E", ["É"] = "E", ["Ê"] = "E", ["Ë"] = "E",
-  ["Ì"] = "I", ["Í"] = "I", ["Î"] = "I", ["Ï"] = "I",
-  ["Ò"] = "O", ["Ó"] = "O", ["Ô"] = "O", ["Ö"] = "O", ["Õ"] = "O",
-  ["Ù"] = "U", ["Ú"] = "U", ["Û"] = "U", ["Ü"] = "U",
-  ["Ñ"] = "N", ["Ç"] = "C", ["Ý"] = "Y",
-}
----@param s string
----@return string
-function M.fold(s)
-  local folded = s:gsub("[\194-\244][\128-\191]*", function(c)
-    return FOLD[c] or c
-  end)
-  return folded
-end
-
----Picker items carry `label` (shown) and `text` (matched). They differ only for
----accented names, where the folded copy rides along in the haystack so both
----"déjà" and "deja" find the entry. Everywhere else they are the same string.
----@param label string
----@return string
-local function haystack(label)
-  local folded = M.fold(label)
-  return folded ~= label and (label .. " " .. folded) or label
 end
 
 ---Resolve a display name to a rules file path, applying the spell alias map.
@@ -267,7 +223,8 @@ local function corpus(root)
     for _, path in ipairs(vim.fn.globpath(base, "*.md", false, true)) do
       local slug = vim.fn.fnamemodify(path, ":t:r")
       local label = titleize(slug)
-      items[#items + 1] = { text = haystack(label), label = label, file = path, kind = dir:gsub("s$", ""), slug = slug }
+      items[#items + 1] =
+        { text = text.haystack(label), label = label, file = path, kind = dir:gsub("s$", ""), slug = slug }
     end
   end
   -- Legacy names as their own entries, so searching "Dimension Door" finds the
@@ -276,7 +233,7 @@ local function corpus(root)
     local path = ("%s/campaign/rules/spells/%s.md"):format(root, remaster)
     if vim.fn.filereadable(path) == 1 then
       items[#items + 1] = {
-        text = haystack(titleize(legacy)),
+        text = text.haystack(titleize(legacy)),
         label = titleize(legacy),
         file = path,
         kind = "spell (legacy)",
@@ -309,7 +266,7 @@ function M.pick()
     if path and not seen[path] then
       seen[path] = true
       under[#under + 1] =
-        { text = haystack(name), label = name, file = path, kind = kind:gsub("s$", ""), cursor = true }
+        { text = text.haystack(name), label = name, file = path, kind = kind:gsub("s$", ""), cursor = true }
     end
   end
 
