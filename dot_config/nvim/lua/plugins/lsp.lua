@@ -2,12 +2,28 @@ return {
   "neovim/nvim-lspconfig", -- still needed for server definitions/defaults
   event = { "BufReadPre", "BufNewFile" },
   config = function()
-    -- ── Capabilities (with nvim-cmp) ──────────────────────────────────────
-    local capabilities = vim.lsp.protocol.make_client_capabilities()
-    local ok, cmp_lsp = pcall(require, "cmp_nvim_lsp")
-    if ok then
-      capabilities = cmp_lsp.default_capabilities(capabilities)
-    end
+    -- ── Capabilities ──────────────────────────────────────────────────────
+    -- This asked cmp_nvim_lsp, which is not installed and will not be: the
+    -- completion engine here is blink.cmp. The pcall meant the dead branch was
+    -- silent, so every server was started with plain
+    -- make_client_capabilities().
+    --
+    -- Mostly that cost nothing, because Neovim's own defaults have caught up —
+    -- snippetSupport, insertReplaceSupport, contextSupport and itemDefaults are
+    -- all advertised without help. The measurable gap was resolveSupport:
+    -- clients offered { additionalTextEdits, command, documentation } where
+    -- blink asks for `detail` and `data` as well, which is what lets a server
+    -- defer a completion item's type signature to the resolve request instead
+    -- of sending it with every candidate.
+    --
+    -- blink is lazy = false and already loaded by the time lspconfig configures
+    -- (this loads on BufReadPre), so requiring it here forces nothing early.
+    -- (nil, true), not (capabilities). The first argument *overrides* blink's
+    -- table and is applied last, so handing it Neovim's defaults puts the
+    -- three-property resolveSupport back on top of blink's five and undoes the
+    -- whole point. `true` asks blink to start from those defaults itself.
+    local ok, blink = pcall(require, "blink.cmp")
+    local capabilities = ok and blink.get_lsp_capabilities(nil, true) or vim.lsp.protocol.make_client_capabilities()
 
     -- ── Diagnostics ───────────────────────────────────────────────────────
     vim.diagnostic.config({
