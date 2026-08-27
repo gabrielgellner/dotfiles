@@ -102,6 +102,23 @@ preview() {
 #
 # Only this group is reordered. The project list below stays alphabetical: it is
 # long and browsed by name, and churn there would cost more than it gave.
+# Sessions that are not projects and never worth switching *to* from here.
+#
+# cmus lives in its own session so prefix + m can reach it from anywhere
+# (dot_tmux.conf); it is a player you toggle over the top of your work, not a
+# place you go. Listing it here put it among the projects and gave it a
+# switch-to entry it has no use for — and, worse, a ctrl-x that would kill the
+# music.
+UTILITY_SESSIONS="cmus"
+
+is_utility() {
+  local n
+  for n in $UTILITY_SESSIONS; do
+    [[ "$1" == "$n" ]] && return 0
+  done
+  return 1
+}
+
 active_sessions() {
   local current="" names n
   [[ -n "$TMUX" ]] && current=$(tmux display-message -p '#{session_name}' 2>/dev/null)
@@ -111,11 +128,12 @@ active_sessions() {
   [[ -z "$names" ]] && return
 
   while IFS= read -r n; do
+    is_utility "$n" && continue
     [[ -n "$n" && "$n" != "$current" ]] && printf '%s\n' "$n"
   done <<<"$names"
 
   # Re-add the current session last, but only if it really was in the list.
-  if [[ -n "$current" ]]; then
+  if [[ -n "$current" ]] && ! is_utility "$current"; then
     while IFS= read -r n; do
       if [[ "$n" == "$current" ]]; then
         printf '%s\n' "$n"
@@ -187,12 +205,24 @@ fi
 
 SELF="$0"
 
+# The preview starts hidden, on ctrl-p.
+#
+# For an active session it is a capture-pane of a full-screen nvim, which tells
+# you nothing you did not already know; for an inactive project it is genuinely
+# useful (files, git log, README), so it is a keystroke away rather than gone.
+# Either way 70% of the width was clamping the project names and their Claude
+# markers, which is what you actually read this list for.
+#
+# Note the flags below are one backslash-continued command: a comment placed
+# between them is joined *into* the command rather than ignored, and `bash -n`
+# does not object. That silently swallowed these two flags on the first attempt.
 choice=$(
   list_items | fzf \
     --prompt="dev > " \
     --ansi \
     --preview="$SELF --preview {-1}" \
-    --preview-window=right:70% \
+    --preview-window=right:70%:hidden \
+    --bind='ctrl-p:toggle-preview' \
     --no-height \
     --layout=reverse \
     --border=rounded \
