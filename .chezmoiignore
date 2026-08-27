@@ -86,3 +86,14 @@ bin/mkv2mp4
 scratch/*
 !scratch/.prettierrc
 
+{{/*
+  cmus writes autosave, cache, lib.pl, the socket and its history files into
+  ~/.config/cmus on exit. Only rc is tracked — the man page promises cmus never
+  modifies that one, which is why the colours live there rather than in a
+  .theme (a theme is applied once and then autosave carries the values on).
+  Ignoring the rest keeps `chezmoi add ~/.config/cmus/...` from pulling in a
+  music library index and a unix socket.
+*/ -}}
+.config/cmus/*
+!.config/cmus/rc
+
