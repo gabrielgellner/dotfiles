@@ -108,8 +108,9 @@ end
 
 --- Open one guide in a float, styled for reading rather than editing.
 ---@param path string
-function M.open(path)
-  Snacks.win({
+---@param lnum? integer line to land on, for a hit from the content search
+function M.open(path, lnum)
+  local win = Snacks.win({
     file = path,
     -- Absolute, not a fraction: 0.7 of a narrow terminal was 54 — narrower than
     -- the content, so tables overflowed.
@@ -164,6 +165,56 @@ function M.open(path)
       ["<CR>"] = { follow, desc = "follow link" },
     },
   })
+
+  -- A content-search hit knows the line, and landing on the match is the whole
+  -- point of searching. zz because a hit at the bottom of a file otherwise
+  -- opens with the match on the last row of the float.
+  if lnum then
+    pcall(vim.api.nvim_win_set_cursor, win.win, { lnum, 0 })
+    vim.api.nvim_win_call(win.win, function()
+      vim.cmd("normal! zz")
+    end)
+  end
+end
+
+--- Search the guides' *contents*, as opposed to their titles.
+---
+--- The picker lists titles, which is right for "open the git guide" and useless
+--- for "which guide mentions `zx`" — the answer to that is in the prose, and
+--- the titles are eleven words total. Rather than a second keymap for a second
+--- picker, <c-g> swaps between them and carries the typed text across, so a
+--- title search that finds nothing becomes a content search without retyping.
+---
+--- <c-g> is snacks' own key for toggle_live, which this replaces. In the title
+--- picker that action only ever warns ("Live search is not supported") — a
+--- static finder cannot go live — so nothing is lost there. In the content
+--- picker it does work, but grep already starts live (sources.lua sets
+--- `live = true` for it), so the direction being given up is the one that turns
+--- live searching *off*.
+---@param search? string seed for the live search
+local function grep(search)
+  Snacks.picker.grep({
+    title = "Guides (contents)",
+    dirs = { DIR },
+    search = search,
+    confirm = function(picker, item)
+      picker:close()
+      if item then
+        M.open(item.file, item.pos and item.pos[1])
+      end
+    end,
+    actions = {
+      guides_titles = function(picker)
+        local pattern = picker.input.filter.search
+        picker:close()
+        M.pick(pattern)
+      end,
+    },
+    win = {
+      input = { keys = { ["<c-g>"] = { "guides_titles", mode = { "i", "n" } } } },
+      list = { keys = { ["<c-g>"] = "guides_titles" } },
+    },
+  })
 end
 
 --- Pick a guide.
@@ -173,7 +224,8 @@ end
 --- would quietly change from "open the navigation guide" to "choose a guide" on
 --- the day a second file lands. The preview pane also makes the list worth
 --- reading in its own right.
-function M.pick()
+---@param pattern? string seed for the title filter, carried over from <c-g>
+function M.pick(pattern)
   local list = items()
   if #list == 0 then
     vim.notify("guides: nothing in " .. DIR, vim.log.levels.WARN)
@@ -184,12 +236,24 @@ function M.pick()
     finder = items,
     format = "text",
     preview = "file",
+    pattern = pattern,
     confirm = function(picker, item)
       picker:close()
       if item then
         M.open(item.file)
       end
     end,
+    actions = {
+      guides_grep = function(picker)
+        local typed = picker.input.filter.pattern
+        picker:close()
+        grep(typed ~= "" and typed or nil)
+      end,
+    },
+    win = {
+      input = { keys = { ["<c-g>"] = { "guides_grep", mode = { "i", "n" } } } },
+      list = { keys = { ["<c-g>"] = "guides_grep" } },
+    },
   })
 end
 
