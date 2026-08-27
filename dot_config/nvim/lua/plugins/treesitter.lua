@@ -30,9 +30,6 @@ return {
         "racket",
         "haskell",
       },
-      matchup = {
-        enable = true,
-      },
     },
     config = function(_, opts)
       local TS = require("nvim-treesitter")
@@ -56,15 +53,52 @@ return {
         TS.install(missing)
       end
 
+      -- Everything below is per-buffer, so it needs applying to buffers that
+      -- already exist as well as to the ones FileType will announce later.
+      ---@param buf integer
+      local function attach(buf)
+        if not vim.api.nvim_buf_is_valid(buf) then
+          return
+        end
+        -- highlighting
+        pcall(vim.treesitter.start, buf)
+
+        -- treesitter-powered indent.
+        --
+        -- The two indent engines agree where it counts: typing `o` under
+        -- `if a:` indents to eight columns whether python#GetIndent or this
+        -- expression is in charge. They diverge only when re-indenting python
+        -- that is *already* flat, where treesitter can do nothing at all — the
+        -- parse tree it would need is the thing the missing indentation
+        -- destroys. Vim's heuristic indent can guess; a parser cannot.
+        vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+      end
+
+      -- The first buffer of a session, which is the one this used to miss.
+      --
+      -- config() runs on BufReadPost, and for the file Neovim was started with
+      -- that is too late: its FileType has already fired, so the autocmd below
+      -- never sees it. Measured before this loop existed — buffer 1 reported
+      -- `highlighter.active[buf] = false` and no captures under the cursor on a
+      -- `def`, while the very next buffer opened in the same session reported
+      -- true and `keyword.function`. The first file you open every session was
+      -- falling back to Vim's regex syntax, which is close enough to right that
+      -- nothing looked broken.
+      --
+      -- The same hole is described a few lines down for folds, which were moved
+      -- out to config/options.lua because of it. Highlighting cannot move
+      -- there — it is per buffer, not an option — so it catches up instead.
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_loaded(buf) then
+          attach(buf)
+        end
+      end
+
       -- wire up highlighting and indent per filetype
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("nvim_treesitter_ft", { clear = true }),
         callback = function(ev)
-          -- highlighting
-          pcall(vim.treesitter.start, ev.buf)
-
-          -- treesitter-powered indent
-          vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          attach(ev.buf)
 
           -- Folds are wired up globally in config/options.lua ('foldmethod',
           -- 'foldexpr', 'foldlevel'), not here. They're window-local options,
