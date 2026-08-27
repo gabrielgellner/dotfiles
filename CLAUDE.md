@@ -141,9 +141,11 @@ Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
 
 **Never run prettier on `dot_config/nvim/guides/`.** They are hand-formatted.
 `plugins/formatting.lua` skips them on save — prettier corrupts a code span
-whose content is a single backtick, and the row it eats (`` `` `` in
-navigation.md's jumplist table) can only be protected by a
-`<!-- prettier-ignore -->` comment that render-markdown refuses to conceal. It
+whose content is *two* backticks, rewriting `` `` `` to `` ` `` plus a stray
+pair. The row it eats is the jumplist `` `` `` in navigation.md, and the only
+guard is a `<!-- prettier-ignore -->` comment that render-markdown refuses to
+conceal. (A span holding *one* backtick — files.md's `:cd` row, surround.md's
+quote row — survives; measured both ways.) It
 also rewrites `*emphasis*` to `_emphasis_` and re-pads tables. All three have
 happened. `prettier --check` failing on a guide is the expected state, not a
 defect to fix: some table rows are deliberately not aligned.

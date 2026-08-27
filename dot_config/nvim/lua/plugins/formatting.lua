@@ -71,8 +71,10 @@ return {
     format_on_save = function(bufnr)
       -- The guides are formatted by hand. They were run through prettier once,
       -- so they are consistent, but prettier cannot be left in charge of them:
-      -- it corrupts a code span whose content is a single backtick — `` `` ``,
-      -- the mark in navigation.md — and the only way to protect that row is a
+      -- it corrupts a code span whose content is two backticks — `` `` ``, the
+      -- jumplist mark in navigation.md, which comes back as `` ` `` and a stray
+      -- pair. (One backtick inside the span is fine: files.md and surround.md
+      -- both carry `` ` `` and prettier leaves them alone.) The only guard is a
       -- <!-- prettier-ignore --> comment, which render-markdown does *not*
       -- conceal. It sits in the middle of the page every time you read it.
       --
