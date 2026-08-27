@@ -182,9 +182,28 @@ The four questions worth asking of any namespace:
 
 ---
 
-The guides these rules shaped — `gf` on a link follows it:
-[Navigation](navigation.md), [Files](files.md), [Git](git.md),
-[Surround](surround.md), [Command line](cmdline.md).
+All eleven guides — `gf` or `<CR>` on a link follows it. The first five are the
+ones these rules shaped; the rest document tools that came with their own keys.
+
+- [Navigation](navigation.md) — moving through code you are reading: the
+  viewport, structural motions, folds, selections, windows
+- [Files](files.md) — two browsers good at opposite things, oil and the snacks
+  explorer, and the handoff between them
+- [Git](git.md) — gitsigns hunk by hunk while you work, codediff for reading a
+  whole change
+- [Surround](surround.md) — `mini.surround` on the `gs` prefix, in three verbs
+- [Command line](cmdline.md) — the `:` prompt as a small editor: completion,
+  insert-from-elsewhere, and the command-line window
+- [Pickers](pickers.md) — the key frame every `snacks.picker` shares, and how to
+  get text back out of one
+- [Search and replace](replace.md) — four tools, sorted by how far the change
+  reaches
+- [Completion](completion.md) — `blink.cmp` and LuaSnip, and why the popup is
+  never asked for
+- [Shell history and completion](shell-history.md) — atuin's SQLite history and
+  zsh, outside nvim
+- [Music](music.md) — cmus in a tmux popup, reachable from any session
+- Keymap conventions — this one
 
 `<leader>?` opens the picker over all of them, and `<C-g>` there switches it
 from matching titles to grepping their contents — which is how you find the
