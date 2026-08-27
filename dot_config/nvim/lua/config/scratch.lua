@@ -74,6 +74,22 @@ function M.open(opts)
   end
   seed(win.buf, title)
   stamp_today(win.buf)
+
+  -- Notes wrap at 100, not the 120 the rest of the markdown here uses.
+  --
+  -- The float is narrower than the editor, and the number and sign columns take
+  -- six more: on a 163-column terminal the window is 112 wide and only 106 of
+  -- that is text. Prose hard-wrapped at 120 therefore soft-wrapped in the
+  -- window, leaving a fourteen-character orphan on every full line.
+  --
+  -- 100 is set in ~/scratch/.prettierrc, which prettier finds from the note's
+  -- own path — plugins/formatting.lua passes --config-precedence file-override
+  -- precisely so a directory's config wins over the 120 default. This line is
+  -- the other half: without it `gq` would still reflow to 120 while saving
+  -- reflowed to 100, and the two would fight every time. config/autocmds.lua
+  -- makes the same argument for markdown generally; this narrows the number for
+  -- notes rather than abandoning it.
+  vim.bo[win.buf].textwidth = 100
   vim.api.nvim_win_call(win.win, function()
     vim.cmd("normal! G")
   end)

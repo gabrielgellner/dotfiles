@@ -74,3 +74,15 @@ bootstrap.sh
 {{ if ne .chezmoi.os "darwin" -}}
 bin/mkv2mp4
 {{ end -}}
+
+{{/*
+  ~/scratch holds the scratch notebooks — snacks writes them under opaque
+  hashed names with a .meta sidecar, and they are working notes, not config.
+  Only .prettierrc is tracked there, which sets the 100-column wrap those notes
+  are formatted to (see config/scratch.lua for why it differs from the 120 the
+  rest of the markdown here uses). Everything else is ignored so a
+  `chezmoi add ~/scratch/...` cannot pull the notes in.
+*/ -}}
+scratch/*
+!scratch/.prettierrc
+
