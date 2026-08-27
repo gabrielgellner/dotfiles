@@ -5,39 +5,48 @@ return {
     version = "^5",
     lazy = false,
     config = function()
-      -- rustaceanvim looks for mason's codelldb, then `codelldb`, then
-      -- `lldb-dap`/`lldb-vscode` on PATH. It never looks for plain `lldb`, which
-      -- is why /usr/bin/lldb being present does not satisfy it — that is the
-      -- interactive debugger, not the DAP adapter.
+      -- Two adapters can drive Rust debugging, and rustaceanvim prefers them
+      -- in this order: mason's codelldb, `codelldb` on PATH, then
+      -- `lldb-dap`/`lldb-vscode`. It never looks for plain `lldb` — that is the
+      -- interactive debugger, not the DAP adapter, which is why
+      -- /usr/bin/lldb being present does not satisfy it.
       --
-      -- macOS ships lldb-dap inside the Command Line Tools, which are not on
-      -- PATH; `xcrun -f` is the supported way to locate them. Homebrew's llvm
-      -- has one too, but it is keg-only on purpose — putting that bin directory
-      -- on PATH shadows the system clang — so it is reached by full path rather
-      -- than by exporting anything.
-      -- Homebrew's llvm is tried before the Command Line Tools copy, and the
-      -- order matters. rustaceanvim sets runInTerminal = true, and Apple's
-      -- lldb-dap fails that handshake on macOS 26:
+      -- codelldb is the one to have, and bootstrap.sh installs it: the release
+      -- is a VS Code .vsix (a zip), unpacked to ~/.local/opt/codelldb, with
+      -- bin/executable_codelldb on PATH as a wrapper. The wrapper exists
+      -- because codelldb finds liblldb relative to argv[0], so a bare symlink
+      -- into ~/bin makes it look for ~/lldb/lib/liblldb.dylib and abort; the
+      -- wrapper passes --liblldb explicitly.
       --
-      --   launch failed: Failed to attach to the target process. Timed out
-      --   trying to get messages from the runInTerminal launcher
+      -- Nothing below configures codelldb. rustaceanvim's own detection builds
+      -- it as an adapter with type = "server", and the whole point of getting
+      -- there is that the server path never touches runInTerminal.
       --
-      -- nvim-dap does spawn the terminal and reports a pid back; Apple's
-      -- adapter then times out reading its own comm-file. LLVM 22's lldb-dap
-      -- launches the same target, hits breakpoints and runs to exit 0. The CLT
-      -- path stays as a fallback because it is present on any Mac with Xcode
-      -- tools, and a debugger that may fail to launch beats none at all.
+      -- runInTerminal is the trap. rustaceanvim hardcodes runInTerminal = true
+      -- for an lldb adapter with type = "executable", and lldb-dap then fails
+      -- that handshake:
+      --
+      --   Error on launch: Failed to attach to the target process.
+      --   Timed out trying to get messages from the runInTerminal launcher
+      --
+      -- Reproduced on this machine (macOS 26.5.2, Apple's lldb-dap). It is not
+      -- an Apple bug — nvim-dap #1437 is the same stall on Linux with LLVM 19 —
+      -- so a newer lldb-dap is not the fix, and brewed llvm is not worth
+      -- preferring over the Command Line Tools copy.
+      --
+      -- So: use codelldb when it is there, and when it is not, take lldb-dap
+      -- but override `configuration` (which rustaceanvim exposes for exactly
+      -- this) to turn runInTerminal off. Both were run against a real binary
+      -- here: each attaches, stops on the breakpoint, reads locals back and
+      -- steps. Under codelldb a `String` prints as "frappe" with its Rust type,
+      -- and `println!` output lands in the [dap-terminal] buffer; the lldb-dap
+      -- fallback gets the program no terminal at all, so that output goes
+      -- nowhere. Restoring stdout is the reason codelldb is first.
+      --
+      -- Neither adapter can call a Rust function from the expression evaluator
+      -- (`add(x, 10)` fails under both) — that is an LLDB limitation, not
+      -- something this config chose.
       local function lldb_dap()
-        -- HOMEBREW_PREFIX rather than a literal: brew lives at /opt/homebrew on
-        -- Apple silicon and /home/linuxbrew/.linuxbrew on the Linux machine, and
-        -- dot_zshrc exports it from `brew shellenv` before nvim ever starts.
-        local prefix = vim.env.HOMEBREW_PREFIX
-        if prefix then
-          local brewed = prefix .. "/opt/llvm/bin/lldb-dap"
-          if vim.fn.executable(brewed) == 1 then
-            return brewed
-          end
-        end
         if vim.fn.executable("lldb-dap") == 1 then
           return "lldb-dap"
         end
@@ -53,43 +62,30 @@ return {
         end
       end
 
+      -- nil, not false: an absent key leaves rustaceanvim's detection alone,
+      -- which is what finds codelldb. `false` would disable dap outright.
+      local function dap_fallback()
+        if vim.fn.executable("codelldb") == 1 then
+          return nil
+        end
+        local cmd = lldb_dap()
+        if not cmd then
+          return nil
+        end
+        return {
+          adapter = { type = "executable", command = cmd, name = "lldb" },
+          configuration = {
+            name = "Rust debug client",
+            type = "lldb",
+            request = "launch",
+            stopOnEntry = false,
+            runInTerminal = false,
+          },
+        }
+      end
+
       vim.g.rustaceanvim = {
-        -- Left to rustaceanvim's own detection when nothing is found: it returns
-        -- false there, which disables dap rather than erroring.
-        dap = (function()
-          local cmd = lldb_dap()
-          if not cmd then
-            return nil
-          end
-          return {
-            adapter = { type = "executable", command = cmd, name = "lldb" },
-            -- runInTerminal = false is what makes Apple's lldb-dap work.
-            --
-            -- rustaceanvim hardcodes runInTerminal = true for any adapter with
-            -- type = "executable" (config/internal.lua: `if type == 'lldb'`),
-            -- and Apple's adapter fails that handshake on macOS 26.5.2:
-            --
-            --   Error on launch: Failed to attach to the target process.
-            --   Timed out trying to get messages from the runInTerminal launcher
-            --
-            -- Reproduced on this machine, then fixed by overriding the whole
-            -- `configuration` — which rustaceanvim exposes for exactly this.
-            -- After: the session attaches, stops on the breakpoint, `a` reads
-            -- back `(int) $0 = 2`, and step-over advances.
-            --
-            -- The cost is that the program gets no terminal, so its stdout is
-            -- not shown anywhere — `println!` output vanishes. A debugger that
-            -- stops where you asked beats one that never launches, and a
-            -- program whose output you want can be run with `cargo run`.
-            configuration = {
-              name = "Rust debug client",
-              type = "lldb",
-              request = "launch",
-              stopOnEntry = false,
-              runInTerminal = false,
-            },
-          }
-        end)(),
+        dap = dap_fallback(),
         server = {
           settings = {
             ["rust-analyzer"] = {

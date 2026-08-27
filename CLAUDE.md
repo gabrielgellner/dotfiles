@@ -72,6 +72,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/private_cmus/rc`       | `~/.config/cmus/rc`       | cmus: frappe colours — the one file cmus never rewrites       |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
+| `bin/executable_codelldb`          | `~/bin/codelldb`          | CodeLLDB adapter wrapper — see the caveat below               |
 | `bootstrap.sh`                     | —                         | Installs the toolchain on a fresh machine; not applied        |
 
 `~/.claude/settings.json` has two writers. Claude Code rewrites it whenever a
@@ -97,6 +98,15 @@ with no `re-add` dance. `.chezmoiignore` excludes everything else in that
 directory: autosave, the cache, the library index and a unix socket. The
 `private_` prefix is not decoration either — the socket is why the directory is
 0700, and chezmoi would otherwise widen it to 0755.
+
+`~/bin/codelldb` is a wrapper, not a symlink, and that is load-bearing.
+CodeLLDB finds `liblldb` relative to its own argv[0], so a link in `~/bin` sends
+it looking for `~/lldb/lib/liblldb.dylib` and it aborts; the wrapper passes
+`--liblldb` explicitly. The adapter itself is not tracked — `bootstrap.sh`
+unpacks a pinned release into `~/.local/opt/codelldb`, since upstream ships a VS
+Code `.vsix` and Homebrew has no formula. It exists because the alternative,
+`lldb-dap`, hangs on rustaceanvim's `runInTerminal` handshake; the long comment
+in `dot_config/nvim/lua/plugins/rust.lua` has the detail.
 
 Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
 catppuccin theme file with its upstream commit in the header, and `dot_tmux.conf`

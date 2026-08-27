@@ -229,6 +229,45 @@ for component in rust-analyzer clippy rustfmt; do
     fi
 done
 
+# ── codelldb (Rust debug adapter) ─────────────────────────────────────────────
+
+blue "\nChecking codelldb..."
+# rustaceanvim needs a DAP adapter, and codelldb is the one to give it. The
+# alternative, lldb-dap, is driven through rustaceanvim's runInTerminal path,
+# which hangs on both machines (see the comment in lua/plugins/rust.lua);
+# codelldb is detected as a `server` adapter, which never goes near it.
+#
+# There is no formula for it — upstream ships a VS Code .vsix, which is a zip —
+# so this unpacks a pinned release rather than tracking latest, the same
+# relationship package.toml has with yazi's flavors.
+CODELLDB_VERSION="1.12.3"
+CODELLDB_DIR="$HOME/.local/opt/codelldb"
+if [[ -x "$CODELLDB_DIR/extension/adapter/codelldb" ]]; then
+    yellow "codelldb already installed, skipping"
+else
+    case "$(uname -s)-$(uname -m)" in
+        Darwin-arm64) CODELLDB_ARCH="darwin-arm64" ;;
+        Darwin-x86_64) CODELLDB_ARCH="darwin-x64" ;;
+        Linux-aarch64) CODELLDB_ARCH="linux-arm64" ;;
+        Linux-x86_64) CODELLDB_ARCH="linux-x64" ;;
+        *) CODELLDB_ARCH="" ;;
+    esac
+    if [[ -z "$CODELLDB_ARCH" ]]; then
+        yellow "no codelldb build for $(uname -s)-$(uname -m), skipping"
+    else
+        green "Installing codelldb $CODELLDB_VERSION ($CODELLDB_ARCH)..."
+        CODELLDB_VSIX="$(mktemp -t codelldb).vsix"
+        curl -fsSL -o "$CODELLDB_VSIX" \
+            "https://github.com/vadimcn/codelldb/releases/download/v${CODELLDB_VERSION}/codelldb-${CODELLDB_ARCH}.vsix"
+        mkdir -p "$CODELLDB_DIR"
+        unzip -q -o "$CODELLDB_VSIX" -d "$CODELLDB_DIR"
+        rm -f "$CODELLDB_VSIX"
+        # The zip does not preserve the execute bit on every platform.
+        chmod +x "$CODELLDB_DIR/extension/adapter/codelldb" \
+                 "$CODELLDB_DIR"/extension/lldb/bin/* 2>/dev/null || true
+    fi
+fi
+
 # ── atuin history import ──────────────────────────────────────────────────────
 
 blue "\nChecking atuin history..."
@@ -299,6 +338,10 @@ if [[ -x "$HOME/.cargo/bin/rustup" ]]; then
 else
     missing+=("rustup")
 fi
+
+# ~/bin/codelldb is only a wrapper; it exists whether or not the adapter it
+# execs does, so `command -v` would pass on a machine with nothing installed.
+[[ -x "$HOME/.local/opt/codelldb/extension/adapter/codelldb" ]] || missing+=("codelldb")
 
 # zsh plugins are sourced by path and have no binary; dot_zshrc sources these
 # unguarded, so a missing one breaks every new shell.

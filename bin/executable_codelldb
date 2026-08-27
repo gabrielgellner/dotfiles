@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# codelldb - the CodeLLDB debug adapter, on PATH.
+#
+# rustaceanvim auto-detects a `codelldb` on PATH and builds a `type = "server"`
+# adapter for it, which is the whole point of this wrapper: rustaceanvim forces
+# runInTerminal = true for *executable* adapters only, and that handshake is
+# what lldb-dap could not complete.
+#
+# A bare symlink does not work. codelldb locates liblldb relative to its own
+# argv[0], so a link in ~/bin sent it looking for ~/lldb/lib/liblldb.dylib:
+#
+#   dlopen(/Users/gabrielgellner/lldb/lib/liblldb.dylib): no such file
+#
+# Passing --liblldb explicitly is the supported way, and it is why this is a
+# wrapper rather than a link.
+#
+# Installed by bootstrap.sh from the vadimcn/codelldb release, which ships as a
+# VS Code .vsix — a zip — rather than a formula. Homebrew has no codelldb.
+
+set -euo pipefail
+
+ROOT="${CODELLDB_ROOT:-$HOME/.local/opt/codelldb/extension}"
+ADAPTER="$ROOT/adapter/codelldb"
+LIBLLDB="$ROOT/lldb/lib/liblldb.dylib"
+[[ -f "$LIBLLDB" ]] || LIBLLDB="$ROOT/lldb/lib/liblldb.so"
+
+if [[ ! -x "$ADAPTER" ]]; then
+  echo "codelldb: not installed at $ROOT — see bootstrap.sh" >&2
+  exit 127
+fi
+
+exec "$ADAPTER" --liblldb "$LIBLLDB" "$@"
