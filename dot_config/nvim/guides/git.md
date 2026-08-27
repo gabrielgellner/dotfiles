@@ -40,6 +40,12 @@ additions — which is the unified layout GitLab shows a merge request in. Press
 > function. Inside a codediff view it's next file. Same for `<leader>e`, which
 > is normally the diagnostic float.
 
+The statusline shows **`hunk 3/5`** while the cursor is in a diff pane, so how
+much of the file is left to read is answerable without walking to the end. It
+counts from the top of the file rather than from where you started, and reads
+`0/5` above the first hunk. `]c` also echoes the same count as it moves — the
+statusline is the version that stays put.
+
 > **One key for "next change", everywhere.** `]c`/`[c` is vim's own diff motion
 > (`:help ]c`), so it now means next/previous hunk in gitsigns, next/previous
 > hunk in codediff, and next/previous change in plain vimdiff. gitsigns' `]h` is

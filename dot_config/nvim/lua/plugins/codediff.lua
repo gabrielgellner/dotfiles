@@ -180,10 +180,86 @@ local function open_anchored()
   vim.notify(("codediff: line moved %d -> %d in the working copy"):format(from, best), vim.log.levels.INFO)
 end
 
+---The diff pane's position in the file's hunks, as `hunk 3/5`, or "" anywhere
+---else. Rendered by mini.statusline — see the append in plugins/mini.lua.
+---
+---Kept as a global because that is what a statusline `%{}` can call: the
+---expression is evaluated as vimscript, where `v:lua.Fn()` resolves a global
+---but `v:lua.require'x'.fn()` does not parse.
+---
+---codediff is `cmd`-lazy, so on most buffers it is not loaded at all. Asking
+---package.loaded directly rather than require()ing is the point: a require
+---here would load the whole plugin on the first redraw of any buffer, which is
+---the opposite of lazy.
+function _G.CodeDiffHunkStatus()
+  local lifecycle = package.loaded["codediff.ui.lifecycle"]
+  if not lifecycle then
+    return ""
+  end
+
+  local session = lifecycle.get_session(vim.api.nvim_get_current_tabpage())
+  if not session or not session.stored_diff_result then
+    return ""
+  end
+
+  -- Only the diff panes. The explorer and the history list live in the same
+  -- tabpage and would otherwise inherit a count that says nothing about them.
+  local buf = vim.api.nvim_get_current_buf()
+  if buf ~= session.modified_bufnr and buf ~= session.original_bufnr then
+    return ""
+  end
+
+  local changes = session.stored_diff_result.changes or {}
+  if #changes == 0 then
+    return " no hunks "
+  end
+
+  -- Which line numbers a hunk is recorded under depends on the side being
+  -- shown. In inline layout there is only one pane and deletions are virtual
+  -- lines, so its numbering is the modified file's throughout — the same
+  -- choice codediff's own ]c makes in view/navigation.lua.
+  local use_original = buf == session.original_bufnr and session.layout ~= "inline"
+  local line = vim.api.nvim_win_get_cursor(0)[1]
+
+  -- The hunk the cursor is in, or the last one it is past. 0 until the first
+  -- hunk, which is honest: `jump_to_first_change` normally means we open at 1,
+  -- but scrolling back above it should not claim to be in hunk 1.
+  local current = 0
+  for i, hunk in ipairs(changes) do
+    local side = use_original and hunk.original or hunk.modified
+    if line >= side.start_line then
+      current = i
+    else
+      break
+    end
+  end
+
+  return (" hunk %d/%d "):format(current, #changes)
+end
+
 return {
   "esmuellert/codediff.nvim",
   cmd = "CodeDiff",
   opts = {
+    -- catppuccin frappe's own DiffAdd is #455053 and DiffDelete #514252, which
+    -- codediff uses by default. Against Normal's #303447 that is a difference
+    -- of about twenty units in each channel — legible, but only just, and a
+    -- long diff reads as grey.
+    --
+    -- These are the same two colours mixed harder: frappe's green (#a6d189)
+    -- and red (#e78284) blended into base (#303446) at 0.40 rather than
+    -- catppuccin's ~0.18. Written out rather than computed so this file does
+    -- not have to reach into the colorscheme's palette at load time; the
+    -- inputs are above if the ratio wants changing.
+    --
+    -- Only the line colours are set. char_insert/char_delete are left nil so
+    -- codediff keeps deriving the intra-line highlights from these at
+    -- char_brightness (1.4 on a dark background), which preserves the
+    -- relationship between "this line changed" and "this part of it changed".
+    highlights = {
+      line_insert = "#5f7361",
+      line_delete = "#79535f",
+    },
     diff = {
       layout = "inline",
       jump_to_first_change = true,

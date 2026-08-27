@@ -130,6 +130,17 @@ return {
       use_icons = true,
     })
 
+    -- Appended rather than configured through content.active, because it has
+    -- to survive mini's own default for every other buffer: the function
+    -- returns "" unless the current window is a codediff diff pane, so this
+    -- costs one table lookup per redraw everywhere else.
+    --
+    -- mini sets vim.o.statusline in the setup above, so this has to run after
+    -- it. CodeDiffHunkStatus is defined at the top level of
+    -- plugins/codediff.lua, which lazy evaluates while collecting specs at
+    -- startup, so the global is there whether or not codediff itself loads.
+    vim.o.statusline = vim.o.statusline .. "%{v:lua.CodeDiffHunkStatus()}"
+
     -- ── mini.bufremove — smarter buffer deletion ───────────────────────────
     -- keeps window layout intact when closing a buffer
     require("mini.bufremove").setup()
