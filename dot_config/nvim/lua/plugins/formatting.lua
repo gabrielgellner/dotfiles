@@ -19,8 +19,17 @@ return {
       -- filetype and keeps the dialect in `b:is_bash`. A `bash` entry here
       -- matched nothing, the same way plugins/lint.lua's did.
       sh = { "shfmt" },
+      -- One `jinja`, not two. Neovim detects only `.jinja`; config/autocmds.lua
+      -- maps `.j2` and `.jinja2` onto that same filetype, so all three extensions
+      -- arrive here as `jinja` and the filetype `jinja2` is never produced by
+      -- anything. That entry matched nothing, the same way `bash` did above and
+      -- in plugins/lint.lua.
+      --
+      -- The autocmds.lua note already recorded that only the first of
+      -- jinja/jinja2/htmldjango was reachable; it added the mapping and left
+      -- the dead key here. This removes it. htmldjango stays — autocmds.lua's
+      -- pattern gives it to `*.html.j2`, which djlint does want to know about.
       jinja = { "djlint" },
-      jinja2 = { "djlint" },
       htmldjango = { "djlint" },
       javascript = { "biome" },
       typescript = { "biome" },
@@ -74,7 +83,11 @@ return {
         return
       end
       local timeout = vim.bo[bufnr].filetype == "markdown" and 3000 or 500
-      return { timeout_ms = timeout, lsp_fallback = true }
+      -- lsp_format = "fallback", not lsp_fallback = true. conform still
+      -- honours the old key — init.lua maps it "for backwards compatibility"
+      -- and says nothing — but it is a legacy alias, and this config has
+      -- already been bitten once by leaning on one of those.
+      return { timeout_ms = timeout, lsp_format = "fallback" }
     end,
   },
 }
