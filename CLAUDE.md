@@ -68,7 +68,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
-| `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 8 active settings; the rest is commented reference  |
+| `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 6 settings + a theme include; rest is commented     |
 | `dot_config/private_cmus/rc`       | `~/.config/cmus/rc`       | cmus: frappe colours — the one file cmus never rewrites       |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -150,6 +150,58 @@ capital means a *wider* scope and never an unrelated action; a doubled key is
 the ordinary case; buffer-local mappings silently beat global ones, which is the
 most common way a keymap appears to do nothing; and `mode = "x"`, never `"v"`,
 because `"v"` includes select mode.
+
+## Verifying a change here
+
+The comments in this repo state what was *measured*, not what was expected. An
+audit through 2026-08 exercised every file in `lua/plugins/` and every module in
+`lua/config/` by driving them rather than reading them. Keep that bar: a claim
+in a comment should be something someone ran.
+
+The method is a detached tmux session — `tmux new-session -d`, drive it with
+`tmux send-keys`, read it back with `tmux capture-pane`. Two rules earned the
+hard way:
+
+- **Measure state, not side effects.** `require("dap").session()`,
+  `mc.numCursors()`, `vim.fn.maparg()`, `nvim_win_get_config()` answer directly.
+  Inferring from "did the buffer change" produced three false bug reports in one
+  sitting: an insert that landed on the same column for every cursor, a
+  keystroke that never arrived, and a continue that silently did nothing.
+- **Suspect the probe before the config.** Every one of those was the harness.
+  A window-picking loop landed in a snacks notification window; a `list-keys`
+  check loaded the user's own config and reported it as a tmux default.
+
+Interactive overlays *are* drivable, contrary to an earlier note in this repo:
+flash's jump labels, which-key popups and codediff's panes all render into the
+terminal grid, so `capture-pane` reads the label out and it can be sent straight
+back. The exception is `vim.fn.input()` under noice — invisible to
+`capture-pane` but still receiving keys, so a blank capture there is not
+evidence of a broken prompt.
+
+## Faults this config has had
+
+Each of these has bitten more than once. Worth checking for when touching
+anything here:
+
+- **Configured but never run.** An option the plugin does not read, or no longer
+  reads: `headerMaxWidth` (grug-far has no such option), `port = 0` (takeover
+  mode returns a hardcoded 8421 before consulting it), `jinja2` (never a
+  filetype anything produces), nvim-treesitter's dropped module schema. Nothing
+  warns — the key just sits in the merged table.
+- **Restated defaults.** Six of multicursor's seven highlight lines set what the
+  plugin had already set. Keep one only where it records a decision worth
+  seeing, and say so.
+- **Stale comments.** Keymaps move and their explanations do not follow:
+  `<leader>mR` for a refresh that is now `<leader>mf`, `<C-\>` for an escape
+  that is now `<C-x>`.
+- **One-shot highlight overrides.** `nvim_set_hl` in a plugin's `config()` does
+  not survive `:colorscheme` — that clears every group, after which the plugin's
+  own `default = true` fills it back in. Overriding a plugin highlight needs a
+  ColorScheme autocmd of its own.
+- **Legacy aliases.** `lsp_fallback`, `checkOnSave` as a table: honoured today,
+  silently, with nothing to say they are the old spelling.
+- **Terminal key collisions.** `C-m` is Enter, `C-i` is Tab, `C-[` is Esc — the
+  same byte, not a binding. `C-j` survives only because it is a different one.
 
 ## Toolchain
 
