@@ -158,7 +158,7 @@ cold: n=23 x=17 o=16 i=0 s=0
 warm: n=23 x=17 o=16 i=9 s=2
 ```
 
-Counting a buffer opened *after* several others gives higher numbers again,
+Counting a buffer opened _after_ several others gives higher numbers again,
 because their plugins have loaded by then.
 
 So quote the protocol with the number, or re-derive:
@@ -185,3 +185,7 @@ The four questions worth asking of any namespace:
 The guides these rules shaped — `gf` on a link follows it:
 [Navigation](navigation.md), [Files](files.md), [Git](git.md),
 [Surround](surround.md), [Command line](cmdline.md).
+
+`<leader>?` opens the picker over all of them, and `<C-g>` there switches it
+from matching titles to grepping their contents — which is how you find the
+rule rather than the guide. See [pickers.md](pickers.md).
