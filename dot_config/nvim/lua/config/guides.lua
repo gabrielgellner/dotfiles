@@ -125,6 +125,15 @@ function M.open(path)
     border = "rounded",
     title = " " .. (title_of(path) or vim.fn.fnamemodify(path, ":t")) .. " ",
     title_pos = "center",
+    -- The same ` q  close ` hint the scratch float carries, which gets it from
+    -- Snacks.scratch setting footer_keys = true. A read-only float has no other
+    -- way to say how to leave it.
+    --
+    -- Scoped to q rather than `true`, which would list every key here. Snacks
+    -- falls back to the lhs when a key has no desc (win.lua: `key.desc or
+    -- keymap`), and gf and <CR> are plain functions below, so `true` renders
+    -- them as " gf  gf " and " <CR>  <CR> " — noise that says nothing.
+    footer_keys = { "q" },
     wo = {
       winhighlight = "NormalFloat:Normal",
       wrap = true,
