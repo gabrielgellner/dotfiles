@@ -125,15 +125,17 @@ function M.open(path)
     border = "rounded",
     title = " " .. (title_of(path) or vim.fn.fnamemodify(path, ":t")) .. " ",
     title_pos = "center",
-    -- The same ` q  close ` hint the scratch float carries, which gets it from
+    -- The same border hint the scratch float carries, which gets it from
     -- Snacks.scratch setting footer_keys = true. A read-only float has no other
-    -- way to say how to leave it.
+    -- way to say how to leave it, and nothing at all advertises that these
+    -- guides link to each other.
     --
-    -- Scoped to q rather than `true`, which would list every key here. Snacks
-    -- falls back to the lhs when a key has no desc (win.lua: `key.desc or
-    -- keymap`), and gf and <CR> are plain functions below, so `true` renders
-    -- them as " gf  gf " and " <CR>  <CR> " — noise that says nothing.
-    footer_keys = { "q" },
+    -- Named rather than `true`, which would list every key here — and gf does
+    -- the same job as <CR>, so listing both would say one thing twice. Snacks
+    -- normalises both sides of this match (win.lua), so "<CR>" is the right
+    -- spelling, and it sorts entries by lhs, so this reads
+    -- ` <CR>  follow link   q  close `.
+    footer_keys = { "q", "<CR>" },
     wo = {
       winhighlight = "NormalFloat:Normal",
       wrap = true,
@@ -146,15 +148,20 @@ function M.open(path)
     },
     keys = {
       q = "close",
+      -- The desc is what the footer prints. A bare function value gets none —
+      -- snacks builds the spec as { lhs, fn } and then falls back to the lhs
+      -- itself (`key.desc or keymap`), which would render " <CR>  <CR> ". The
+      -- table form carries one.
+      --
       -- `gf` because these *are* file references; it just needs help resolving
       -- them.
-      gf = follow,
+      gf = { follow, desc = "follow link" },
       -- <CR> as well, because it is what a reader presses on a link. In a
       -- markdown buffer it is otherwise the checkbox toggle
       -- (config/autocmds.lua), which here throws "Buffer is not 'modifiable'"
       -- — the float is read-only and a reference document has no checkboxes,
       -- so the toggle can only ever fail. Better the key does the useful thing.
-      ["<CR>"] = follow,
+      ["<CR>"] = { follow, desc = "follow link" },
     },
   })
 end
