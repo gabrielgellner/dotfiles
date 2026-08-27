@@ -44,49 +44,6 @@ resolve_dir() {
   fi
 }
 
-preview() {
-  local name="$1"
-  local dir
-  dir=$(resolve_dir "$name")
-
-  if tmux has-session -t "=$name" 2>/dev/null; then
-    echo -e "\033[1;32m● active session\033[0m\n"
-    tmux capture-pane -t "=$name" -p -e 2>/dev/null | tail -30
-    return
-  fi
-
-  echo -e "\033[1;34m── Files ──────────────────────────────\033[0m"
-  # eza needs a width for --grid. fzf exports FZF_PREVIEW_COLUMNS, but this
-  # script is also runnable by hand, and bash passes an unset variable through
-  # as COLUMNS="", which eza reads as no room at all and prints one long line.
-  # zsh happened to leave it usable, so the fallback is new here.
-  COLUMNS="${FZF_PREVIEW_COLUMNS:-${COLUMNS:-80}}" eza --icons --grid --group-directories-first "$dir" 2>/dev/null | head -20
-
-  if [[ -d "$dir/.git" ]]; then
-    echo -e "\n\033[1;34m── Git log ────────────────────────────\033[0m"
-    git -C "$dir" log --oneline --color=always -7 2>/dev/null
-    local git_status
-    git_status=$(git -C "$dir" status --short 2>/dev/null)
-    if [[ -n "$git_status" ]]; then
-      echo -e "\n\033[1;34m── Git status ─────────────────────────\033[0m"
-      echo "$git_status"
-    fi
-  fi
-
-  if [[ -f "$dir/pyproject.toml" ]]; then
-    echo -e "\n\033[1;34m── pyproject.toml ─────────────────────\033[0m"
-    bat --color=always --line-range=:25 "$dir/pyproject.toml" 2>/dev/null
-  fi
-  if [[ -f "$dir/Cargo.toml" ]]; then
-    echo -e "\n\033[1;34m── Cargo.toml ─────────────────────────\033[0m"
-    bat --color=always --line-range=:25 "$dir/Cargo.toml" 2>/dev/null
-  fi
-  if [[ -f "$dir/README.md" ]]; then
-    echo -e "\n\033[1;34m── README ─────────────────────────────\033[0m"
-    bat --color=always --line-range=:20 "$dir/README.md" 2>/dev/null
-  fi
-}
-
 # Live sessions, most-recently-attached first. Alphabetical order made the list
 # stable but made swapping between two sessions a reading exercise: the one you
 # just came from sat wherever its name fell. This is the alt-tab ordering — the
@@ -154,8 +111,8 @@ is_active() {
 # ~/.claude/settings.json. Absent file means no Claude is running there.
 #
 # The marker goes *before* the name, never after. fzf is given `{-1}` — the
-# last field — by both --preview and the ctrl-x kill binding, so anything
-# trailing the name would be passed to tmux as the session to preview or kill.
+# last field — by the ctrl-x kill binding, so anything trailing the name would
+# be passed to tmux as the session to kill.
 #
 # Colours are the plain ANSI names rather than 256-cube indices, so kitty
 # resolves them to frappe exactly: yellow #e5c890 for working, green #a6d189
@@ -199,11 +156,6 @@ list_items() {
   done
 }
 
-if [[ "${1}" == "--preview" ]]; then
-  preview "$2"
-  exit 0
-fi
-
 if [[ "${1}" == "--list" ]]; then
   list_items
   exit 0
@@ -220,18 +172,16 @@ SELF="$0"
 # dotfiles, and "pin" put pinax-ai above pinax.
 #
 # --nth=-1 matches against the last whitespace field only — the session name,
-# which is exactly what `{-1}` already hands --preview and ctrl-x — so the
-# prefix stops counting. --tiebreak=index then settles genuine ties by input
+# which is exactly what `{-1}` already hands ctrl-x — so the prefix stops
+# counting. --tiebreak=index then settles genuine ties by input
 # order, and list_items emits active sessions first. Together: "dot" gives
 # dotfiles then dotstat, "pin" gives pinax then its three siblings.
 #
-# The preview starts hidden, on ctrl-p.
-#
-# For an active session it is a capture-pane of a full-screen nvim, which tells
-# you nothing you did not already know; for an inactive project it is genuinely
-# useful (files, git log, README), so it is a keystroke away rather than gone.
-# Either way 70% of the width was clamping the project names and their Claude
-# markers, which is what you actually read this list for.
+# There is no preview. It had been bound to ctrl-p, which is fzf's own "move
+# up" — so turning it on cost the list its navigation, which is worth far more
+# than the pane was. It had already been demoted to hidden-by-default because
+# 70% of the width clamped the project names and their Claude markers, which is
+# what this list is actually read for.
 #
 # Note the flags below are one backslash-continued command: a comment placed
 # between them is joined *into* the command rather than ignored, and `bash -n`
@@ -242,21 +192,15 @@ choice=$(
     --ansi \
     --nth=-1 \
     --tiebreak=index \
-    --preview="$SELF --preview {-1}" \
-    --preview-window=right:70%:hidden \
-    --bind='ctrl-p:toggle-preview' \
     --no-height \
     --layout=reverse \
     --border=rounded \
     --header='ctrl-x: kill session' \
-    --bind='ctrl-f:preview-down' \
-    --bind='ctrl-b:preview-up' \
     --bind="ctrl-x:execute-silent(tmux kill-session -t \={-1} 2>/dev/null)+reload($SELF --list)" \
     --info=inline
 ) || exit 0
 
-# The last field, which is exactly what fzf handed --preview and ctrl-x as
-# `{-1}`. Stripping the `● ` prefix alone stopped working once a Claude marker
+# The last field, which is exactly what fzf handed ctrl-x as `{-1}`. Stripping the `● ` prefix alone stopped working once a Claude marker
 # could sit between it and the name.
 name="${choice##* }"
 
