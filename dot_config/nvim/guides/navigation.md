@@ -93,6 +93,28 @@ Two ways to select by structure, and they answer different questions.
 inside quotes, `daa` an argument. Precise, but you have to know the thing has a
 name.
 
+| Keys        | Selects                                                      |
+| ----------- | ------------------------------------------------------------ |
+| `af` / `if` | a function, with / without its `def` line (treesitter)       |
+| `ac` / `ic` | a class, the same split                                      |
+| `aa` / `ia` | an argument, with / without its comma                        |
+| `ab` / `ib` | the nearest `()` `[]` `{}` pair, with / without the brackets |
+| `aq` / `iq` | the nearest quote pair — `a"` `i'` for one specific quote    |
+| `ai` / `ii` | the indent scope, with / without its borders                 |
+| `ih`        | a git hunk — see [git.md](git.md)                            |
+
+So the whole of a Python function is `vaf` from anywhere inside it, `vif` for
+the body without the signature. Both are treesitter nodes, not indent guesses,
+so they end exactly where the function does. They do **not** reach up over a
+decorator: `@functools.cache` above a `def` is a `decorated_definition`, and
+`@function.outer` matches the `function_definition` inside it. Measured, on a
+two-decorator function — `vaf` starts on the `def` line. Take the decorators
+with `<M-o>` once from there, or `V` and a motion.
+
+`n` and `l` are next/last modifiers on every mini.ai object, and counts work:
+with the cursor in `"two"` of `x = "one" + "two" + "three"`, `vi"` takes `two`,
+`vin"` takes `three`, `vil"` takes `one`, and `v2i"` also takes `three`.
+
 **Grow into it** — start anywhere and take the next bigger node. No name needed,
 which is what makes it work on things that have none: a table entry, a match
 arm, one link of a chained call.
@@ -150,13 +172,13 @@ pattern and getting a cursor per piece.
 While more than one cursor exists, six more keys apply — and only then, so they
 mean their usual thing the rest of the time:
 
-| Key            | Does                                          |
-| -------------- | --------------------------------------------- |
-| `<Esc>`        | collapse back to one                          |
-| `<Tab>`        | make the next cursor main                     |
-| `<S-Tab>`      | the previous one                              |
-| `<leader>vx`   | drop the cursor you are on                    |
-| `<C-a>` `<C-x>` | increment / decrement, **as a sequence**     |
+| Key             | Does                                     |
+| --------------- | ---------------------------------------- |
+| `<Esc>`         | collapse back to one                     |
+| `<Tab>`         | make the next cursor main                |
+| `<S-Tab>`       | the previous one                         |
+| `<leader>vx`    | drop the cursor you are on               |
+| `<C-a>` `<C-x>` | increment / decrement, **as a sequence** |
 
 ### Worked examples
 
@@ -217,7 +239,7 @@ for a vim-shaped config — it is used constantly, these a few times a day.
 markdown's mappings are **buffer-local**: `<leader>mr` and `<leader>mx` would
 have meant render-toggle and checkbox-toggle inside a markdown buffer and
 multicursor everywhere else, with nothing to say which you were getting. `v` is
-where vim already keeps selecting, and *selection* is Helix's own word for these.
+where vim already keeps selecting, and _selection_ is Helix's own word for these.
 
 `<leader>vn`/`vN` break the house rule that a capital means a wider scope: here
 it means the other direction, following `n`/`N`. That is the vim convention for
@@ -269,7 +291,7 @@ The single biggest reading upgrade: jump freely, because returning is one key.
 | `<C-o>` / `<C-i>` | back / forward through the jumplist (crosses files) |
 | `[j` / `]j`       | the same list as a bracket motion, with counts      |
 | `''`              | back to the line you were on before the last jump   |
-| `` `` ``          | back to the exact position                          |
+| ` ` ``            | back to the exact position                          |
 | `` `. ``          | the position of the last edit                       |
 | `g;` / `g,`       | walk backward / forward through the changelist      |
 | `<C-^>`           | toggle to the alternate (previously edited) buffer  |
@@ -304,7 +326,7 @@ backslash and all, in the rendered view.
 
 These were vim-tmux-navigator's for a while, which carried the same movement on
 into a neighbouring tmux pane when nvim ran out of splits. There has never been
-a second tmux pane to reach — work is divided into tmux *windows*, `prefix` and
+a second tmux pane to reach — work is divided into tmux _windows_, `prefix` and
 `1`/`2`/`3` — so the plugin is gone and these are plain `wincmd` now.
 
 `<C-h>` means something else inside an oil buffer: see [Files](files.md).
