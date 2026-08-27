@@ -53,9 +53,31 @@ same range **commit by commit** instead, so you can follow the author's steps.
 | ------------ | --------------------------------------------------- |
 | `<leader>gm` | review branch vs base — the MR view                 |
 | `<leader>gM` | the same range, commit by commit                    |
+| `<leader>gu` | review **unpushed** work — what the next push sends |
+| `<leader>gU` | the same range, commit by commit                    |
 | `<leader>gv` | review the working tree — your own uncommitted work |
 | `<leader>gh` | history of the current file                         |
 | `<leader>gH` | history of the repo                                 |
+
+## Before you push
+
+`<leader>gm` answers "what does this branch add to its base". It cannot answer
+"what am I about to push", and on the default branch it answers *nothing* —
+there `base...HEAD` is empty by definition, so the key opens no diff at all.
+
+`<leader>gu` is the same view against `@{upstream}` instead: the commits that
+exist locally and not on the remote. `<leader>gU` walks them one at a time, the
+way `<leader>gM` does for a branch.
+
+`@{upstream}` rather than a hardcoded `origin/main`, so it follows whatever the
+branch actually tracks — `origin/main` in the dotfiles repo, and
+`origin/session-74-prep` in a feature branch, without either being named.
+
+Two quiet answers are correct rather than broken:
+
+- **"No changes to show"** — you are in sync with the remote, nothing to push.
+- **a warning naming `git push -u origin HEAD`** — the branch has no upstream
+  at all, so there is no "what will push" to compute. Use `<leader>gm` there.
 
 ## Working the code, not just reading it
 

@@ -46,6 +46,39 @@ local function with_base(fmt)
   end
 end
 
+---The branch this one pushes to, or nil when it has none.
+---
+---`@{upstream}` rather than a hardcoded origin/<branch>: it follows whatever
+---the branch is actually tracking, which is what "will this be in the push"
+---depends on. Resolves to origin/main here and origin/session-74-prep in
+---pf2e-prep, without either being named.
+---@return string|nil
+local function upstream()
+  local res = vim.system({ "git", "rev-parse", "--abbrev-ref", "@{upstream}" }, { text = true }):wait()
+  if res.code ~= 0 then
+    return nil -- "fatal: no upstream configured for branch ..."
+  end
+  local name = vim.trim(res.stdout or "")
+  return name ~= "" and name or nil
+end
+
+---Run `CodeDiff <fmt with the upstream substituted>`, or explain why it can't.
+---@param fmt string
+local function with_upstream(fmt)
+  return function()
+    local up = upstream()
+    if not up then
+      vim.notify(
+        "codediff: this branch has no upstream, so there is nothing to compare a push against.\n"
+          .. "Push it once with `git push -u origin HEAD`, or use <leader>gm to review against the base.",
+        vim.log.levels.WARN
+      )
+      return
+    end
+    vim.cmd("CodeDiff " .. fmt:format(up))
+  end
+end
+
 ---Scope a review to the current file, optionally against a revision.
 ---
 ---The pathspec has to be expanded here. codediff expands `%` in *path*
@@ -211,6 +244,11 @@ return {
     -- The same range, commit by commit, for when the squashed diff is too big to
     -- read in one go. `..` here, not `...`: this is a commit list, not a diff.
     { "<leader>gM", with_base("history %s..HEAD"), desc = "Git: Branch commits" },
+    -- The same two shapes again, against the upstream rather than the base:
+    -- "what am I about to push", which <leader>gm cannot answer while you are
+    -- *on* the default branch — there `base...HEAD` is empty by definition.
+    { "<leader>gu", with_upstream("%s...HEAD"), desc = "Git: Review unpushed work" },
+    { "<leader>gU", with_upstream("history %s..HEAD"), desc = "Git: Unpushed commits" },
     -- `%` is the current file. codediff tells a revision from a path by testing
     -- whether the argument is readable, so no range is needed.
     { "<leader>gh", "<cmd>CodeDiff history %<cr>", desc = "Git: File history" },
