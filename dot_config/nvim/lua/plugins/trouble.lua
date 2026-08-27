@@ -38,8 +38,14 @@ return {
     -- got no items and drew "No results for todo" over a buffer with two.
     -- :TodoQuickFix and :TodoLocList are dead for the same reason.
     --
-    -- Not fixed by adding plenary, because the thing it would restore is
-    -- already covered. todo-comments ships a second, newer integration —
+    -- Not fixed by adding plenary, for two reasons. plenary is end of life:
+    -- its README says the repository is no longer actively maintained and will
+    -- be archived, with critical bugs addressed only until 2026-06-30, a date
+    -- already past. (The GitHub API still reports archived: false and a recent
+    -- push, which is why the README is the thing to read.)
+    --
+    -- And the thing it would restore is already covered anyway.
+    -- todo-comments ships a second, newer integration —
     -- lua/todo-comments/snacks.lua — which registers a snacks picker source
     -- built on snacks' own grep finder and never touches plenary. That is
     -- <leader>ft, and it works. So does the highlighting, and ]t / [t.

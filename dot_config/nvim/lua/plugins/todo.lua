@@ -26,8 +26,13 @@ return {
   -- :TodoLocList, the telescope extension — all route through its
   -- Search.search, which requires plenary and, when plenary is absent, returns
   -- without ever calling its callback. So they report nothing rather than
-  -- failing. plenary is not installed here; lua/todo-comments/snacks.lua is
-  -- the path that does not need it. See the note in plugins/trouble.lua.
+  -- failing. plenary is not installed here and deliberately will not be — it
+  -- is end of life, archived-pending, and stopped taking even critical fixes
+  -- on 2026-06-30. Those entry points are therefore permanently dead unless
+  -- todo-comments migrates off it upstream.
+  --
+  -- lua/todo-comments/snacks.lua is the path that does not need it, and is
+  -- what <leader>ft uses. See the note in plugins/trouble.lua.
   keys = {
     {
       "<leader>ft",
