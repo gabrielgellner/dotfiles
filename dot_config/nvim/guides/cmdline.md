@@ -132,3 +132,8 @@ The rules behind these bindings: [Keymap conventions](keymaps.md).
 - [Completion](completion.md) — the menu that appears while you type here, and
   everywhere else
 - [Shell history](shell-history.md) — the same job on the zsh side
+
+## See also
+
+- [replace.md](replace.md) — where `:%s` sits among the other three ways to
+  replace, including the cross-file ones

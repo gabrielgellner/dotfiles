@@ -81,3 +81,5 @@ Multi-select drives `<C-q>` (send to quickfix), not the copy keys: `<C-y>` and
 - [files.md](files.md) — the file pickers and the oil handoff
 - [git.md](git.md) — the git sources, and `<leader>fw` as the way to chase a
   symbol out of a codediff review
+- [replace.md](replace.md) — `<C-q>` sends matches to the quickfix list, which
+  is where the `:cfdo` route starts
