@@ -16,6 +16,7 @@ STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/claude-tmux"
 
 working=0
 idle=0
+waiting=0
 for f in "$STATE_DIR"/*; do
   [[ -r "$f" ]] || continue
   # A session that has gone away leaves its file behind — SessionEnd fires when
@@ -24,13 +25,26 @@ for f in "$STATE_DIR"/*; do
   name=${f##*/}
   name=${name//%2F//}
   tmux has-session -t "=$name" 2>/dev/null || continue
-  case "$(<"$f")" in
+  # "waiting <notification_type>" — only the first field is the state.
+  read -r state _ < "$f" 2>/dev/null || continue
+  case "$state" in
     working) working=$((working + 1)) ;;
     idle) idle=$((idle + 1)) ;;
+    waiting) waiting=$((waiting + 1)) ;;
   esac
 done
 
-out=""
-((working)) && out+="#[fg=#e5c890]⣿ $working#[default] "
+# The running count is always drawn, including at zero: a number that appears
+# and disappears makes the bar jump and gives you nothing to glance at when the
+# answer is "nothing is running". At zero it drops to overlay0, the same grey
+# the clock uses for things you are not meant to read unless you look.
+if ((working)); then
+  out="#[fg=#e5c890]⣿ $working#[default] "
+else
+  out="#[fg=#737994]⣿ 0#[default] "
+fi
 ((idle)) && out+="#[fg=#a6d189]⣀ $idle#[default] "
+# Pink, matching the [q] in `dev`. Shown only when there is one, because a
+# session that has been waiting a full minute is the thing worth walking to.
+((waiting)) && out+="#[fg=#f4b8e4]⣤ $waiting#[default] "
 printf '%s' "$out"

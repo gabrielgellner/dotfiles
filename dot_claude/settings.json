@@ -76,6 +76,16 @@
         ]
       }
     ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/bin/claude-tmux-state waiting"
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
