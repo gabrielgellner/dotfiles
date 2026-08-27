@@ -34,16 +34,24 @@ for f in "$STATE_DIR"/*; do
   esac
 done
 
-# The running count is always drawn, including at zero: a number that appears
-# and disappears makes the bar jump and gives you nothing to glance at when the
-# answer is "nothing is running". At zero it drops to overlay0, the same grey
-# the clock uses for things you are not meant to read unless you look.
+# Running and idle are both always drawn, including at zero: a number that
+# appears and disappears makes the bar jump and gives you nothing to glance at
+# when the answer is "nothing is running". At zero they drop to overlay0, the
+# same grey the date uses for things you are not meant to read unless you look.
+#
+# Waiting stays conditional. It is the one that means *go there now*, so it
+# should be absent rather than zero — an empty slot for it would train the eye
+# to skip the position it appears in.
 if ((working)); then
   out="#[fg=#e5c890]⣿ $working#[default] "
 else
   out="#[fg=#737994]⣿ 0#[default] "
 fi
-((idle)) && out+="#[fg=#a6d189]⣀ $idle#[default] "
+if ((idle)); then
+  out+="#[fg=#a6d189]⣀ $idle#[default] "
+else
+  out+="#[fg=#737994]⣀ 0#[default] "
+fi
 # Pink, matching the [q] in `dev`. Shown only when there is one, because a
 # session that has been waiting a full minute is the thing worth walking to.
 ((waiting)) && out+="#[fg=#f4b8e4]⣤ $waiting#[default] "

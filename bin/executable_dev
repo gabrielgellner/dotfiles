@@ -211,6 +211,20 @@ fi
 
 SELF="$0"
 
+# --nth=-1 and --tiebreak=index are what put active sessions first when you
+# type.
+#
+# Without them the `● [a] ` prefix works against the sessions it marks: fzf
+# scores a match that begins later in the line lower, so the marker itself
+# demoted them. Typing "dot" ranked the inactive dotstat above the running
+# dotfiles, and "pin" put pinax-ai above pinax.
+#
+# --nth=-1 matches against the last whitespace field only — the session name,
+# which is exactly what `{-1}` already hands --preview and ctrl-x — so the
+# prefix stops counting. --tiebreak=index then settles genuine ties by input
+# order, and list_items emits active sessions first. Together: "dot" gives
+# dotfiles then dotstat, "pin" gives pinax then its three siblings.
+#
 # The preview starts hidden, on ctrl-p.
 #
 # For an active session it is a capture-pane of a full-screen nvim, which tells
@@ -226,6 +240,8 @@ choice=$(
   list_items | fzf \
     --prompt="dev > " \
     --ansi \
+    --nth=-1 \
+    --tiebreak=index \
     --preview="$SELF --preview {-1}" \
     --preview-window=right:70%:hidden \
     --bind='ctrl-p:toggle-preview' \
