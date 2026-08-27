@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# claude-tmux-status - one-line summary of Claude activity, for tmux status-right.
+#
+# Reads the files ~/bin/claude-tmux-state writes from Claude's hooks. Prints
+# nothing at all when no Claude is running anywhere, so the status bar stays as
+# quiet as it was before this existed.
+#
+# Colours are #rrggbb rather than the ANSI names dev uses: tmux takes hex
+# directly and the status bar already carries frappe values inline
+# (dot_tmux.conf), so there is no palette to route through here.
+
+set -uo pipefail
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/claude-tmux"
+[[ -d "$STATE_DIR" ]] || exit 0
+
+working=0
+idle=0
+for f in "$STATE_DIR"/*; do
+  [[ -r "$f" ]] || continue
+  # A session that has gone away leaves its file behind — SessionEnd fires when
+  # Claude exits cleanly, not when the tmux session is killed from under it.
+  # Checking liveness here keeps the count honest without a reaper.
+  name=${f##*/}
+  name=${name//%2F//}
+  tmux has-session -t "=$name" 2>/dev/null || continue
+  case "$(<"$f")" in
+    working) working=$((working + 1)) ;;
+    idle) idle=$((idle + 1)) ;;
+  esac
+done
+
+out=""
+((working)) && out+="#[fg=#e5c890]⣿ $working#[default] "
+((idle)) && out+="#[fg=#a6d189]⣀ $idle#[default] "
+printf '%s' "$out"

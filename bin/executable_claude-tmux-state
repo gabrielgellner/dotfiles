@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# claude-tmux-state - record whether the Claude session in this tmux session is
+# working or idle, so `dev` and the tmux status bar can show it.
+#
+#   claude-tmux-state working   # a prompt was submitted
+#   claude-tmux-state idle      # Claude stopped responding
+#   claude-tmux-state clear     # the session ended
+#
+# Called from the hooks in ~/.claude/settings.json. Claude inherits TMUX and
+# TMUX_PANE from the shell that launched it — including the instance that
+# claudecode.nvim starts, which is a child of `nvim --embed` in the same pane —
+# so the pane resolves to a session name and that is the key. One Claude per
+# project session is the shape `dev` and new-session already impose.
+#
+# Silent and successful outside tmux: a hook that fails is noise in the
+# transcript, and running Claude outside tmux is a perfectly ordinary thing.
+
+set -euo pipefail
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/claude-tmux"
+
+[[ -n "${TMUX:-}" ]] || exit 0
+command -v tmux >/dev/null || exit 0
+
+# The pane is the reliable handle. `display-message` without -t answers for the
+# *attached* client, which is whichever session you happen to be looking at —
+# not the one this Claude is running in.
+pane="${TMUX_PANE:-}"
+[[ -n "$pane" ]] || exit 0
+
+session=$(tmux display-message -p -t "$pane" '#{session_name}' 2>/dev/null) || exit 0
+[[ -n "$session" ]] || exit 0
+
+# Session names can contain a slash (tmux allows it); a slash in a filename
+# would silently write outside STATE_DIR.
+safe=${session//\//%2F}
+
+case "${1:-}" in
+  working | idle)
+    mkdir -p "$STATE_DIR"
+    printf '%s\n' "$1" > "$STATE_DIR/$safe"
+    ;;
+  clear)
+    rm -f "$STATE_DIR/$safe"
+    ;;
+  *)
+    echo "usage: ${0##*/} working|idle|clear" >&2
+    exit 2
+    ;;
+esac

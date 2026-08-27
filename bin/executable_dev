@@ -130,13 +130,34 @@ is_active() {
   [[ -n "$2" ]] && printf '%s\n' "$2" | grep -qxF -- "$1"
 }
 
+# Claude's state in session $1, as a coloured marker, or empty.
+#
+# Written by ~/bin/claude-tmux-state from the UserPromptSubmit / Stop hooks in
+# ~/.claude/settings.json. Absent file means no Claude is running there.
+#
+# The marker goes *before* the name, never after. fzf is given `{-1}` — the
+# last field — by both --preview and the ctrl-x kill binding, so anything
+# trailing the name would be passed to tmux as the session to preview or kill.
+#
+# Colours are the plain ANSI names rather than 256-cube indices, so kitty
+# resolves them to frappe exactly: yellow #e5c890 for working, green #a6d189
+# for idle. Same reasoning as dot_config/private_cmus/rc.
+claude_marker() {
+  local f="${XDG_STATE_HOME:-$HOME/.local/state}/claude-tmux/${1//\//%2F}"
+  [[ -r "$f" ]] || return 0
+  case "$(<"$f")" in
+    working) printf '\033[33m⣿\033[0m ' ;;
+    idle) printf '\033[32m⣀\033[0m ' ;;
+  esac
+}
+
 list_items() {
   local active s proj
   active=$(active_sessions)
 
   if [[ -n "$active" ]]; then
     while IFS= read -r s; do
-      printf '● %s\n' "$s"
+      printf '● %s%s\n' "$(claude_marker "$s")" "$s"
     done <<<"$active"
   fi
 
@@ -182,7 +203,10 @@ choice=$(
     --info=inline
 ) || exit 0
 
-name="${choice#● }"
+# The last field, which is exactly what fzf handed --preview and ctrl-x as
+# `{-1}`. Stripping the `● ` prefix alone stopped working once a Claude marker
+# could sit between it and the name.
+name="${choice##* }"
 
 if tmux has-session -t "=$name" 2>/dev/null; then
   if [[ -n "$TMUX" ]]; then

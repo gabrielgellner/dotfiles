@@ -63,6 +63,8 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `bin/executable_dev`               | `~/bin/dev`               | fzf-based tmux session/project switcher                       |
 | `bin/executable_new-session`       | `~/bin/new-session`       | Creates tmux sessions with nvim + console windows             |
 | `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
+| `bin/executable_claude-tmux-state` | `~/bin/claude-tmux-state` | Records working/idle per tmux session, from Claude's hooks    |
+| `bin/executable_claude-tmux-status`| `~/bin/claude-tmux-status`| Summarises those states for tmux's status-right               |
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
