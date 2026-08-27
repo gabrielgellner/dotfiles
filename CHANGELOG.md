@@ -1,9 +1,69 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
-## [Unreleased]
+## [v1.0.0] — 2026-08-27
 
 ### Features
+
+- Keep the waiting count permanent, and order the states by glyph height
+
+- Advertise <CR> follow-link on the guide float footer
+
+- Show the q hint on the guide float, as the scratch float does
+
+- Make codediff hunks legible, and say how many there are
+
+- Debug Rust through codelldb, which gives the program back its stdout
+
+- Rank active sessions first when searching, and steady the status bar
+
+- Three Claude states, and a status bar that always says something
+
+- Hide the preview by default, and keep utility sessions out of the list
+
+- Show which tmux sessions have Claude working or idle
+
+- Cmus in a popup on prefix + m, themed to match frappe
+
+- Review unpushed work with <leader>gu, the way gm reviews a branch
+
+- Let rules lookup reach creature abilities
+
+- Give every picker a copy key, and document the pickers
+
+- Stat the file when idle, so a buffer edited underneath you reloads
+
+- Friendly-snippets, and <C-k>/<C-j> to drive a snippet
+
+- The three Helix operations the first pass left out
+
+- Helix-style multiple cursors on <leader>v
+
+- Report what the i3 config needs, on the machine that uses it
+
+- Pin the flavor by tracking package.toml
+
+- Track the modifier remaps, macOS only
+
+- Add bash-language-server, and put three scripts within its reach
+
+- Let <leader>as reference the file from a codediff pane
+
+- Scope mkv2mp4 and ffmpeg to macOS
+
+- Give rustaceanvim a debug adapter it can find
+
+- Track .zshenv, and make its PATH portable
+
+- Track the global ignore file
+
+- Complete only recipes for just, dropping files and dirs
+
+- Route TAB completion through fzf-tab
+
+- Replace fzf's C-r with atuin
+
+- Order live sessions by recency, not alphabetically
 
 - Search hazards, gm-core and player-core for rules lookups
 
@@ -110,6 +170,136 @@ All notable changes to this dotfiles repository are documented here.
 
 ### Bug Fixes
 
+- Hide the Claude float when a chain of floats leaves focus elsewhere
+
+- Keep the multicursor colour across a colorscheme change, and drop six no-op highlights
+
+- Name the matchup motions in normal mode too
+
+- Drop grug-far's headerMaxWidth, which is not one of its options
+
+- Drop a markdown-preview option that never applied, and two stale comments
+
+- Drop the dead jinja2 formatter key, and stop using a legacy conform alias
+
+- Drop the fzf preview, which had taken ctrl-p from the list
+
+- Drop <leader>xt, which never worked
+
+- Make ]d mean diagnostics, and focus every trouble list
+
+- Lighten the codediff delete colours a step
+
+- Choose the codediff hunk colours by contrast, not by eye
+
+- Make the codediff hunk colours saturated, not just lighter
+
+- Make Rust debugging actually launch, and drop a setting that never existed
+
+- Make prefix + m toggle the cmus popup instead of stacking one
+
+- Wrap scratch notes at 100, the width the float can actually show
+
+- Make af/ac select functions and classes, as both files claimed
+
+- Evaluate .scm through racket, the interpreter that is installed
+
+- Drop catppuccin's nvim_cmp integration, which was never a real key
+
+- Start treesitter on the first buffer of a session too
+
+- Build LSP capabilities from blink, not from uninstalled nvim-cmp
+
+- Bind zk's anchor-aware gd on new notes, not only existing ones
+
+- Reparse spell_aliases.toml when it changes, and per notebook
+
+- Stop the non-tmux just float closing before you can read it
+
+- Fold accents in the markdown outline, sharing rules_lookup's table
+
+- Make <leader>np promote a scratch, as its docs already claimed
+
+- Anchor codediff's gf on the line's text, not its number
+
+- Drop the dashboard key that could only ever report failure
+
+- Stop ]d/[d claiming an operator-pending mode they do not have
+
+- Make four plugins' own commands exist before their keys are pressed
+
+- Stop reporting every ruff finding twice
+
+- Keep the compiled spell file out of the source tree
+
+- Vim.hl.on_yank, the name that is not deprecated
+
+- Group the two autocmds that were registering duplicates
+
+- Guard the last two unchecked external commands
+
+- Stop the lint trigger from eating trouble's location list
+
+- Drop a modifier remap kitty was rejecting anyway
+
+- Put ~/bin on the non-interactive path too
+
+- Switch sessions instead of detaching when one is destroyed
+
+- Give the jinja filetypes something that produces them
+
+- Keep the guides out of format-on-save, and drop the pragma
+
+- Make shellcheck actually run on shell scripts
+
+- Silence the duplicate-global warnings the dotfiles layout causes
+
+- Keep the treesitter motions out of buffers that cannot use them
+
+- Stop which-key advertising the old class motions
+
+- Do not at-mention a buffer that has no file
+
+- Both Option keys as Alt, not just the left one
+
+- Make Option send Alt, or every <M-...> mapping is dead
+
+- Guard treesitter textobject motions on a parser existing
+
+- Put brew on PATH after installing it
+
+- The font install aborted the whole run on Linux
+
+- Make the debug-adapter lookups portable and non-throwing
+
+- Install ffmpeg, which bin/mkv2mp4 requires
+
+- Point debugpy at an interpreter that exists
+
+- Prefer LLVM's lldb-dap, Apple's cannot launch
+
+- Install the regex treesitter parser noice asks for
+
+- Put ~/.cargo/bin on PATH
+
+- Verify what it installs, not a third of it
+
+- Only narrow just's completion at the first argument
+
+- Complete just with one describe call, killing the duplicates
+
+- Filter just's completion by value, not by rendered line
+
+- Stop starship's vi-mode widget wrapping itself
+
+- The promotion query needs --include-duplicates
+
+- Expand the pathspec for <leader>gd/gD
+
+- Restore ctrl-x kill in the session picker
+
+- Subject-only entries, and order the groups
+
 - Dedupe fpath, as path already is
 
 - Reparse rules caches when the files change
@@ -203,6 +393,24 @@ All notable changes to this dotfiles repository are documented here.
 
 ### Refactoring
 
+- Move the cmus popup from prefix m to prefix C-p
+
+- Drop claude-window, keeping only the in-editor integration
+
+- Drop the dashboard's Find Text, which <leader>fg already covers
+
+- Remove tpm — neither of its plugins was needed
+
+- Write the catppuccin theme out instead of fetching it
+
+- Rewrite dev in bash, targeting the version macOS ships
+
+- Share one file resolver between the Claude context maps
+
+- One key for "next change" — ]c everywhere, class to ]k
+
+- Move <leader>gd/gD from gitsigns to codediff
+
 - Stop tracking tpm's plugin directory
 
 - Vendor the one theme file instead of the whole repo
@@ -220,6 +428,48 @@ All notable changes to this dotfiles repository are documented here.
 
 ### Documentation
 
+- Record what the audit learned, and rewrite the README
+
+- Add a guide for the cmus popup and its keys
+
+- Flash's char mode does not add jump labels
+
+- Record that plenary is end of life, not merely quiet
+
+- Record the cmus rc in CLAUDE.md, and why it needs no re-add
+
+- Give the :%s table in replace.md a header like every other one
+
+- A guide for the four ways to replace, and when each is wrong
+
+- The snacks module labelled "LSP progress indicator" is statuscolumn
+
+- Tie the keymap audit counts to a protocol that reproduces them
+
+- D]c does not work, and now neither the guide nor the code says it does
+
+- Correct two cmdline completion claims that testing disproved
+
+- Note that a snippet is rarely the preselected item
+
+- A completion guide, and make the snippet keys inert outside a snippet
+
+- Record spider's silent no-op on the last word of a line
+
+- Write down window movement, and drop a claim that stopped being true
+
+- Record the tab motions codediff makes you want
+
+- Distinguish moving from extending a treesitter selection
+
+- Warn that ]h works in one codediff view and not the other
+
+- Record that only just's first argument is narrowed
+
+- Note that .luarc.json overrides the lua_ls globals list
+
+- Cover dot_claude and kitty, drop the deleted script
+
 - Name the language servers nvim actually enables
 
 - Describe the rendering that is actually configured
@@ -233,7 +483,22 @@ All notable changes to this dotfiles repository are documented here.
 - Add git and surround guides
 
 
+### Styling
+
+- Match folke's stylua config exactly
+
+- Run stylua over oil.lua, the last unformatted file
+
+- Run stylua over zk.lua
+
+- Format the guides through prettier, at 80 columns
+
+
 ### Chores
+
+- Delete the unused vendored theme
+
+- Delete the vestigial dot_gitconfig-work
 
 - Delete the unused local homebrew tap
 
