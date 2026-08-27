@@ -135,8 +135,18 @@ Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
   `markdown_outline`, `rules_lookup`.
 - `plugins/` — one file per plugin or plugin group, lazy-loaded.
 - `guides/` — hand-written markdown reference cards, opened with `<leader>?`.
-  Covers navigation, git, files, surround, the command line, and the keymap
-  conventions themselves. `gf` or `<CR>` follows a link between them.
+  Eleven of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
+  link between them, and `<C-g>` in the picker switches from matching titles to
+  grepping their contents.
+
+**Never run prettier on `dot_config/nvim/guides/`.** They are hand-formatted.
+`plugins/formatting.lua` skips them on save — prettier corrupts a code span
+whose content is a single backtick, and the row it eats (`` `` `` in
+navigation.md's jumplist table) can only be protected by a
+`<!-- prettier-ignore -->` comment that render-markdown refuses to conceal. It
+also rewrites `*emphasis*` to `_emphasis_` and re-pads tables. All three have
+happened. `prettier --check` failing on a guide is the expected state, not a
+defect to fix: some table rows are deliberately not aligned.
 
 Plugin categories: LSP + completion (blink.cmp), DAP debugging, treesitter,
 formatting/linting, UI (noice, snacks, mini), navigation (flash, spider, oil),
