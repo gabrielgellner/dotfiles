@@ -115,16 +115,37 @@ return {
       end, { desc = "Collapse to one cursor" })
     end)
 
-    -- Frappe, to match everything else. Cursor and visual are deliberately
-    -- different shades: with one colour it is hard to tell a cursor from the
-    -- selection it sits in when several overlap.
-    local hl = vim.api.nvim_set_hl
-    hl(0, "MultiCursorCursor", { link = "Cursor" })
-    hl(0, "MultiCursorVisual", { link = "Visual" })
-    hl(0, "MultiCursorSign", { link = "SignColumn" })
-    hl(0, "MultiCursorMatchPreview", { link = "Search" })
-    hl(0, "MultiCursorDisabledCursor", { reverse = true })
-    hl(0, "MultiCursorDisabledVisual", { link = "Visual" })
-    hl(0, "MultiCursorDisabledSign", { link = "SignColumn" })
+    -- One highlight, not seven. The plugin sets all of these itself, from
+    -- init.lua's setDefaultHighlights, with `default = true` and again on every
+    -- ColorScheme — and six of the seven lines that used to be here set them to
+    -- exactly what it already had. Measured: Visual, Sign, MatchPreview and the
+    -- three Disabled groups resolve identically with these lines gone.
+    --
+    -- This one does not. The plugin's default for an extra cursor is
+    -- `reverse = true`, which inverts Normal and paints it in the foreground
+    -- colour — close enough to ordinary text to be hard to spot. Linking it to
+    -- Cursor instead gives the extra cursors the same rosewater the real one
+    -- has (#f2d5d0 in frappe), so a column of them reads as cursors rather than
+    -- as inverted blocks, and stays distinct from the surface1 of the visual
+    -- selection they sit in.
+    --
+    -- Re-applied on ColorScheme, not set once. `:colorscheme` clears every
+    -- highlight group before the new scheme runs, and the plugin's own
+    -- ColorScheme callback then re-fills this one — its `default = true` only
+    -- declines to overwrite a group that still exists, and after the clear it
+    -- does not. Measured: with a one-shot set_hl here, MultiCursorCursor was
+    -- back to `reverse = true` after a `:colorscheme catppuccin-frappe`.
+    --
+    -- This registers after the plugin's augroup, because the plugin creates
+    -- it at require time and this runs in config(), so ours is the later
+    -- callback for the same event and wins.
+    local function cursor_hl()
+      vim.api.nvim_set_hl(0, "MultiCursorCursor", { link = "Cursor" })
+    end
+    vim.api.nvim_create_autocmd("ColorScheme", {
+      group = vim.api.nvim_create_augroup("multicursor_hl", { clear = true }),
+      callback = cursor_hl,
+    })
+    cursor_hl()
   end,
 }
