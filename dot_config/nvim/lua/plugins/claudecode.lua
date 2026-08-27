@@ -152,10 +152,11 @@ end
 -- the tap acts immediately, so there's no timeoutlen stall and no double-press
 -- to get right.
 --
--- Getting to normal mode inside the terminal is a separate key, <C-\> — bound
--- in config/keymaps.lua to the built-in <C-\><C-n>, which no terminal program
--- consumes. Normal mode is for scrolling and yanking Claude's output; `i` goes
--- back to typing at it.
+-- Getting to normal mode inside the terminal is a separate key, <C-x> — bound
+-- in config/keymaps.lua to the built-in <C-\><C-n>. Normal mode is for
+-- scrolling and yanking Claude's output; `i` goes back to typing at it. (It was
+-- <C-\> once; keymaps.lua has the reason it moved, which is about what a
+-- misfire does in a plain shell rather than anything inside nvim.)
 
 -- The file a buffer is "about", which is not always its name. A codediff
 -- review pane under <leader>gm is buftype=nofile with an empty name, yet it
@@ -220,27 +221,54 @@ return {
       end,
     })
 
-    -- Self-heal the one state that breaks the toggle: focused *and* hidden.
+    -- Keep the float's visibility in step with where focus actually is. Two
+    -- rules, one callback, because they are the two halves of the same
+    -- invariant: the Claude float is drawn if and only if it has focus.
     --
-    -- Any focus round-trip through a focusable window that ends back on the
-    -- Claude float leaves the WinLeave hide already applied — cursor in the
-    -- terminal, window not drawn, so you type into something you can't see. To
-    -- the plugin that window isn't visible, so <leader>ac takes simple_toggle's
-    -- *show* branch and focuses Claude instead of toggling away from it.
+    -- 1. Focused *and* hidden. Any focus round-trip through a focusable window
+    --    that ends back on the Claude float leaves the WinLeave hide already
+    --    applied — cursor in the terminal, window not drawn, so you type into
+    --    something you can't see. To the plugin that window isn't visible, so
+    --    <leader>ac takes simple_toggle's *show* branch and focuses Claude
+    --    instead of toggling away from it. Being the current window is the
+    --    definition of wanting to see it, so un-hide on entry.
     --
-    -- Being the current window is the definition of wanting to see it, so
-    -- un-hide on entry and the state can't persist.
+    -- 2. Visible *and* unfocused, which is the same fault the other way round
+    --    and the more dangerous one. WinLeave deliberately does not hide when
+    --    focus lands on a float, because a picker normally hands it straight
+    --    back — but a chain of floats need not end where it started. Measured:
+    --    from inside Claude, `<leader>?` then picking a guide then `q` leaves
+    --    focus in the ordinary window *underneath* a still-drawn full-screen
+    --    float. Claude is never left a second time, so no WinLeave fires and
+    --    nothing rechecks. Typing then edits the file behind the float: `iZZZ`
+    --    turned a buffer reading "hello" into "ZZZhello", invisibly.
+    --
+    --    Landing on another float is still exempt, for the same reason as in
+    --    WinLeave — that one may yet hand focus back.
     vim.api.nvim_create_autocmd("WinEnter", {
       group = augroup,
-      desc = "Un-hide the Claude float if focus lands in it while hidden",
+      desc = "Draw the Claude float if and only if it has focus",
       callback = function()
-        local win = vim.api.nvim_get_current_win()
-        if claude_win() ~= win then
+        local claude = claude_win()
+        if not claude then
           return
         end
+        local win = vim.api.nvim_get_current_win()
         local cfg = vim.api.nvim_win_get_config(win)
-        if cfg.relative ~= "" and cfg.hide then
-          pcall(vim.api.nvim_win_set_config, win, { hide = false })
+
+        if win == claude then
+          if cfg.relative ~= "" and cfg.hide then
+            pcall(vim.api.nvim_win_set_config, win, { hide = false })
+          end
+          return
+        end
+
+        if cfg.relative ~= "" then
+          return -- still on a float, which may hand focus back to Claude
+        end
+        local ccfg = vim.api.nvim_win_get_config(claude)
+        if ccfg.relative ~= "" and not ccfg.hide then
+          pcall(vim.api.nvim_win_set_config, claude, { hide = true })
         end
       end,
     })
@@ -283,10 +311,10 @@ return {
           -- leave insert mode with <C-\>, which no terminal program consumes.
           term_normal = false,
 
-          -- ...which leaves <C-\> as the way out of terminal mode. That's fine:
-          -- it wraps a built-in, and it's the only key here that has to be
-          -- something Claude's TUI won't eat. Note it is now a whole key rather
-          -- than a prefix, so nothing may be hung off <C-\> in this window.
+          -- ...which leaves <C-x> as the way out of terminal mode, from
+          -- config/keymaps.lua. That's fine: it wraps the built-in
+          -- <C-\><C-n>, and it is the one key here that has to be something
+          -- Claude's TUI won't eat.
           --
           -- <C-/> is the float toggle instead — one keystroke to send Claude
           -- away from inside it, matching the same key in any other buffer.
