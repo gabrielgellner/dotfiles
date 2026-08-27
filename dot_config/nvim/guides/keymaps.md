@@ -158,7 +158,7 @@ cold: n=23 x=17 o=16 i=0 s=0
 warm: n=23 x=17 o=16 i=9 s=2
 ```
 
-Counting a buffer opened _after_ several others gives higher numbers again,
+Counting a buffer opened *after* several others gives higher numbers again,
 because their plugins have loaded by then.
 
 So quote the protocol with the number, or re-derive:
