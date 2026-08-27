@@ -271,14 +271,22 @@ return {
     -- saturation step, to 75%, so a changed word stands out by being more
     -- vivid rather than by being washed paler.
     --
+    -- The red pair then went one step lighter than the green, to 4.2x and
+    -- 3.9x, because at matched luminance a dark saturated red reads as muddier
+    -- than the green does — it was blurring against mauve, which is what
+    -- `def` and every other keyword is drawn in. That is a chroma clash rather
+    -- than a contrast one (mauve had 5.59x on the darker red, well clear of
+    -- the floor), so the fix is the red being lighter and more obviously red,
+    -- not more separated in luminance.
+    --
     -- To tune, hold the contrast and move the saturation; changing lightness
     -- directly is the trap this comment exists to record. At 4.5x the ladder
     -- is #253b16 / #213c0f / #1d3c09 for 45 / 60 / 75% saturation.
     highlights = {
       line_insert = "#253b16",
       char_insert = "#204209",
-      line_delete = "#5b2324",
-      char_delete = "#751112",
+      line_delete = "#632627",
+      char_delete = "#7e1214",
     },
     diff = {
       layout = "inline",
