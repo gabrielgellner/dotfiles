@@ -34,25 +34,35 @@ for f in "$STATE_DIR"/*; do
   esac
 done
 
-# Running and idle are both always drawn, including at zero: a number that
-# appears and disappears makes the bar jump and gives you nothing to glance at
-# when the answer is "nothing is running". At zero they drop to overlay0, the
-# same grey the date uses for things you are not meant to read unless you look.
+# All three are always drawn, including at zero. A number that appears and
+# disappears makes the bar jump and gives you nothing to glance at when the
+# answer is "nothing is running"; a fixed three slots means each state always
+# occupies the same position, so the eye learns where to look rather than
+# reading left to right. At zero they drop to overlay0, the same grey the date
+# uses for things you are not meant to read unless you look.
 #
-# Waiting stays conditional. It is the one that means *go there now*, so it
-# should be absent rather than zero — an empty slot for it would train the eye
-# to skip the position it appears in.
+# Waiting used to be the exception, on the grounds that an empty slot would
+# train the eye to skip the position it appears in. The opposite turned out to
+# matter more: a slot that moves the two beside it whenever it appears is worse
+# than one that is reliably there and usually grey.
+#
+# The order is by glyph height, not by importance: ⣿ then ⣤ then ⣀ is a
+# descending staircase, so the row reads as a shape before it reads as numbers.
+# That it also runs active, waiting, idle is a coincidence worth keeping.
 if ((working)); then
   out="#[fg=#e5c890]⣿ $working#[default] "
 else
   out="#[fg=#737994]⣿ 0#[default] "
+fi
+# Pink, matching the [q] in `dev`.
+if ((waiting)); then
+  out+="#[fg=#f4b8e4]⣤ $waiting#[default] "
+else
+  out+="#[fg=#737994]⣤ 0#[default] "
 fi
 if ((idle)); then
   out+="#[fg=#a6d189]⣀ $idle#[default] "
 else
   out+="#[fg=#737994]⣀ 0#[default] "
 fi
-# Pink, matching the [q] in `dev`. Shown only when there is one, because a
-# session that has been waiting a full minute is the thing worth walking to.
-((waiting)) && out+="#[fg=#f4b8e4]⣤ $waiting#[default] "
 printf '%s' "$out"
