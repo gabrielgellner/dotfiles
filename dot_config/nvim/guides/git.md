@@ -216,6 +216,11 @@ backwards.
 **Undo a change you just made.** `<leader>gr` resets the hunk under the cursor.
 `[u` / `]u` walk Neovim's own undo states, which is the finer-grained tool.
 
+## See also
+
+- [Pickers](pickers.md) — the git sources are pickers like any other
+- [Navigation](navigation.md) — `<leader>fw` to chase a symbol out of a review
+
 ---
 
 The rules behind these bindings: [Keymap conventions](keymaps.md).

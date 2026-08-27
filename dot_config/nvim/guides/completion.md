@@ -98,3 +98,5 @@ edit the command you are writing.
 
 - [Command line](cmdline.md) — the rest of what `:` can do
 - [Shell history](shell-history.md) — the zsh side, where `Tab` is fzf-tab
+- [Pickers](pickers.md) — `<C-y>` again, accepting an item instead of a
+  completion

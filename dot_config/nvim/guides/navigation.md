@@ -373,6 +373,14 @@ return. Or split with `<leader>w-` and scroll the two independently.
 **Get to something you can't see.** Name it: `/pattern`, `]f`, `<leader>fs`, or
 `<leader>fw`. Scrolling is the last resort, not the first.
 
+## See also
+
+- [Pickers](pickers.md) — what the keys do once one of these `<leader>f` lists
+  is open
+- [Search and replace](replace.md) — where `<leader>fg` leads: quickfix,
+  `:cfdo`, and grug-far
+- [Files](files.md) — oil and the explorer, the two that are not pickers
+
 ---
 
 Why these keys are where they are, and what a capital means:

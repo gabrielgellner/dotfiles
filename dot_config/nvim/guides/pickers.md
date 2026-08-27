@@ -99,3 +99,5 @@ already starts live, so what the swap costs is the ability to turn live _off_.
   symbol out of a codediff review
 - [replace.md](replace.md) — `<C-q>` sends matches to the quickfix list, which
   is where the `:cfdo` route starts
+- [navigation.md](navigation.md) — the other half: which picker to open in the
+  first place, `<leader>ff` through `<leader>fS`

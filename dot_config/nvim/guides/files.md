@@ -108,6 +108,12 @@ the explorer shows you _many_ directories at once and oil lets you _edit_ one of
 them — so reach for the explorer when you don't know where a thing is, and oil
 when you know exactly what you want the directory to look like afterwards.
 
+## See also
+
+- [Pickers](pickers.md) — the keys shared by every picker these two hand off to
+- [Navigation](navigation.md) — `<leader>ff` and friends, for when you already
+  know the filename
+
 ---
 
 The rules behind these bindings: [Keymap conventions](keymaps.md).
