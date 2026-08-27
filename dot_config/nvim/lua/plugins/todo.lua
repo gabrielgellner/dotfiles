@@ -21,6 +21,13 @@ return {
       comments_only = true,
     },
   },
+  -- Only the snacks integration is wired up here, and that is deliberate.
+  -- todo-comments' other entry points — the trouble source, :TodoQuickFix,
+  -- :TodoLocList, the telescope extension — all route through its
+  -- Search.search, which requires plenary and, when plenary is absent, returns
+  -- without ever calling its callback. So they report nothing rather than
+  -- failing. plenary is not installed here; lua/todo-comments/snacks.lua is
+  -- the path that does not need it. See the note in plugins/trouble.lua.
   keys = {
     {
       "<leader>ft",
