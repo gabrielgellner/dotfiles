@@ -115,19 +115,18 @@ return {
     "nvim-treesitter/nvim-treesitter-textobjects",
     branch = "main",
     event = "VeryLazy",
+    -- No `select` block. It declared af/if/ac/ic/aa/ia and bound none of them:
+    -- on this branch `select.keymaps` is the old master-branch schema, the same
+    -- way `matchup` was in nvim-treesitter's own opts. `move` below is read, so
+    -- the halves genuinely differ.
+    --
+    -- It looked alive because mini.ai owns the `a`/`i` prefix and answered with
+    -- its builtins — a function *call* for `f`, and nothing at all for `c`.
+    -- plugins/mini.lua now gives mini.ai treesitter specs for both, so the keys
+    -- mean what this block always claimed they meant, through the plugin that
+    -- actually owns them. Parameter stays on mini.ai's pattern-based builtin,
+    -- which works in filetypes with no parser.
     opts = {
-      select = {
-        enable = true,
-        lookahead = true,
-        keymaps = {
-          ["af"] = { query = "@function.outer", desc = "outer function" },
-          ["if"] = { query = "@function.inner", desc = "inner function" },
-          ["ac"] = { query = "@class.outer", desc = "outer class" },
-          ["ic"] = { query = "@class.inner", desc = "inner class" },
-          ["aa"] = { query = "@parameter.outer", desc = "outer argument" },
-          ["ia"] = { query = "@parameter.inner", desc = "inner argument" },
-        },
-      },
       move = {
         enable = true,
         set_jumps = true,

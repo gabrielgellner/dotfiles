@@ -2,9 +2,11 @@
 -- top of the window so a long body never leaves you wondering what you're
 -- inside of. VS Code calls this sticky scroll.
 --
--- No keymaps for jumping to a context line: `[f` / `[c` (plugins/treesitter.lua)
+-- No keymaps for jumping to a context line: `[f` / `[k` (plugins/treesitter.lua)
 -- already move to the enclosing function/class start, which is what the
--- plugin's suggested `[c` binding does — and `[c` is taken by those very maps.
+-- plugin's suggested `[c` binding does — and `[c` is taken anyway, by gitsigns'
+-- previous-hunk motion. (This used to say `[c` was one of the treesitter maps.
+-- It never was: class is on `[k`, and `[c` reports "Git: Prev hunk".)
 return {
   "nvim-treesitter/nvim-treesitter-context",
   dependencies = { "nvim-treesitter/nvim-treesitter" },

@@ -4,9 +4,53 @@ return {
   event = "VeryLazy",
   config = function()
     -- ── mini.ai — extended text objects ────────────────────────────────────
-    -- adds i/a for: f (function), c (class), a (argument), t (tag) etc.
-    require("mini.ai").setup({
+    -- Owns `a` and `i` in operator-pending and visual mode, then reads one more
+    -- character as the textobject id. Builtins cover a (argument), t (tag),
+    -- q (quote), b (bracket) and the pairs.
+    --
+    -- `f` and `c` are overridden with treesitter specs, because the builtins do
+    -- not mean what this config has always said they mean. mini.ai's stock `f`
+    -- is a function *call*, so `vaf` on `def _slugify(name: str) -> str:`
+    -- selected the call-shaped part of that one line rather than the function.
+    -- And there is no stock `c` at all — `vac` on `class Edge:` selected the
+    -- single line under the cursor, silently.
+    --
+    -- plugins/treesitter.lua declared exactly these two, plus parameter, under
+    -- `select.keymaps`. That block never bound anything: on the textobjects
+    -- `main` branch it is the old master-branch schema, the same way `matchup`
+    -- was in nvim-treesitter's own opts (a9ce4de). The keys looked alive only
+    -- because mini.ai owns the `a`/`i` prefix and answered with its builtins.
+    --
+    -- `a` (argument) is left as mini.ai's builtin. It already works, and it
+    -- works by pattern rather than by query — so it keeps working in filetypes
+    -- that have no treesitter parser, which a @parameter spec would not.
+    local ai = require("mini.ai")
+
+    --- A treesitter textobject that stays quiet where there is no parser.
+    ---
+    --- gen_spec.treesitter() on its own raises: pressing `vaf` in a conf buffer
+    --- produced `E5108: (mini.ai) Can not get parser for buffer 1 and language
+    --- "conf"` with a traceback. Parserless filetypes are ordinary — conf,
+    --- text, gitcommit — and an error there is worse than the builtin `f` this
+    --- replaces, which merely found nothing.
+    ---@param captures table
+    local function ts_spec(captures)
+      local spec = ai.gen_spec.treesitter(captures)
+      return function(ai_type, id, opts)
+        if not vim.treesitter.get_parser(0, nil, { error = false }) then
+          return nil
+        end
+        local ok, res = pcall(spec, ai_type, id, opts)
+        return ok and res or nil
+      end
+    end
+
+    ai.setup({
       n_lines = 500,
+      custom_textobjects = {
+        f = ts_spec({ a = "@function.outer", i = "@function.inner" }),
+        c = ts_spec({ a = "@class.outer", i = "@class.inner" }),
+      },
     })
 
     -- ── mini.surround ──────────────────────────────────────────────────────
