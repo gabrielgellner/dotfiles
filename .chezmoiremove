@@ -1,25 +1,42 @@
 {{/*
   Targets to delete on apply. chezmoi does not remove a file just because it
-  left the source tree — it stops managing it — so a script that is being
-  retired needs naming here to actually leave the machines it reached.
+  left the source tree — it stops managing it — so anything being retired needs
+  naming here to actually leave the machines it already reached.
 
+  ── This whole file is temporary ────────────────────────────────────────────
+  Every entry is a one-shot cleanup, and each is a no-op the moment the machine
+  it names has applied once. chezmoi keeps no record of "already removed": the
+  list is declarative, re-asserting absence on every apply, which is why an
+  entry looks permanent when it is only *pending*.
+
+  Delete the whole file once **both** machines have applied — the Linux one
+  included, which as of 2026-08-27 has not, so all four below are still doing
+  work there and none here.
+
+  Entries are written in the past tense on purpose: each describes the thing
+  that used to exist and why it went, not a hazard that is still live.
+*/ -}}
+
+{{/*
   bin/regenerate-completions wrote _just and _chezmoi into brew's
   site-functions. Every completion there is a symlink brew maintains into the
   Cellar, so running it downgraded a self-updating completion to a static file
-  frozen at whatever version generated it. Nothing replaces it; there is
+  frozen at whatever version generated it. Nothing replaced it; there was
   nothing to generate.
-
-  Safe to delete this file once both machines have applied once.
 */ -}}
 bin/regenerate-completions
 
 {{/*
   plugins/tmux-navigator.lua declared the Neovim half of vim-tmux-navigator. Its
   four <C-hjkl> mappings moved to config/keymaps.lua as plain wincmd, and the
-  plugin went with the tmux half. Deleting the source entry stops chezmoi
-  managing the file; it does not remove it, and lazy.nvim keeps loading whatever
-  lua/plugins/*.lua it finds — so the plugin stayed installed and its lazy key
-  stubs kept shadowing the new mappings until this line existed.
+  plugin went with the tmux half.
+
+  It needed naming here rather than just deleting from the source tree, because
+  the two steps do different things. Dropping the source entry stopped chezmoi
+  managing the target; the file stayed on disk, lazy.nvim went on reading every
+  lua/plugins/*.lua it found, and so the spec was still declared — the plugin
+  stayed installed and its lazy key stubs went on shadowing the new mappings.
+  This line is what deleted the file. With no spec left, nothing reinstalls it.
 */ -}}
 .config/nvim/lua/plugins/tmux-navigator.lua
 
@@ -34,8 +51,8 @@ bin/regenerate-completions
 {{/*
   bin/claude-window opened Claude as a full-terminal tmux window on prefix + C,
   alongside the in-editor integration rather than instead of it. Only one of the
-  two is used: claudecode.nvim's float, which keeps the selection, the @-mention
-  keys and the diff view that a bare terminal has none of. The tmux binding went
-  with it.
+  two was used: claudecode.nvim's float, which keeps the selection, the
+  @-mention keys and the diff view that a bare terminal has none of. The tmux
+  binding went with it.
 */ -}}
 bin/claude-window
