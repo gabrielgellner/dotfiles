@@ -67,6 +67,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 8 active settings; the rest is commented reference  |
+| `dot_config/private_cmus/rc`       | `~/.config/cmus/rc`       | cmus: frappe colours — the one file cmus never rewrites       |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bootstrap.sh`                     | —                         | Installs the toolchain on a fresh machine; not applied        |
@@ -84,6 +85,16 @@ after touching the app. It holds three simple modifications — `caps_lock` and
 makes control and command each reachable from either hand. It is tracked
 because nothing else here can express it: `dot_config/kitty/kitty.conf` tried
 the same remap and kitty rejected it as an unknown key.
+
+`~/.config/cmus/` is the same problem solved the other way round. cmus rewrites
+`autosave` on exit — and saves *colours* into it, so a `.theme` file applies
+once and is then carried by autosave, where a later edit to the theme does
+nothing. But cmus also reads `rc` immediately afterwards and documents that it
+never writes to it, so the colours live there and are re-applied every start
+with no `re-add` dance. `.chezmoiignore` excludes everything else in that
+directory: autosave, the cache, the library index and a unix socket. The
+`private_` prefix is not decoration either — the socket is why the directory is
+0700, and chezmoi would otherwise widen it to 0755.
 
 Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
 catppuccin theme file with its upstream commit in the header, and `dot_tmux.conf`
