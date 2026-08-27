@@ -22,6 +22,14 @@ return {
       -- is true for any non-group mapping), so claiming e.g. `]b` in visual
       -- mode would invent a row for a mapping mini.bracketed only defines in
       -- normal mode.
+      --
+      -- The price is that in visual and operator-pending the bracket motions
+      -- fall back to whatever wording the plugin gave them — `d[` lists "Git:
+      -- Prev hunk", "Conflict backward", "Jump backward". That is accurate if
+      -- inconsistent, and the alternative is auditing per key which of them
+      -- exist in which modes. The matchup entries below are listed per mode
+      -- for exactly that reason: there the fallback was wrong, not just
+      -- differently worded.
       {
         mode = { "n", "x", "o" },
 
@@ -76,9 +84,18 @@ return {
         { "gr", group = "lsp" },
       },
 
+      -- A desc here *overrides* the one the mapping already carries — measured:
+      -- ]c shows "Next hunk / change" rather than gitsigns' own "Git: Next
+      -- hunk", and ]e shows "Next error" rather than "LSP: Next error". That is
+      -- what most of the entries below are for: normalising wording that reads
+      -- as a plugin's internals ("Buffer forward", "Conflict forward") into
+      -- what the key does. It also means a keymap that already has a good desc
+      -- does not need an entry here.
+      --
       -- Neovim's own gr* mappings (:h lsp-defaults). The three we override with
       -- pickers describe themselves from plugins/snacks.lua; these are the ones
-      -- left native, which carry no desc of their own.
+      -- left native. They are not desc-less — their desc is the rhs itself, so
+      -- the popup read "vim.lsp.buf.rename()" until these three lines.
       { "grn", desc = "Rename symbol" },
       { "grx", desc = "Run codelens" },
       { "gra", desc = "Code action", mode = { "n", "x" } },
@@ -88,9 +105,14 @@ return {
       -- ── vim-matchup ─────────────────────────────────────────────────────
       -- These are <Plug> mappings with no description of their own, so
       -- which-key fell back to printing the raw `<Plug>(matchup-…)` rhs.
-      { "[%", desc = "Prev unmatched open word", mode = { "o", "x" } },
-      { "]%", desc = "Next unmatched close word", mode = { "o", "x" } },
-      { "g%", desc = "Prev matching word", mode = { "o", "x" } },
+      -- All three modes, not just o/x. matchup maps these in normal mode too,
+      -- and there which-key fell back to its own presets.lua text: `]%` read
+      -- "Next unmatched group", and `g%` read "Cycle backwards through
+      -- results", which describes matchit's search cycling rather than
+      -- anything matchup does. z% below already had the full list.
+      { "[%", desc = "Prev unmatched open word", mode = { "n", "o", "x" } },
+      { "]%", desc = "Next unmatched close word", mode = { "n", "o", "x" } },
+      { "g%", desc = "Prev matching word", mode = { "n", "o", "x" } },
       { "z%", desc = "Into nearest inner block", mode = { "n", "o", "x" } },
       -- Nothing to say about these two and nowhere useful to say it: hiding
       -- them also prunes the otherwise-unnamed <C-G> prefix in insert mode.
