@@ -241,35 +241,44 @@ return {
   "esmuellert/codediff.nvim",
   cmd = "CodeDiff",
   opts = {
-    -- catppuccin frappe's own DiffAdd is #455053 and DiffDelete #514252, which
-    -- codediff uses by default. Both are about 9% saturated: against Normal's
-    -- #303447 they are a shade lighter and a different hue, but barely a
-    -- colour, so a long diff reads as grey.
+    -- Solved against the actual foregrounds, after two attempts that were not.
     --
-    -- The fix is saturation, not brightness, and blending the pastels into
-    -- base is what loses it — base is a blue-grey, so mixing toward it
-    -- desaturates whatever goes in. Mixing frappe's green into base until it
-    -- was clearly lighter gave #5f7361, which is 9.5% saturated: paler than
-    -- catppuccin's, not greener. Wrong axis.
+    -- The measurement that matters: WCAG contrast between a diff background and
+    -- the dimmest thing drawn on it. In a Python diff here that is #949cbc, the
+    -- comment colour, and it is also the most common — comments outnumbered
+    -- every other foreground on diff lines by three to one. Normal code gives
+    -- it 4.53x. catppuccin's own DiffAdd gives it 3.07x, so a diff line was
+    -- already the least readable thing on screen before anything was changed.
     --
-    -- So these keep frappe's hues (green 96°, red 359°) and set saturation and
-    -- lightness directly: 38% and 27%. That is dark enough to sit under the
-    -- normal foreground and saturated enough to read as green and red rather
-    -- than as two greys.
+    -- Both earlier attempts made that worse, because green carries 0.7152 of
+    -- the luminance formula against blue's 0.0722. Picking a green by its HSL
+    -- lightness therefore picks a much brighter colour than the same number
+    -- suggests: #405f2b reads as "lightness 27%", darker than base's 23%, and
+    -- is nearly three times its luminance — 2.68x for comments. The attempt
+    -- before that, #5f7361, managed 1.88x.
     --
-    -- To tune, move the saturation, not the lightness. The ladder at L=27%:
-    --   28%  #3f5530 / #553030   nearer catppuccin's restraint
-    --   38%  #405f2b / #5f2b2c   here
-    --   45%  #416827 / #682728
-    --   55%  #447722 / #772224   about as far as it goes before it glares
+    -- So these are chosen the other way round: fix the luminance, then spend
+    -- everything else on chroma. Each line colour sits at the luminance where
+    -- comment contrast is 4.5x — the same as normal code, so no diff line is
+    -- ever harder to read than the file around it — and takes as much
+    -- saturation as that allows, about 45% against catppuccin's 9%. They are
+    -- frappe's own hues throughout (green 96°, red 359°).
     --
-    -- Only the line colours are set. char_insert/char_delete are left nil so
-    -- codediff keeps deriving the intra-line highlights from these at
-    -- char_brightness (1.4 on a dark background), which preserves the
-    -- relationship between "this line changed" and "this part of it changed".
+    -- char_insert/char_delete are set rather than derived. Left nil, codediff
+    -- multiplies the line colour's channels by 1.4, which buys prominence with
+    -- contrast: the derived pair came out at 3.27x. These instead take a small
+    -- brightness step (to 4.2x, still at normal code's level) and a large
+    -- saturation step, to 75%, so a changed word stands out by being more
+    -- vivid rather than by being washed paler.
+    --
+    -- To tune, hold the contrast and move the saturation; changing lightness
+    -- directly is the trap this comment exists to record. At 4.5x the ladder
+    -- is #253b16 / #213c0f / #1d3c09 for 45 / 60 / 75% saturation.
     highlights = {
-      line_insert = "#405f2b",
-      line_delete = "#5f2b2c",
+      line_insert = "#253b16",
+      char_insert = "#204209",
+      line_delete = "#5b2324",
+      char_delete = "#751112",
     },
     diff = {
       layout = "inline",
