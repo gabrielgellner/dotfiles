@@ -242,23 +242,34 @@ return {
   cmd = "CodeDiff",
   opts = {
     -- catppuccin frappe's own DiffAdd is #455053 and DiffDelete #514252, which
-    -- codediff uses by default. Against Normal's #303447 that is a difference
-    -- of about twenty units in each channel — legible, but only just, and a
-    -- long diff reads as grey.
+    -- codediff uses by default. Both are about 9% saturated: against Normal's
+    -- #303447 they are a shade lighter and a different hue, but barely a
+    -- colour, so a long diff reads as grey.
     --
-    -- These are the same two colours mixed harder: frappe's green (#a6d189)
-    -- and red (#e78284) blended into base (#303446) at 0.40 rather than
-    -- catppuccin's ~0.18. Written out rather than computed so this file does
-    -- not have to reach into the colorscheme's palette at load time; the
-    -- inputs are above if the ratio wants changing.
+    -- The fix is saturation, not brightness, and blending the pastels into
+    -- base is what loses it — base is a blue-grey, so mixing toward it
+    -- desaturates whatever goes in. Mixing frappe's green into base until it
+    -- was clearly lighter gave #5f7361, which is 9.5% saturated: paler than
+    -- catppuccin's, not greener. Wrong axis.
+    --
+    -- So these keep frappe's hues (green 96°, red 359°) and set saturation and
+    -- lightness directly: 38% and 27%. That is dark enough to sit under the
+    -- normal foreground and saturated enough to read as green and red rather
+    -- than as two greys.
+    --
+    -- To tune, move the saturation, not the lightness. The ladder at L=27%:
+    --   28%  #3f5530 / #553030   nearer catppuccin's restraint
+    --   38%  #405f2b / #5f2b2c   here
+    --   45%  #416827 / #682728
+    --   55%  #447722 / #772224   about as far as it goes before it glares
     --
     -- Only the line colours are set. char_insert/char_delete are left nil so
     -- codediff keeps deriving the intra-line highlights from these at
     -- char_brightness (1.4 on a dark background), which preserves the
     -- relationship between "this line changed" and "this part of it changed".
     highlights = {
-      line_insert = "#5f7361",
-      line_delete = "#79535f",
+      line_insert = "#405f2b",
+      line_delete = "#5f2b2c",
     },
     diff = {
       layout = "inline",
