@@ -26,7 +26,7 @@ values, a term across notes, a string literal.
 
 The details worth knowing are in [cmdline.md](cmdline.md); the short version:
 
-| | |
+| Command | Does |
 | --- | --- |
 | `:%s/old/new/g` | every match in the buffer |
 | `:%s/<C-r><C-w>/new/g` | `<C-r><C-w>` pulls in the word under the cursor |
