@@ -44,11 +44,23 @@ return {
     dependencies = { "selimacerbas/live-server.nvim" },
     ft = { "markdown" },
     config = function()
+      -- Both of these are the plugin's own defaults, restated because they are
+      -- the two behaviours the keymaps below assume: one shared browser tab
+      -- across buffers, and <leader>mp meaning "show me this in a browser"
+      -- rather than "start a server I then have to open myself".
+      --
+      -- `port` is *not* set. It looked like it was auto-assigning one, but
+      -- takeover mode never consults it — init.lua returns a hardcoded 8421
+      -- before reading config.port, so `port = 0` said nothing true. (Measured:
+      -- the running server listens on 8421, plus a separate websocket port.)
+      -- It would start mattering under instance_mode = "multi", which is the
+      -- per-instance mode this config deliberately does not use.
+      --
+      -- debounce_ms is not set either; 300 was the default it was already
+      -- getting.
       require("markdown_preview").setup({
         instance_mode = "takeover",
-        port = 0,
         open_browser = true,
-        debounce_ms = 300,
       })
     end,
     keys = {

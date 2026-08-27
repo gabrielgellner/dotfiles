@@ -150,9 +150,10 @@ vim.api.nvim_create_autocmd("FileType", {
     --   <leader>zr  picker, seeded with every span under the cursor that
     --               resolves (Flame Strike *and* Strike), fuzzy over all rules
     --   <leader>zR  jump straight to the longest match, no prompt
-    -- Under the zettelkasten group, not markdown: <leader>mr and <leader>mR are
-    -- already RenderMarkdown toggle and MarkdownPreviewRefresh, and a
-    -- buffer-local map would silently shadow both.
+    -- Under the zettelkasten group, not markdown: <leader>mr is already
+    -- RenderMarkdown toggle, and a buffer-local map would silently shadow it.
+    -- (<leader>mR was the other half of this argument when preview refresh
+    -- lived there; it is on <leader>mf now, and mR is unclaimed.)
     local rules = require("config.rules_lookup")
     vim.keymap.set("n", "<leader>zr", rules.pick, { buffer = true, desc = "Rules: pick (under cursor + fuzzy all)" })
     vim.keymap.set("n", "<leader>zR", rules.goto_rule, { buffer = true, desc = "Rules: jump to name under cursor" })
@@ -169,7 +170,7 @@ vim.api.nvim_create_autocmd("FileType", {
     -- in prose.
     --
     -- <leader>mx is the same function under the `markdown` which-key group, so
-    -- it's discoverable next to mr/mp/mP/mR once <CR> has been forgotten. `x`
+    -- it's discoverable next to mr/mp/mP/mf once <CR> has been forgotten. `x`
     -- as in the x of [x].
     local checkbox = require("config.markdown_checkbox")
     vim.keymap.set({ "n", "x" }, "<CR>", checkbox.toggle, { buffer = true, desc = "Toggle checkbox" })
