@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
+## [Unreleased]
+
+### Bug Fixes
+
+- Date releases in local time, not UTC
+
+
 ## [v1.1.0] — 2026-08-27
 
 ### Features
@@ -47,11 +54,6 @@ All notable changes to this dotfiles repository are documented here.
 - List the textobjects, and note that vaf skips decorators
 
 - Say plainly that .chezmoiremove is temporary
-
-
-### Chores
-
-- V1.1.0
 
 
 ## [v1.0.0] — 2026-08-27
@@ -549,8 +551,6 @@ All notable changes to this dotfiles repository are documented here.
 
 ### Chores
 
-- V1.0.0
-
 - Delete the unused vendored theme
 
 - Delete the vestigial dot_gitconfig-work
@@ -592,21 +592,11 @@ All notable changes to this dotfiles repository are documented here.
 - Use correct neogen annotation convention name for google docstrings
 
 
-### Chores
-
-- V0.2.0
-
-
 ## [v0.1.1] — 2026-03-24
 
 ### Bug Fixes
 
 - Switch dev and new-session scripts to zsh
-
-
-### Chores
-
-- V0.1.1
 
 
 ## [v0.1.0] — 2026-03-24
@@ -646,8 +636,6 @@ All notable changes to this dotfiles repository are documented here.
 
 
 ### Chores
-
-- V0.1.0
 
 - Add MIT license
 

@@ -52,6 +52,13 @@ commit_parsers = [
   { message = "^nvim: bump lazy-lock",           group = "<!-- 10 -->Chores"   },
   { message = "^nvim/zk: auto-reindex",          group = "<!-- 00 -->Features" },
 
+  # The release commits themselves. They carry no change of their own — the
+  # version they name is already the heading above them — and they arrive a
+  # release late, since each regeneration runs before its own release commit
+  # exists. Skipped ahead of the `^chore` line below, which would otherwise
+  # catch them.
+  { message = '^chore\(release\)', skip = true },
+
   { message = "^feat",     group = "<!-- 00 -->Features"      },
   { message = "^fix",      group = "<!-- 01 -->Bug Fixes"     },
   { message = "^perf",     group = "<!-- 02 -->Performance"   },
