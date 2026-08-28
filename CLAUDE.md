@@ -35,6 +35,14 @@ Common tasks are wrapped in the `justfile` — `just diff`, `just apply`, `just 
 `just release` refuses to run on a dirty tree or an existing tag; the changelog
 recipe carries a note about commits git-cliff silently drops.
 
+A published release is final. `main` is protected against force-push and, since
+2026-08-27, `v*` is a protected tag pattern on GitLab — a delete push comes back
+"You can only delete protected tags using the web interface" (measured, with the
+tag left intact). So a release that ships something wrong is fixed by cutting
+the next version, not by moving the tag. v1.1.0 was retagged once, before the
+protection existed, because its changelog was dated in UTC; doing that again
+means unprotecting in the project settings first, on purpose.
+
 ## Per-Machine Configuration
 
 The same repo serves a macOS laptop and a Linux machine. Two mechanisms:
