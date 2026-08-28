@@ -29,7 +29,7 @@ return {
       -- and (add 1 2) returns 3. Add `#lang racket` to a .scm file if you want
       -- the load to succeed too.
       vim.g["conjure#filetype#scheme"] = "conjure.client.racket.stdio"
-      vim.g["conjure#mapping#doc_word"] = "K"
+      -- No `conjure#mapping#doc_word`: "K" is conjure's default (config.fnl:190).
     end,
   },
 
