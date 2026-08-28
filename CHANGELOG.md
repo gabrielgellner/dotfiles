@@ -1,6 +1,54 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
+## [v1.1.0] — 2026-08-28
+
+### Features
+
+- Toggle the guides picker between titles and contents
+
+
+### Bug Fixes
+
+- Move zk's filetypes to the key zk-nvim reads
+
+- Rust-analyzer has no cargo.allFeatures key
+
+- Bind gsn ourselves — mini.surround stopped mapping it
+
+- Undo prettier's reformatting of the guides
+
+- Re-request LSP folds when the first answer comes back empty
+
+
+### Refactoring
+
+- Drop two restated defaults in matchup and conjure
+
+- Drop two todo-comments keys, annotate oil's default
+
+- Drop three catppuccin integrations that were never doing work
+
+
+### Documentation
+
+- Record what the second config-key sweep found
+
+- Name the prettier bug correctly — two backticks, not one
+
+- Never run prettier on the guides
+
+- Cross-link the guides both ways
+
+- List all eleven guides in the index
+
+- Point the guide index at the contents search
+
+- List the textobjects, and note that vaf skips decorators
+
+- Say plainly that .chezmoiremove is temporary
+
+
 ## [v1.0.0] — 2026-08-27
 
 ### Features
@@ -495,6 +543,8 @@ All notable changes to this dotfiles repository are documented here.
 
 
 ### Chores
+
+- V1.0.0
 
 - Delete the unused vendored theme
 
