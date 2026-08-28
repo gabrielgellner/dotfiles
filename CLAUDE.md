@@ -145,9 +145,8 @@ whose content is *two* backticks, rewriting `` `` `` to `` ` `` plus a stray
 pair. The row it eats is the jumplist `` `` `` in navigation.md, and the only
 guard is a `<!-- prettier-ignore -->` comment that render-markdown refuses to
 conceal. (A span holding *one* backtick — files.md's `:cd` row, surround.md's
-quote row — survives; measured both ways.) It
-also rewrites `*emphasis*` to `_emphasis_` and re-pads tables. All three have
-happened. `prettier --check` failing on a guide is the expected state, not a
+quote row — survives; measured both ways.) It also rewrites `*emphasis*` to
+`_emphasis_` and re-pads tables. All three have happened. `prettier --check` failing on a guide is the expected state, not a
 defect to fix: some table rows are deliberately not aligned.
 
 Plugin categories: LSP + completion (blink.cmp), DAP debugging, treesitter,
@@ -169,6 +168,13 @@ The comments in this repo state what was *measured*, not what was expected. An
 audit through 2026-08 exercised every file in `lua/plugins/` and every module in
 `lua/config/` by driving them rather than reading them. Keep that bar: a claim
 in a comment should be something someone ran.
+
+A second sweep on 2026-08-27 checked every plugin file's configured keys against
+the plugins' own defaults — all thirty, both the `opts` ones and the nine that
+configure through `config = function()`. It found four dead keys, eight restated
+defaults worth deleting, and two worth keeping because the files say why — all
+listed under "Faults this config has had" below. `dap.lua`, `lsp.lua`,
+`haskell.lua`, `multicursor.lua` and nvim-paredit came out clean.
 
 The method is a detached tmux session — `tmux new-session -d`, drive it with
 `tmux send-keys`, read it back with `tmux capture-pane`. Two rules earned the
@@ -198,11 +204,24 @@ anything here:
 - **Configured but never run.** An option the plugin does not read, or no longer
   reads: `headerMaxWidth` (grug-far has no such option), `port = 0` (takeover
   mode returns a hardcoded 8421 before consulting it), `jinja2` (never a
-  filetype anything produces), nvim-treesitter's dropped module schema. Nothing
-  warns — the key just sits in the merged table.
+  filetype anything produces), nvim-treesitter's dropped module schema,
+  `nvim_cmp` and `treesitter` (catppuccin spells the first `cmp` and has no
+  integration for the second), `sign_hl` (todo-comments knows `signs` and
+  `sign_priority` and nothing between them), `cargo.allFeatures` (rust-analyzer
+  renamed it `cargo.features`, which takes `"all"`), `auto_attach.filetypes`
+  (zk-nvim reads `lsp.config.filetypes`). Nothing warns — the key just sits in
+  the merged table.
+
+  The worst of them was mini.surround's `update_n_lines = "gsn"`: dropped from
+  the plugin's `mappings`, so `gsn` was unmapped while a guide advertised it.
+  A dead key can take a documented keystroke down with it.
 - **Restated defaults.** Six of multicursor's seven highlight lines set what the
-  plugin had already set. Keep one only where it records a decision worth
-  seeing, and say so.
+  plugin had already set. So did catppuccin's `snacks`/`treesitter_context`
+  (auto_integrations enables anything lazy reports installed), todo-comments'
+  `signs`, matchup's `motion_enabled`, conjure's `doc_word`, rust-analyzer's
+  `chainingHints`/`typeHints`, and zk's `cmd`/`name`/`auto_attach.enabled`.
+  Keep one only where it records a decision worth seeing, and say so — flash's
+  `char.enabled` and oil's `default_file_explorer` do, which is why they stayed.
 - **Stale comments.** Keymaps move and their explanations do not follow:
   `<leader>mR` for a refresh that is now `<leader>mf`, `<C-\>` for an escape
   that is now `<C-x>`.
@@ -214,6 +233,15 @@ anything here:
   silently, with nothing to say they are the old spelling.
 - **Terminal key collisions.** `C-m` is Enter, `C-i` is Tab, `C-[` is Esc — the
   same byte, not a binding. `C-j` survives only because it is a different one.
+
+To find the first two, compare against the plugin's *own* defaults, read from
+the installed copy rather than its README — a `local defaults` table in its
+`config.lua`, `MiniX.config` before `setup()` replaces it with the merged table,
+gitsigns' `config.schema`, or `rust-analyzer --print-config-schema` straight from
+the binary. Then measure: drop the key and diff the observable state.
+`nvim_get_hl(0, {})`, `vim.fn.maparg()`, the extmarks in a buffer and the
+inlay hints a server returns all answer directly, and an unchanged dump is the
+proof that the line was doing nothing.
 
 ## Toolchain
 
