@@ -1,13 +1,6 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
-## [Unreleased]
-
-### Bug Fixes
-
-- Date releases in local time, not UTC
-
-
 ## [v1.1.0] — 2026-08-27
 
 ### Features
@@ -16,6 +9,10 @@ All notable changes to this dotfiles repository are documented here.
 
 
 ### Bug Fixes
+
+- Skip the chore(release) commits
+
+- Date releases in local time, not UTC
 
 - Move zk's filetypes to the key zk-nvim reads
 
