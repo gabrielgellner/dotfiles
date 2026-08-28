@@ -99,14 +99,21 @@ return {
               check = {
                 command = "clippy", -- clippy's lints, not just cargo check's
               },
+              -- Only the two that differ from rust-analyzer's own defaults.
+              -- `chainingHints` and `typeHints` were here set to `true`, which
+              -- is what they already are — read off the installed binary with
+              -- `rust-analyzer --print-config-schema`, not the docs.
               inlayHints = {
-                bindingModeHints = { enable = true },
-                chainingHints = { enable = true },
-                closureReturnTypeHints = { enable = "always" },
-                typeHints = { enable = true },
+                bindingModeHints = { enable = true }, -- default false
+                closureReturnTypeHints = { enable = "always" }, -- default "never"
               },
+              -- `allFeatures = true` was here and is not a key this
+              -- rust-analyzer has — it is absent from the config schema
+              -- entirely. The spelling that passes --all-features to cargo is
+              -- `features = "all"`, a string the schema documents as an
+              -- alternative to the list form (default `[]`).
               cargo = {
-                allFeatures = true,
+                features = "all",
               },
             },
           },
