@@ -136,6 +136,9 @@ brew_install eza
 brew_install bat
 brew_install yazi
 
+# system monitor
+brew_install btop
+
 # ffmpeg is only here for bin/mkv2mp4, which .chezmoiignore applies on macOS
 # alone — the Linux machine is for work and has no use for it. Both sides of
 # that decision have to agree, so the verification below is gated the same way.
@@ -322,7 +325,7 @@ missing=()
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk eilmeldung pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi starship zoxide atuin direnv lazygit just uv tree-sitter \
+         yazi btop starship zoxide atuin direnv lazygit just uv tree-sitter \
          git git-cliff shellcheck stylua prettier taplo shfmt biome \
          yamlfmt yamllint lua-language-server bash-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
