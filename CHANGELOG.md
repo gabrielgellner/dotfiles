@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
-## [v1.1.0] — 2026-08-28
+## [v1.1.0] — 2026-08-27
 
 ### Features
 
@@ -47,6 +47,11 @@ All notable changes to this dotfiles repository are documented here.
 - List the textobjects, and note that vaf skips decorators
 
 - Say plainly that .chezmoiremove is temporary
+
+
+### Chores
+
+- V1.1.0
 
 
 ## [v1.0.0] — 2026-08-27
@@ -575,7 +580,7 @@ All notable changes to this dotfiles repository are documented here.
 - Add .chezmoiignore to keep repo files out of home directory
 
 
-## [v0.2.0] — 2026-03-25
+## [v0.2.0] — 2026-03-24
 
 ### Features
 
@@ -592,7 +597,7 @@ All notable changes to this dotfiles repository are documented here.
 - V0.2.0
 
 
-## [v0.1.1] — 2026-03-25
+## [v0.1.1] — 2026-03-24
 
 ### Bug Fixes
 
@@ -604,7 +609,7 @@ All notable changes to this dotfiles repository are documented here.
 - V0.1.1
 
 
-## [v0.1.0] — 2026-03-25
+## [v0.1.0] — 2026-03-24
 
 ### Features
 

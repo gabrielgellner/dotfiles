@@ -1,8 +1,18 @@
+# `timestamp` is a Unix epoch and Tera's `date` filter formats it in UTC unless
+# told otherwise, so a release cut in the evening here was stamped with
+# tomorrow's date — v1.1.0, tagged 2026-08-27 19:16 MDT, came out "2026-08-28".
+#
+# The zone is named rather than read from the machine because Tera cannot read
+# one, and a fixed zone is the better default anyway: two machines in different
+# places then still date a release the same. The cost is that a release cut from
+# another zone is dated in this one — the v0.1.x tags were made at -0400 and
+# still land on the right day here, but a late-evening release from further east
+# would not.
 [changelog]
 header = "# Changelog\n\nAll notable changes to this dotfiles repository are documented here.\n"
 body = """
 {% if version %}\
-## [{{ version }}] — {{ timestamp | date(format="%Y-%m-%d") }}
+## [{{ version }}] — {{ timestamp | date(format="%Y-%m-%d", timezone="America/Edmonton") }}
 {% else %}\
 ## [Unreleased]
 {% endif %}\
