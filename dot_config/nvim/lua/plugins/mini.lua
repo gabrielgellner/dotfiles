@@ -63,9 +63,19 @@ return {
         find_left = "gsF",
         highlight = "gsh",
         replace = "gsr",
-        update_n_lines = "gsn",
       },
     })
+
+    -- `update_n_lines` used to be a seventh entry in that table. It is not a
+    -- mapping mini.surround reads: its `mappings` are add/delete/find/
+    -- find_left/highlight/replace plus the suffix_last/suffix_next modifiers,
+    -- and nothing else. The key sat in the merged config while `gsn` mapped to
+    -- nothing — vim.fn.maparg said so for gsn and not for the other six —
+    -- which left guides/surround.md advertising a key that did nothing.
+    --
+    -- The function is still exported, and mini's own docs suggest exactly this:
+    -- map it yourself.
+    vim.keymap.set("n", "gsn", require("mini.surround").update_n_lines, { desc = "Update surround n_lines" })
 
     -- ── mini.pairs — autopairs ─────────────────────────────────────────────
     require("mini.pairs").setup({

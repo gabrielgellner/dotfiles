@@ -85,7 +85,8 @@ backs out; nothing is changed until a match is found.
 
 - Searching is limited to 500 lines around the cursor (`n_lines`), so a
   surrounding that opens far above won't be found. `gsn` changes it for the
-  session.
+  session — a mapping this config makes itself, since mini.surround dropped
+  `update_n_lines` from its own `mappings` table.
 - `gsh{id}` is the cheap way to check what `gsd{id}` would hit before doing it.
 - Counts on text objects behave oddly here — `gsa2iw)` does not wrap two words.
   Use visual mode when the target isn't a single clean motion.
