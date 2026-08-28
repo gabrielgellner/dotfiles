@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tracked copy of the eilmeldung subscription list. The live list lives in the
+  news-flash database, which is machine-local state and not tracked. See
+  config.toml next to this file for the import and export commands.
+
+  Note for editors: XML forbids a double hyphen inside a comment, so the
+  command line flags cannot be spelled out here. An OPML holding one is
+  rejected outright by the importer, not ignored.
+
+  Exporting overwrites this file with a single unformatted line titled
+  "NewsFlash OPML export", losing this header. So the export is for checking
+  what the database actually holds; this file stays hand-maintained, and the
+  two are compared rather than one generated from the other.
+-->
+<opml version="2.0">
+  <head>
+    <title>eilmeldung feeds</title>
+  </head>
+  <body>
+    <outline text="Tech" title="Tech">
+      <outline type="rss" text="Hacker News" title="Hacker News"
+               xmlUrl="https://news.ycombinator.com/rss"
+               htmlUrl="https://news.ycombinator.com/"/>
+      <outline type="rss" text="Ars Technica" title="Ars Technica"
+               xmlUrl="https://feeds.arstechnica.com/arstechnica/index"
+               htmlUrl="https://arstechnica.com/"/>
+      <outline type="rss" text="Slashdot" title="Slashdot"
+               xmlUrl="https://rss.slashdot.org/Slashdot/slashdotMain"
+               htmlUrl="https://slashdot.org/"/>
+      <outline type="rss" text="Armin Ronacher" title="Armin Ronacher"
+               xmlUrl="https://lucumr.pocoo.org/feed.atom"
+               htmlUrl="https://lucumr.pocoo.org/"/>
+    </outline>
+    <outline text="RPG" title="RPG">
+      <outline type="rss" text="The Alexandrian" title="The Alexandrian"
+               xmlUrl="https://thealexandrian.net/feed"
+               htmlUrl="https://thealexandrian.net/"/>
+      <outline type="rss" text="The Angry GM" title="The Angry GM"
+               xmlUrl="https://theangrygm.com/feed/"
+               htmlUrl="https://theangrygm.com/"/>
+    </outline>
+  </body>
+</opml>

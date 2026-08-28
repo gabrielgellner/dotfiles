@@ -179,6 +179,16 @@ ensure_command tmux
 # notes (zk drives plugins/zk.lua and ZK_NOTEBOOK_DIR in dot_zshrc)
 ensure_command zk
 
+# RSS reader. Not in homebrew-core — it lives in the author's own tap, and
+# `brew install <tap>/<formula>/<name>` taps it on the way, so no separate
+# `brew tap` line is needed. dot_config/eilmeldung/ configures it; seeding the
+# feed list is left as a manual step, because nothing here can tell an empty
+# database from a seeded one, and whether re-importing an already-seeded
+# database duplicates every feed was never tested — only avoided:
+#
+#     eilmeldung --import-opml ~/.config/eilmeldung/feeds.opml
+ensure_command eilmeldung christo-auer/eilmeldung/eilmeldung
+
 # dev tooling
 brew_install git
 brew_install just
@@ -311,7 +321,7 @@ missing=()
 
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
-for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
+for c in tmux nvim zk eilmeldung pyrefly just-lsp ruff fd fzf rg eza bat \
          yazi starship zoxide atuin direnv lazygit just uv tree-sitter \
          git git-cliff shellcheck stylua prettier taplo shfmt biome \
          yamlfmt yamllint lua-language-server bash-language-server; do
