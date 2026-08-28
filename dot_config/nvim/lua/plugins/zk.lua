@@ -327,18 +327,21 @@ return {
       picker = "snacks_picker",
       lsp = {
         config = {
-          cmd = { "zk", "lsp" },
-          name = "zk",
+          -- Only what differs from zk-nvim's defaults: `cmd`, `name` and
+          -- `auto_attach.enabled` are already what config.lua sets.
+          --
+          -- `filetypes` lives here rather than under `auto_attach`, where it
+          -- sat doing nothing: zk.lua:12 builds the auto-attach trigger from
+          -- `lsp.config.filetypes` and reads only `enabled` out of
+          -- `auto_attach`. The value matched the default, so the restriction to
+          -- markdown was real but not ours — this makes it ours, and keeps
+          -- editing unrelated markdown (README, dotfiles) from starting the
+          -- server, since attaching also needs the notebook root below.
+          filetypes = { "markdown" },
           -- Pin the server to the resolved notebook so commands work even when
           -- run from a non-notebook cwd (otherwise `vim.lsp.start` roots at cwd
           -- and zk fails with "no notebook found").
           root_dir = root,
-        },
-        auto_attach = {
-          -- Only attaches to markdown buffers that live inside a notebook, so
-          -- editing unrelated markdown (README, dotfiles) never starts the LSP.
-          enabled = true,
-          filetypes = { "markdown" },
         },
       },
     }
