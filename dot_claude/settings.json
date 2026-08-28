@@ -3,58 +3,6 @@
     "defaultMode": "auto"
   },
   "model": "opus[1m]",
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.claude/statusline-command.sh"
-  },
-  "enabledPlugins": {
-    "lua-lsp@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true
-  },
-  "effortLevel": "medium",
-  "theme": "dark",
-  "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "autoMode": {
-    "environment": [
-      "### Org-wide",
-      "**Organization**: None configured (personal GitLab account gabrielgellner)",
-      "**Cloud provider(s)**: None configured",
-      "**Repository visibility**: assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public — origin is gitlab.com/gabrielgellner/dotfiles and was not queryable via gh; treat as private",
-      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
-      "**Secrets management**: None configured",
-      "**Default / protected branches**: default branch `main`; protection not queryable (origin is not github.com)",
-      "**CI/CD deploy targets**: None configured",
-      "**Network posture**: None configured",
-      "**Source control**: The trusted repo and its remote(s) only (no additional orgs configured) — gitlab.com/gabrielgellner/dotfiles via https",
-      "**Trusted internal domains**: None configured",
-      "**Trusted cloud buckets**: None configured",
-      "**Key internal services**: None configured",
-      "**Internal package registry**: None configured",
-      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar — note this is a dotfiles repo, so shell/editor config may carry tokens or host names",
-      "**Data retention / declassification**: None configured",
-      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (hyphen/underscore/dot-delimited — e.g. matches `prod-db`, not `producer`)",
-      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
-      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
-      "### User-specific",
-      "**Primary use of Claude Code**: maintaining a personal chezmoi dotfiles repository (zsh, tmux, neovim, starship config and helper scripts)",
-      "**Trusted repo**: /Users/gabrielgellner/.local/share/chezmoi and its remote gitlab.com/gabrielgellner/dotfiles (treated as private). Visibility scopes confidential material only: secrets and sensitive data (personal & entrusted) are never cleared into any repo by its visibility.",
-      "**Org-specific CLIs**: chezmoi (45x in this project), glab, nvim, brew, just, stylua — personal tooling, no org-specific CLI configured",
-      "**Routine under this repo**: `chezmoi diff` / `chezmoi apply` and `just` targets (apply, diff, changelog, changelog-preview, next-version, release, update) are the routine workflow in this checkout"
-    ],
-    "allow": [
-      "$defaults",
-      "Bash(chezmoi diff:*)",
-      "Bash(chezmoi apply:*)",
-      "Bash(chezmoi status:*)",
-      "Bash(just diff:*)"
-    ],
-    "soft_deny": [
-      "$defaults",
-      "Bash(chezmoi forget:*)",
-      "Bash(chezmoi destroy:*)"
-    ]
-  },
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -95,6 +43,58 @@
           }
         ]
       }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "lua-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
+  },
+  "effortLevel": "high",
+  "theme": "dark",
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Bash(chezmoi diff:*)",
+      "Bash(chezmoi apply:*)",
+      "Bash(chezmoi status:*)",
+      "Bash(just diff:*)"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(chezmoi forget:*)",
+      "Bash(chezmoi destroy:*)"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured (personal GitLab account gabrielgellner)",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public — origin is gitlab.com/gabrielgellner/dotfiles and was not queryable via gh; treat as private",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: default branch `main`; protection not queryable (origin is not github.com)",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Source control**: The trusted repo and its remote(s) only (no additional orgs configured) — gitlab.com/gabrielgellner/dotfiles via https",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar — note this is a dotfiles repo, so shell/editor config may carry tokens or host names",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (hyphen/underscore/dot-delimited — e.g. matches `prod-db`, not `producer`)",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: maintaining a personal chezmoi dotfiles repository (zsh, tmux, neovim, starship config and helper scripts)",
+      "**Trusted repo**: /Users/gabrielgellner/.local/share/chezmoi and its remote gitlab.com/gabrielgellner/dotfiles (treated as private). Visibility scopes confidential material only: secrets and sensitive data (personal & entrusted) are never cleared into any repo by its visibility.",
+      "**Org-specific CLIs**: chezmoi (45x in this project), glab, nvim, brew, just, stylua — personal tooling, no org-specific CLI configured",
+      "**Routine under this repo**: `chezmoi diff` / `chezmoi apply` and `just` targets (apply, diff, changelog, changelog-preview, next-version, release, update) are the routine workflow in this checkout"
     ]
   }
 }
