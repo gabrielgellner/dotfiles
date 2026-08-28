@@ -79,6 +79,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 6 settings + a theme include; rest is commented     |
 | `dot_config/private_cmus/rc`       | `~/.config/cmus/rc`       | cmus: frappe colours — the one file cmus never rewrites       |
 | `dot_config/eilmeldung/`           | `~/.config/eilmeldung/`   | eilmeldung RSS reader: frappe palette + the tracked feed list |
+| `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bin/executable_codelldb`          | `~/bin/codelldb`          | CodeLLDB adapter wrapper — see the caveat below               |
@@ -108,6 +109,40 @@ directory: autosave, the cache, the library index and a unix socket. The
 `private_` prefix is not decoration either — the socket is why the directory is
 0700, and chezmoi would otherwise widen it to 0755.
 
+`~/.config/btop/btop.conf` is the karabiner problem a third time, with an extra
+edge. btop rewrites the whole file on quit whenever `save_config_on_exit` is
+true, so `chezmoi re-add ~/.config/btop/btop.conf` before applying after any
+change made in its own options menu (`F2`). The rewrite is faithful — quitting
+btop and diffing showed every hand-edited value preserved — so the tracked copy
+is btop's own canonical output and `chezmoi diff` stays quiet. The edge is
+`shown_boxes`: cycling view presets with `p` *mutates* it, and the mutated value
+is what gets saved. Quitting on a preset that hides the net box wrote
+`shown_boxes = "cpu proc"` into the file (measured, twice). So quit from
+preset 0 before re-adding, or fix the line up by hand.
+
+`disks_filter = "/ /System/Volumes/Data"` in that file is macOS-shaped and is
+deliberately *not* a template: `chezmoi re-add` refuses to overwrite templates,
+which would break the workflow above for the sake of one line. On macOS the
+filter earns its place — `use_fstab` and `only_physical` are both useless there,
+because `VM`, `Preboot`, `Update`, `xarts` and `iSCPreboot` are genuine APFS
+volumes on the one device and btop lists all five (measured with `use_fstab`
+both ways). On Linux the line means "show only `/`", which is wrong if that
+machine has a separate `/home`; widen it there.
+
+The graph settings in it are the point of the file. `mem_graphs = false` turns
+the memory box from braille traces into labelled `■■■` meters, `show_io_stat`
+drops the `IO%` row under each disk, `proc_cpu_graphs` drops the per-process
+sparkline column, and `cpu_single_graph` collapses the CPU box's mirrored pair
+into one. The CPU box's main graph and the whole net box cannot be turned into
+meters — `btop --default-config` (1.4.7) has no option for it, so the only knobs
+there are the graph symbol and hiding the box, which is what the second and
+third presets do.
+
+Driving btop to check any of this is easy in a way eilmeldung is not:
+`-c <file>` and `--themes-dir <dir>` take throwaway copies, so an A/B is two
+`tmux new-session -d` calls and a `capture-pane` diff, and `ctrl+r` reloads the
+config from disk without restarting.
+
 `~/bin/codelldb` is a wrapper, not a symlink, and that is load-bearing.
 CodeLLDB finds `liblldb` relative to its own argv[0], so a link in `~/bin` sends
 it looking for `~/lldb/lib/liblldb.dylib` and it aborts; the wrapper passes
@@ -118,7 +153,9 @@ Code `.vsix` and Homebrew has no formula. It exists because the alternative,
 in `dot_config/nvim/lua/plugins/rust.lua` has the detail.
 
 Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
-catppuccin theme file with its upstream commit in the header, and `dot_tmux.conf`
+catppuccin theme file with its upstream commit in the header,
+`dot_config/btop/themes/` carries one the same way (btop ships forty themes of
+its own and none of them is catppuccin), and `dot_tmux.conf`
 carries tmux's frappe colours inline — that was a tpm plugin, 3.4MB of shell to
 produce a dozen `set -g` lines, so the resolved output was read off the server
 and pasted in. There is no tmux plugin manager any more: tpm's only other plugin
@@ -295,8 +332,8 @@ proof that the line was doing nothing.
 ## Toolchain
 
 Installed by `bootstrap.sh`, which skips anything already present. Core:
-`tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `zoxide`,
-`atuin`, `starship`, `direnv`, `lazygit`, `zk`, `just`, `git-cliff`,
+`tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `btop`,
+`zoxide`, `atuin`, `starship`, `direnv`, `lazygit`, `zk`, `just`, `git-cliff`,
 `tree-sitter`, `uv` (Python).
 
 Language servers: `lua-language-server`, `pyrefly`, `ruff`, `just-lsp`.
