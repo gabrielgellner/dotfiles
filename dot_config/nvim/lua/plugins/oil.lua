@@ -2,7 +2,9 @@ return {
   "stevearc/oil.nvim",
   lazy = false, -- load immediately so you can open dirs from the shell
   opts = {
-    -- use oil as the default file explorer (replaces netrw)
+    -- Already oil's default (oil/config.lua:4). Kept because it is the whole
+    -- reason netrw never appears — worth reading here rather than inferring
+    -- from oil's absence of complaint.
     default_file_explorer = true,
     delete_to_trash = true,
     skip_confirm_for_simple_edits = true,

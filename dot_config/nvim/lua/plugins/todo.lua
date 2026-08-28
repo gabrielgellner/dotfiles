@@ -3,8 +3,13 @@ return {
   event = "BufReadPost",
   dependencies = { "folke/snacks.nvim" },
   opts = {
-    signs = true,
-    sign_hl = "DiagnosticSignWarn",
+    -- No `signs` here: true is the default. No `sign_hl` either — it is not a
+    -- key todo-comments reads. Its config knows `signs` and `sign_priority`
+    -- and nothing between them; the sign highlight comes from the `TodoSign`
+    -- group it builds per keyword. Setting it changed nothing: with
+    -- `sign_hl = "DiagnosticSignWarn"` the extmarks still came back
+    -- `sign_hl_group = TodoSignTODO`, and every Todo* highlight group was
+    -- identical with the key and without it.
     keywords = {
       FIX = { icon = " ", color = "error", alt = { "FIXME", "BUG", "FIXIT", "ISSUE" } },
       TODO = { icon = " ", color = "info" },
