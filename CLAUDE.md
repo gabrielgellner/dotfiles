@@ -220,7 +220,7 @@ defect to fix: some table rows are deliberately not aligned.
 
 Plugin categories: LSP + completion (blink.cmp), DAP debugging, treesitter,
 formatting/linting, UI (noice, snacks, mini), navigation (flash, spider, oil),
-git (gitsigns, codediff), Rust, Haskell, Scheme (conjure, paredit).
+git (gitsigns, codediff), Rust, Scheme (conjure, paredit).
 
 ## Keymap Conventions
 
@@ -243,7 +243,7 @@ the plugins' own defaults — all thirty, both the `opts` ones and the nine that
 configure through `config = function()`. It found four dead keys, eight restated
 defaults worth deleting, and two worth keeping because the files say why — all
 listed under "Faults this config has had" below. `dap.lua`, `lsp.lua`,
-`haskell.lua`, `multicursor.lua` and nvim-paredit came out clean.
+`multicursor.lua` and nvim-paredit came out clean.
 
 The method is a detached tmux session — `tmux new-session -d`, drive it with
 `tmux send-keys`, read it back with `tmux capture-pane`. Two rules earned the

@@ -28,7 +28,6 @@ return {
         "rust",
         "scheme",
         "racket",
-        "haskell",
       },
     },
     config = function(_, opts)

@@ -99,8 +99,7 @@ so nesting the groups under one entry covers them all.
 
 **Naming a group costs nothing.** which-key prunes a group node with no keymaps
 beneath it, so plugin groups can be declared unconditionally and appear only
-where that plugin loaded — that's how conjure's `\e`/`\l`/… and haskell-tools'
-`<leader>h`/`<leader>r` are handled.
+where that plugin loaded — that's how conjure's `\e`/`\l`/… are handled.
 
 **Desc-only entries are _not_ pruned.** Claiming `]b` in visual mode would
 invent a row for a mapping that only exists in normal mode. Only groups get the

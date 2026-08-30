@@ -42,6 +42,12 @@ return {
         { "<leader>dt", group = "debug test" },
         { "<leader>f", group = "find/pick" },
         { "<leader>g", group = "git" },
+        -- codediff's own stage/unstage/discard keys, buffer-local to its diff
+        -- buffers. The haskell group used to sit on this prefix and hid them;
+        -- with it gone the popup showed `h` as "+3 keymaps" there (measured).
+        -- Same pruning argument as the rest: it appears only where codediff has
+        -- opened a buffer.
+        { "<leader>h", group = "hunk" },
         { "<leader>j", group = "just" },
         { "<leader>l", group = "lsp" },
         { "<leader>m", group = "markdown" },
@@ -53,15 +59,6 @@ return {
         { "<leader>w", group = "window" },
         { "<leader>x", group = "diagnostics/quickfix" },
         { "<leader>z", group = "zettelkasten" },
-
-        -- ── haskell-tools, in haskell buffers ─────────────────────────────
-        -- Two leader prefixes that exist only where haskell-tools has attached,
-        -- and that it does not name — so the leader popup showed h and r as
-        -- "+2 keymaps" and "+3 keymaps" there. Same pruning argument as the
-        -- conjure groups below: harmless everywhere else, because a group with
-        -- nothing under it is dropped.
-        { "<leader>h", group = "haskell" },
-        { "<leader>r", group = "repl" },
 
         -- ── Conjure, in lisp buffers ──────────────────────────────────────
         -- conjure hangs ~30 mappings off <localleader> in scheme, racket,

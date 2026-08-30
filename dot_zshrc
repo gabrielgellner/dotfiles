@@ -157,7 +157,7 @@ SAVEHIST=10000
 # Sourced unguarded on purpose. The guarded form failed *silently*: a missing
 # plugin meant no autosuggestions and no explanation for it. The tool evals
 # below — fzf, starship, zoxide, direnv — already fail loudly, so this matches
-# them. ghcup keeps its guard further down, because that one really is optional.
+# them.
 source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # Prompt
@@ -229,9 +229,6 @@ bindkey -M vicmd '/' vi-history-search-backward
 
 # use direnv for automatic .env loading
 eval "$(direnv hook zsh)"
-
-# ghcup (Haskell toolchain: ghc, cabal, hls)
-[ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env"
 
 # zsh-syntax-highlighting (must be last)
 source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
