@@ -2,7 +2,7 @@
 return {
   {
     "mrcjkb/rustaceanvim",
-    version = "^5",
+    version = "^9",
     lazy = false,
     config = function()
       -- Two adapters can drive Rust debugging, and rustaceanvim prefers them
@@ -87,6 +87,20 @@ return {
       vim.g.rustaceanvim = {
         dap = dap_fallback(),
         server = {
+          -- v6.0.0 stopped auto-registering completion capabilities from
+          -- blink/cmp ("use :h vim.lsp.config instead"), so rust-analyzer
+          -- would otherwise start with Neovim's own defaults. Measured on
+          -- v5.26.0 before the bump: the client advertised resolveSupport for
+          -- five properties, blink's `detail` and `data` on top of Neovim's
+          -- three. Losing them means the server sends every candidate's type
+          -- signature up front instead of deferring it to
+          -- completionItem/resolve. `(nil, true)` for the same reason as in
+          -- plugins/lsp.lua: the first argument is applied *last* and would
+          -- overwrite blink's table.
+          capabilities = (function()
+            local ok, blink = pcall(require, "blink.cmp")
+            return ok and blink.get_lsp_capabilities(nil, true) or nil
+          end)(),
           settings = {
             ["rust-analyzer"] = {
               -- checkOnSave is a *boolean* in this rust-analyzer ("Run the
