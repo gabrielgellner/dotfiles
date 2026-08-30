@@ -40,5 +40,5 @@
   "vim-matchup": { "branch": "master", "commit": "5e3c4a3274a9766aee520caebb52572c007fc4f8" },
   "vim-racket": { "branch": "master", "commit": "2c7ec0f35a2ad1ca00305e5d67837bc1f1d4b6cc" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" },
-  "zk-nvim": { "branch": "main", "commit": "922134d8f95f0169bb572b09f2fa643573cb51f8" }
+  "zk-nvim": { "branch": "main", "commit": "ee30512f471ace6a1a228354ce63adcb9b445350" }
 }
