@@ -5,10 +5,12 @@ opt.number = true
 opt.relativenumber = true
 opt.signcolumn = "yes" -- always show, prevents layout shifts
 opt.cursorline = true
--- Deliberately generous: 'scrolloff' is the runway <C-e>/<C-y> get to move the
--- viewport before the cursor is dragged along, so a small value makes
--- "scroll without moving the cursor" barely work at all. 8 also keeps a few
--- lines of context visible past the cursor when reading downward.
+-- Deliberately small. A big 'scrolloff' *costs* <C-e>/<C-y> runway rather than
+-- buying it: the cursor is dragged once it comes within scrolloff lines of the
+-- edge, so every line of padding is a line the viewport can no longer move
+-- past it. Measured from a centred cursor in a 28-line text area, 3<C-e> a
+-- press: scrolloff=2 gives 3 presses before the cursor moves, scrolloff=8
+-- gives 1. 8 also ate enough of the screen that the usable area felt wrong.
 opt.scrolloff = 2
 opt.sidescrolloff = 2
 opt.wrap = false

@@ -24,8 +24,9 @@ map("n", "<C-d>", "<C-d>zz", { desc = "Half page down (centred)" })
 map("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centred)" })
 
 -- Move the *window* while the cursor stays put on its buffer line — it only
--- gets dragged once 'scrolloff' runs out, which is why that's set to 8. This is
--- as close as vim gets to scrolling without moving the cursor (:h scroll).
+-- gets dragged once it comes within 'scrolloff' lines of the edge, which is
+-- part of why that's set low (2, see options.lua). This is as close as vim
+-- gets to scrolling without moving the cursor (:h scroll).
 -- Three lines a press; one is too slow to be worth the keystroke. The natural
 -- follow-up is H/M/L, which place the cursor on the top/middle/bottom of
 -- whatever you just scrolled into view.

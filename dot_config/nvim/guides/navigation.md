@@ -7,8 +7,8 @@ scrolled to something that was already on screen".
 
 ## Viewport only — cursor stays put
 
-The cursor holds its buffer line; it only gets dragged once `scrolloff` (8 here)
-runs out.
+The cursor holds its buffer line; it only gets dragged once it comes within
+`scrolloff` lines (2 here) of the window edge.
 
 | Key               | Does                                             |
 | ----------------- | ------------------------------------------------ |
@@ -17,8 +17,10 @@ runs out.
 | `z<CR>` `z.` `z-` | same, but also jump to first non-blank           |
 
 `<C-e>`/`<C-y>` are the answer to "scroll without moving the cursor". Vim has no
-way to fully decouple the two — the cursor must stay on screen — so a generous
-`scrolloff` is what buys the runway.
+way to fully decouple the two — the cursor must stay on screen — so the runway
+is however far the cursor sits from the edge it's heading for, *minus*
+`scrolloff`. A small `scrolloff` is what buys that runway: from a centred cursor
+in a 28-line window, 2 gives three presses before the cursor moves, 8 gives one.
 
 ## Cursor only — within what's already on screen
 
