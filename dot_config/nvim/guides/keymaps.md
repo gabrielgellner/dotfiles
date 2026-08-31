@@ -141,22 +141,30 @@ things earlier passes had called clean:
 - `<leader>z` has 5 mappings in a Lua buffer and 14 in markdown — the extra 9
   are buffer-local, from the 12 lazy keys across `plugins/zk.lua`,
   `plugins/markdown.lua` and `plugins/snacks.lua` that carry `ft = "markdown"`.
-- A scheme buffer holds 146 buffer-local mappings against a Lua buffer's 67.
+- A scheme buffer holds 163 buffer-local mappings against a Lua buffer's 80.
 - blink's 9 insert keymaps are applied **buffer-locally**, and only once you
   have entered insert mode in that buffer. Count before doing so and you get
   zero, which is what makes them easy to miss entirely.
 
-Those figures assume a protocol, and change without it: a fresh Neovim, one
-file opened, insert mode visited once. The same Lua buffer counts 56 before
-that insert-mode visit and 67 after, and the difference is entirely blink's —
-insert goes 0 to 9 and select 0 to 2, while normal, visual and
-operator-pending do not move at all:
+Those figures assume a protocol, and change without it. Pin all of it: a fresh
+Neovim, one Lua file opened *outside* a git repo so gitsigns never attaches,
+`lua_ls` attached, insert mode visited once. That buffer counts 68 before the
+insert-mode visit and 80 after — insert goes 0 to 10 and select 0 to 2, while
+normal, visual and operator-pending do not move at all:
 
 ```
-cold: n=23 x=17 o=16 i=0 s=0
-warm: n=23 x=17 o=16 i=9 s=2
+cold: n=35 x=17 o=16 i=0 s=0
+warm: n=35 x=17 o=16 i=10 s=2
 ```
 
+Nine of those ten insert maps are blink's; the tenth is which-key's `<C-r>`
+registers trigger. which-key is most of the normal-mode count too — 12 of the
+35 are its triggers, and subtracting them gives the 23 an earlier pass here
+recorded, back when it did not install buffer-local ones. Counting the triggers
+is the right default: they are what a keystroke actually hits.
+
+Attachment moves these more than anything else does. The same file *inside* a
+git repo counts 46 in normal mode rather than 35, the extra 11 being gitsigns'.
 Counting a buffer opened *after* several others gives higher numbers again,
 because their plugins have loaded by then.
 
