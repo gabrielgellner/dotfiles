@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # bootstrap.sh — install all tools assumed by the dotfiles
-# Safe to re-run: skips anything already present.
+#
+# Safe to re-run, and meant to be: it skips anything already present and
+# installs only the gaps, so pointing it at a half-provisioned machine fills
+# that machine in. A failed install does not stop the run — it is recorded,
+# the remaining installs still happen, and the script exits non-zero naming
+# what failed. See record_failure below.
 
 set -euo pipefail
 
@@ -9,6 +14,29 @@ set -euo pipefail
 green() { printf '\033[1;32m%b\033[0m\n' "$*"; }
 yellow() { printf '\033[1;33m%b\033[0m\n' "$*"; }
 blue() { printf '\033[1;34m%b\033[0m\n' "$*"; }
+
+# Install failures are collected, not fatal.
+#
+# `set -euo pipefail` otherwise means the first failing install ends the run,
+# and everything after it never happens — including the verification pass at
+# the bottom, which is the part that says what a machine is still missing. That
+# is the wrong shape for a script whose whole job is to fill in the gaps on a
+# partially set-up machine: one renamed formula or one flaky download should
+# not stop the other forty from installing.
+#
+# This is the same fault the font cask had below, where a `--cask` that
+# linuxbrew rejects "aborted the entire bootstrap on the Linux machine before
+# it reached anything else". That was fixed for that one line by gating it on
+# the OS; this fixes the shape for every install.
+#
+# Already-present tools were never the problem — they are skipped, and always
+# have been. A failed *install* is the thing worth reporting, so it is reported:
+# named in the summary, and the run exits non-zero.
+failed=()
+record_failure() {
+    failed+=("$1")
+    yellow "  FAILED: $1 (continuing)"
+}
 
 # macOS-only bits are gated on this. Kept as one flag rather than repeated
 # `uname` calls so the verification pass at the bottom agrees with the install
@@ -22,7 +50,7 @@ brew_install() {
         yellow "  brew: $pkg already installed, skipping"
     else
         green "  brew: installing $pkg"
-        brew install "$pkg"
+        brew install "$pkg" || record_failure "brew:$pkg"
     fi
 }
 
@@ -42,7 +70,7 @@ ensure_command() {
         yellow "  $cmd already present ($(command -v "$cmd")), skipping"
     else
         green "  brew: installing $formula"
-        brew install "$formula"
+        brew install "$formula" || record_failure "brew:$formula"
     fi
 }
 
@@ -54,7 +82,7 @@ cask_install() {
         yellow "  cask: $pkg already installed, skipping"
     else
         green "  cask: installing $pkg"
-        brew install --cask "$pkg"
+        brew install --cask "$pkg" || record_failure "cask:$pkg"
     fi
 }
 
@@ -64,7 +92,7 @@ uv_tool_install() {
         yellow "  uv tool: $pkg already installed, skipping"
     else
         green "  uv tool: installing $pkg"
-        uv tool install "$pkg"
+        uv tool install "$pkg" || record_failure "uv:$pkg"
     fi
 }
 
@@ -227,18 +255,23 @@ uv_tool_install djlint
 blue "\nChecking Rust toolchain..."
 if ! command -v rustup &>/dev/null; then
     green "Installing rustup..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-    source "$HOME/.cargo/env"
+    if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; then
+        source "$HOME/.cargo/env"
+    else
+        record_failure "rustup"
+    fi
 else
     yellow "rustup already installed, skipping"
 fi
 
 for component in rust-analyzer clippy rustfmt; do
-    if rustup component list --installed | grep -q "^${component}"; then
+    if ! command -v rustup &>/dev/null; then
+        yellow "rustup unavailable, skipping $component"
+    elif rustup component list --installed 2>/dev/null | grep -q "^${component}"; then
         yellow "$component already installed, skipping"
     else
         green "Installing $component..."
-        rustup component add "$component"
+        rustup component add "$component" || record_failure "rustup:$component"
     fi
 done
 
@@ -270,14 +303,17 @@ else
     else
         green "Installing codelldb $CODELLDB_VERSION ($CODELLDB_ARCH)..."
         CODELLDB_VSIX="$(mktemp -t codelldb).vsix"
-        curl -fsSL -o "$CODELLDB_VSIX" \
-            "https://github.com/vadimcn/codelldb/releases/download/v${CODELLDB_VERSION}/codelldb-${CODELLDB_ARCH}.vsix"
         mkdir -p "$CODELLDB_DIR"
-        unzip -q -o "$CODELLDB_VSIX" -d "$CODELLDB_DIR"
+        if curl -fsSL -o "$CODELLDB_VSIX" \
+                "https://github.com/vadimcn/codelldb/releases/download/v${CODELLDB_VERSION}/codelldb-${CODELLDB_ARCH}.vsix" \
+           && unzip -q -o "$CODELLDB_VSIX" -d "$CODELLDB_DIR"; then
+            # The zip does not preserve the execute bit on every platform.
+            chmod +x "$CODELLDB_DIR/extension/adapter/codelldb" \
+                     "$CODELLDB_DIR"/extension/lldb/bin/* 2>/dev/null || true
+        else
+            record_failure "codelldb"
+        fi
         rm -f "$CODELLDB_VSIX"
-        # The zip does not preserve the execute bit on every platform.
-        chmod +x "$CODELLDB_DIR/extension/adapter/codelldb" \
-                 "$CODELLDB_DIR"/extension/lldb/bin/* 2>/dev/null || true
     fi
 fi
 
@@ -292,7 +328,7 @@ if [[ -s "$ATUIN_DB" ]]; then
     yellow "atuin history db already exists, skipping import"
 else
     green "Importing existing shell history into atuin..."
-    atuin import auto
+    atuin import auto || record_failure "atuin:import"
 fi
 
 # ── yazi flavors ──────────────────────────────────────────────────────────────
@@ -307,10 +343,10 @@ elif [[ -f "$HOME/.config/yazi/package.toml" ]]; then
     # relationship lazy-lock.json has with :Lazy install. chezmoi apply runs
     # before this script (see README), so the file is already in place.
     green "Installing yazi packages from the pinned package.toml..."
-    ya pkg install
+    ya pkg install || record_failure "yazi:packages"
 else
     green "Installing catppuccin-frappe flavor via ya pkg..."
-    ya pkg add yazi-rs/flavors:catppuccin-frappe
+    ya pkg add yazi-rs/flavors:catppuccin-frappe || record_failure "yazi:flavor"
 fi
 
 # ── Verify ────────────────────────────────────────────────────────────────────
@@ -384,5 +420,17 @@ else
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
+
+# Two different things, reported apart. `missing` is a statement about the
+# machine and can be benign — a tool this run installed may only need a new
+# shell to appear on PATH. `failed` is a statement about this run: something
+# was attempted and did not work, which is the one condition worth a non-zero
+# exit. Everything else still got installed, because that is the point.
+if (( ${#failed[@]} )); then
+    yellow "\nFailed to install: ${failed[*]}"
+    yellow "The rest of the run continued; re-run to retry just these."
+    blue "\nOpen a new shell or run: exec zsh"
+    exit 1
+fi
 
 blue "\nAll done. Open a new shell or run: exec zsh"

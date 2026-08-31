@@ -341,7 +341,11 @@ proof that the line was doing nothing.
 
 ## Toolchain
 
-Installed by `bootstrap.sh`, which skips anything already present. Core:
+Installed by `bootstrap.sh`, which skips anything already present and installs
+only the gaps — run it on a half-provisioned machine to fill it in. An install
+that *fails* is the error it reports: the run continues, and ends non-zero
+naming what failed, rather than aborting at the first one and leaving the rest
+uninstalled. Core:
 `tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `btop`,
 `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`, `zk`, `just`, `git-cliff`,
 `tree-sitter`, `uv` (Python).
