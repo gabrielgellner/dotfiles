@@ -154,8 +154,8 @@ in `dot_config/nvim/lua/plugins/rust.lua` has the detail.
 
 Colour themes are pinned, not fetched. `dot_config/kitty/` carries one vendored
 catppuccin theme file with its upstream commit in the header,
-`dot_config/btop/themes/` carries one the same way (btop ships forty themes of
-its own and none of them is catppuccin), and `dot_tmux.conf`
+`dot_config/btop/themes/` carries one the same way (btop 1.4.7 ships 41 themes
+of its own and none of them is catppuccin), and `dot_tmux.conf`
 carries tmux's frappe colours inline — that was a tpm plugin, 3.4MB of shell to
 produce a dozen `set -g` lines, so the resolved output was read off the server
 and pasted in. There is no tmux plugin manager any more: tpm's only other plugin
