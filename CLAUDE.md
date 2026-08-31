@@ -277,6 +277,14 @@ features replace the harness:
   can be opened with no keystrokes at all. Two throwaway config dirs passed to
   `--config-dir`, differing in one line, gave a clean A/B of `shadows`: the
   same help float with 141 `░` glyphs and with none.
+
+  Re-checked on 1.7.3 and *not* reproduced: `startup_commands = ["help"]`,
+  `["cmd"]` and the `?` key each left the main view alone, so both arms of the
+  A/B measured zero `░` and the comparison said nothing. The command name that
+  opened the float was never written down, which is the gap — `shadows` is
+  still a real field (it is in the accepted-field list the parser prints), so
+  this is a lost recipe rather than a wrong claim. Find the name before
+  trusting the A/B again.
 - its config parser **rejects unknown fields** — `shadowz = false` aborts at
   `src/config/mod.rs:440` and prints every accepted field name. That is the
   opposite of the nvim plugins below, where a misspelled key just sits in the
