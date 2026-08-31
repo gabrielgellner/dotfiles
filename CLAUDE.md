@@ -336,7 +336,10 @@ Installed by `bootstrap.sh`, which skips anything already present. Core:
 `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`, `zk`, `just`, `git-cliff`,
 `tree-sitter`, `uv` (Python).
 
-Language servers: `lua-language-server`, `pyrefly`, `ruff`, `just-lsp`.
+Language servers: `lua-language-server`, `bash-language-server`, `pyrefly`,
+`ruff`, `just-lsp` — the five `plugins/lsp.lua` enables. bash-language-server
+shells out to `shellcheck` and serves its findings as code actions, which is
+why `plugins/lint.lua` has no `sh` entry.
 `basedpyright` is installed but deliberately *not* enabled in nvim — it is the
 CI/`just` checker, while pyrefly does the editor work.
 
