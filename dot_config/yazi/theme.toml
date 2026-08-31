@@ -1,3 +1,12 @@
-# Flavor managed by bootstrap.sh:  ya pkg add yazi-rs/flavors:catppuccin-frappe
+# This file *selects* the flavor; package.toml beside it pins the commit, and
+# the flavor's own files under .config/yazi/flavors are fetched rather than
+# tracked (.chezmoiignore). Both halves are needed: the pin does nothing
+# without this line, and this line finds nothing without the fetch.
+#
+# bootstrap.sh installs it with `ya pkg install`, which honours that pin. This
+# comment used to name `ya pkg add` instead — that is the fallback branch, run
+# only when package.toml is missing, and it takes whatever revision is current.
+# To move the pin deliberately: `ya pkg upgrade`, then
+# `chezmoi re-add ~/.config/yazi/package.toml`.
 [flavor]
 dark = "catppuccin-frappe"

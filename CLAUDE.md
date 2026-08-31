@@ -165,8 +165,10 @@ divided into windows (`prefix + 1/2/3`), never panes. `.tmux/plugins` stays in
 
 yazi sits between the two. `dot_config/yazi/package.toml` **is** tracked: it
 names the flavor and the commit it is pinned to, so `ya pkg install` reproduces
-the tree, which is the relationship `lazy-lock.json` has with lazy.nvim. The
-fetched content under `.config/yazi/flavors` is ignored. To move the pin,
+the tree, which is the relationship `lazy-lock.json` has with lazy.nvim.
+`theme.toml` is tracked alongside it and is what actually *selects* that flavor
+— the pin does nothing on its own. The fetched content under
+`.config/yazi/flavors` is ignored. To move the pin,
 `ya pkg upgrade` and then `chezmoi re-add ~/.config/yazi/package.toml`, the same
 two steps as `:Lazy update` followed by committing the lockfile.
 
