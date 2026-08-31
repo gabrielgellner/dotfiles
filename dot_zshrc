@@ -37,10 +37,14 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 # self-updating completion with one frozen at the version it was generated from.
 
 # 1. fpath first
-# -U for the same reason as `path` further down: this directory is added by
-# /etc/zshrc, by brew shellenv and by kitty's shell integration as well as here,
-# so without it fpath carried six copies of site-functions and compinit walked
-# each one. Declared before the assignment so that one is deduped too.
+# -U for the same reason as `path` further down. Two things add this directory:
+# `brew shellenv` above and the line below. That alone is two copies, measured
+# from a clean environment with this line removed. It is three in any shell
+# started from another one, because brew shellenv *exports* FPATH, so the child
+# inherits the entry and then both writers add it again — which is the common
+# case here, every shell being a tmux pane. Each further level of nesting adds
+# one more. compinit walks every copy. Declared before the assignment so that
+# one is deduped too.
 typeset -U fpath
 fpath=("$BREW_PREFIX/share/zsh/site-functions" $fpath)
 
@@ -145,7 +149,10 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --icons --color=alwa
 # Options
 # No COMPLETE_ALIASES: it stops an alias being expanded before completion, so
 # `ll --<TAB>` offered nothing where eza's own flags were wanted. No
-# APPEND_HISTORY either — SHARE_HISTORY implies it.
+# APPEND_HISTORY either, but not because SHARE_HISTORY implies it — it is on by
+# default (`zsh -f` reports it on), so setting it would restate a default. What
+# SHARE_HISTORY documents implying is INC_APPEND_HISTORY, which the manual says
+# should be turned *off* while SHARE_HISTORY is in effect; measured off here.
 setopt SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_SAVE_NO_DUPS HIST_IGNORE_SPACE
 
 # History

@@ -13,11 +13,17 @@
 # means just finished and waiting means you have not come back yet, which is
 # the one worth walking to.
 #
-# Which events exist here was measured, not read off the schema: of fifteen
-# candidates instrumented, only UserPromptSubmit, Stop, SubagentStop and
-# Notification ever fired. StopFailure, PermissionRequest, PermissionDenied,
-# Elicitation, PreCompact and the rest stayed silent, so there is deliberately
-# no state for them.
+# Which events exist here was measured, not read off the schema. Of the
+# candidates instrumented, UserPromptSubmit, Stop, SubagentStop, Notification
+# and SessionEnd fire; StopFailure, PermissionRequest, PermissionDenied,
+# Elicitation, PreCompact and the rest stayed silent through a full working
+# session, so there is deliberately no state for them.
+#
+# SessionEnd was missing from that list until re-measured: `claude -p` in a
+# throwaway tmux session wrote `working` 0.6s in and the state file was gone
+# 4.2s later, when the run exited — which is this script's `clear` verb, on the
+# SessionEnd hook. It fires on a clean exit only, so claude-tmux-status still
+# checks liveness for the case where the tmux session is killed underneath it.
 #
 # Called from the hooks in ~/.claude/settings.json. Claude inherits TMUX and
 # TMUX_PANE from the shell that launched it — including the instance that

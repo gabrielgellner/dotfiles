@@ -26,10 +26,15 @@ command = "cat .python-version"
 format = "via [🐍 $output]($style) "
 style = "green"
 
+# The named colours resolve through the terminal, so they land on frappe the way
+# `dev`'s ANSI markers do. Replace mode is the exception: there is no ANSI name
+# for mauve, so it is spelled out — #ca9ee6, frappe's, matching dot_tmux.conf
+# and the kitty theme. It read #cba6f7 for a while, which is *mocha* mauve and
+# the only stray from another flavour in the tracked configs.
 [character]
 success_symbol = "[❯](bold green)"
 error_symbol = "[❯](bold red)"
 vimcmd_symbol = "[❮](bold green)"
-vimcmd_replace_one_symbol = "[❮](#cba6f7)"
-vimcmd_replace_symbol = "[❮](#cba6f7)"
+vimcmd_replace_one_symbol = "[❮](#ca9ee6)"
+vimcmd_replace_symbol = "[❮](#ca9ee6)"
 vimcmd_visual_symbol = "[❮](yellow)"
