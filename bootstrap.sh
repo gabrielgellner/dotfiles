@@ -367,9 +367,19 @@ for c in tmux nvim zk eilmeldung pyrefly just-lsp ruff fd fzf rg eza bat \
     command -v "$c" &>/dev/null || missing+=("$c")
 done
 
-# uv tools do not all put a binary on PATH — debugpy is a library — so ask uv.
+# Gated on macOS to match the install above, which is gated because
+# .chezmoiignore applies bin/mkv2mp4 there alone.
 $IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
 
+# Ask uv rather than PATH, because the question is who *manages* these. All
+# four do put a binary in ~/.local/bin — `uv tool list` names the executables
+# each one provides, debugpy's being `debugpy` and `debugpy-adapter` — so
+# `command -v` would pass on any binary of that name from any source, including
+# one uv has since stopped tracking. `uv tool list` passing is what makes
+# `uv tool upgrade` a real statement about these four.
+#
+# (This comment used to sit above the ffmpeg line and say debugpy was a library
+# with no binary. Both halves were wrong.)
 for t in basedpyright ruff debugpy djlint; do
     uv tool list 2>/dev/null | grep -q "^$t " || missing+=("uv:$t")
 done
