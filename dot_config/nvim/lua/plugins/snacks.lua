@@ -556,7 +556,13 @@ return {
     {
       "<leader>gg",
       function()
-        Snacks.lazygit()
+        -- Snacks.lazygit() forwards its opts to Snacks.terminal, so the win
+        -- table is the terminal's and takes the same maximize key plv uses.
+        -- Worth having here for the same reason: a diff is wider than 90% of
+        -- the screen more often than it is narrower.
+        Snacks.lazygit({
+          win = { keys = { maximize = require("config.float").maximize_key() } },
+        })
       end,
       desc = "Lazygit",
     },

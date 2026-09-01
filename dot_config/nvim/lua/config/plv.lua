@@ -112,6 +112,10 @@ function M.open(path)
       border = "rounded",
       title = (" plv — %s "):format(vim.fn.fnamemodify(path, ":t")),
       title_pos = "center",
+      -- 0.9 x 0.9 is right for a glance and wrong for a wide table, which is
+      -- the common case here — a parquet with twenty columns is exactly what
+      -- you open a viewer for. See config/float.lua.
+      keys = { maximize = require("config.float").maximize_key() },
     },
   })
 

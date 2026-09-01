@@ -16,6 +16,7 @@ The short version: **find in the explorer, change in oil.**
 | ------------------- | ------------------------------------------ |
 | `O` in the explorer | open oil on the directory under the cursor |
 | `T` in the explorer | view the file under the cursor in plv      |
+| `<a-m>` in plv      | fill the screen, and back                  |
 | `<leader>fe` in oil | explorer rooted where oil is, not the cwd  |
 
 So the loop is: `<leader>fe`, drill down through the tree to the directory you
