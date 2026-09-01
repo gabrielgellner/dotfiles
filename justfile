@@ -26,13 +26,20 @@ update:
 # an earlier version of this note ran them together.
 #
 # Eight are dropped outright. filter_unconventional = true discards a subject
-# that is not conventional-commit shaped, and git-cliff reports only a count of
-# "skipped due to parse error(s)", never which ones. These are chezmoi's own
+# that is not conventional-commit shaped. These are chezmoi's own
 # "Update <path> Add <path>" messages from the window when autoCommit was
 # enabled — see the comment in .chezmoi.toml.tmpl for why it is off now. They
 # leave 2026-07-10 to 2026-08-22 with no changelog entries, including
 # scratch.lua, rules_lookup.lua and markdown_outline.lua being added. Left that
-# way deliberately rather than papered over with a catch-all parser. Find them:
+# way deliberately rather than papered over with a catch-all parser.
+#
+# git-cliff names them itself — its warning ends "(run with `-vv` for details)",
+# and -vv prints the reason per commit:
+#
+#     git-cliff -vv --output /dev/null 2>&1 | grep 'did not match conventional'
+#
+# An earlier version of this note said git-cliff reported only a count and never
+# which ones, and gave this as the way to find them, which still works:
 #
 #     git log --format='%h %s' | grep -E '^\S+ (Update|Add) '
 #

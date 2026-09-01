@@ -1,6 +1,9 @@
 # `timestamp` is a Unix epoch and Tera's `date` filter formats it in UTC unless
 # told otherwise, so a release cut in the evening here was stamped with
-# tomorrow's date — v1.1.0, tagged 2026-08-27 19:16 MDT, came out "2026-08-28".
+# tomorrow's date — v1.1.0, tagged 2026-08-27 19:40 MDT (01:40 UTC the next
+# day), came out "2026-08-28". It reads 2026-08-27 now, which is the fix
+# working. The tag was recut afterwards, so 19:40 is what `git for-each-ref`
+# reports today; an earlier version of this note quoted the original 19:16.
 #
 # The zone is named rather than read from the machine because Tera cannot read
 # one, and a fixed zone is the better default anyway: two machines in different
@@ -39,10 +42,16 @@ sort_commits = "newest"
 # headings come out alphabetically and Chores outranks Features. Zero-padded
 # because "10" sorts before "5" as a string.
 #
-# test, build and style are listed not because this repo uses them but because
-# an unlisted conventional type is not dropped — it renders with its raw type as
-# the heading ("### style", beside "### Features"). An unknown type still shows
-# up that way, which is useful: a typo like "fux:" announces itself.
+# Several types below are listed ahead of any use: test, build, ci, perf and
+# revert have no commits in this repo at all. They are here because an unlisted
+# conventional type is not dropped — it renders with its raw type as the heading
+# ("### style", beside "### Features"), so listing them is what makes the
+# heading read "Tests" rather than "test" on the day one arrives. An unknown
+# type still shows up that way, which is useful: a typo like "fux:" announces
+# itself.
+#
+# style is no longer in that set — there are four style(nvim) commits and the
+# changelog renders "### Styling" for them.
 commit_parsers = [
   # Three commits from before this repo settled on conventional commits. They
   # parse, but their types are invented, so each raised a heading of its own.
