@@ -11,6 +11,20 @@
 # another zone is dated in this one — the v0.1.x tags were made at -0400 and
 # still land on the right day here, but a late-evening release from further east
 # would not.
+# Breaking changes are marked inline rather than given a section of their own.
+# `feat(nvim)!: drop Haskell support` is the only one so far, and it belongs
+# under Features where it happened; a second heading would separate it from the
+# change it *is*. The `!` is what git-cliff reads — it sets commit.breaking, and
+# it is also what makes `just next-version` say v2.0.0 rather than v1.2.0, so
+# the marker and the version bump come from the same character.
+#
+# breaking_description is appended only when it says something the subject does
+# not. With a bare `!` and no BREAKING CHANGE footer git-cliff fills it with the
+# description itself, which would render the line twice.
+#
+# protect_breaking_commits stays false below: it stops a breaking commit being
+# dropped by a skip parser, and the only skip parser here is chore(release),
+# which cannot be breaking.
 [changelog]
 header = "# Changelog\n\nAll notable changes to this dotfiles repository are documented here.\n"
 body = """
@@ -22,7 +36,7 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | striptags | trim | upper_first }}
 {% for commit in commits %}
-- {{ commit.message | upper_first }}
+- {% if commit.breaking %}**Breaking:** {% endif %}{{ commit.message | upper_first }}{% if commit.breaking and commit.breaking_description and commit.breaking_description != commit.message %} — {{ commit.breaking_description }}{% endif %}
 {% endfor %}
 {% endfor %}\n
 """
