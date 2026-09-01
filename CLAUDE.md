@@ -131,22 +131,28 @@ Three consequences, all measured:
   inode and plays on; the new build is what the *next* launch gets. So `q` in
   the popup and reopen is the way to pick up a change.
 
-gmuse holds **no instance lock** (nothing in `src/` flocks or checks for a
-running peer), and it is both the daily player and the thing under active
-development — so two instances is the normal accident, not a rare one. The
-`new-session -A` in the popup binding is the whole of the guarantee that
-`prefix + C-p` cannot start a second one; a bare `gmuse` in an ordinary window
-still can, and both copies then open the audio device and write the same
-`session.toml` and `last-data-dir`, library cache, and play history under the
-library's `data_dir`. `session.toml` is saved on quit unless `--no-resume` is
-passed (it opts out of restoring and saving together), so the instance quit
-*last* decides what the next launch restores; the popup passes no flags. Not the audit log,
-which an earlier version of this section wrongly listed: it is opt-in (`--log`
-/ `GMUSE_LOG`, `audit.rs` defaults it disabled) and the popup runs bare
-`gmuse`. `just listen` turns it on, which is also the likeliest way a second
-instance appears. A lock inside gmuse is the intended fix and is
-being written; until it lands, treat the binding as load-bearing rather than
-convenient.
+gmuse **holds an instance lock** now, and this section used to say it did not.
+`src/lock.rs` takes an OS lock (`File::try_lock`) on
+`$XDG_STATE_HOME/gmuse/lock` at `main.rs:70` — deliberately *before* the audio
+device is opened, so a refused second instance never touches the speakers — and
+a second one exits naming the pid that holds it. `--no-lock` (`cli.rs:111`)
+starts anyway.
+
+An OS lock rather than a pid file is the part worth keeping: the kernel drops
+it however the process ends, so `kill -9` and a crashed popup leave nothing to
+clean up, and a stale file holding a dead pid is not a lock. The pid is stored
+only so the refusal can name something.
+
+So the popup binding no longer carries that weight alone. The two answer
+different questions: the lock says "not twice", `new-session -A` says "and here
+it is". What the lock does *not* undo is `session.toml` — saved on quit unless
+`--no-resume` is passed (it opts out of restoring and saving together), so
+before the lock the instance quit last decided what the next launch restored.
+Ratings and plays were never at risk: `events-*.log` is append-only, one short
+line at a time, which is the same design that lets two machines share a library.
+The audit log is opt-in (`--log` / `GMUSE_LOG`, `audit.rs` defaults it
+disabled) and the popup runs bare `gmuse`, so it was never contended either —
+an earlier version of this section wrongly listed it.
 
 The player's tmux session is named **`music`, not `gmuse`**, and that is a
 measured fix rather than a preference. `bin/executable_dev` names sessions
@@ -249,13 +255,14 @@ interactive first-run wizard.
 Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
 
 - `config/` — loaded unconditionally. Beyond `options`, `keymaps` and `autocmds`
-  this holds standalone features: `files` (oil ↔ explorer handoff), `folds`
+  this holds standalone features: `files` (oil ↔ explorer handoff), `float`
+  (maximize a snacks float, which snacks.win itself cannot), `folds`
   (LSP/treesitter fold dispatch), `guides` (the `<leader>?` picker), `just`
-  (run recipes into a tmux console window), `scratch`, `markdown_checkbox`,
-  `markdown_outline`, `rules_lookup`.
+  (run recipes into a tmux console window), `plv` (the table viewer handoff),
+  `scratch`, `markdown_checkbox`, `markdown_outline`, `rules_lookup`.
 - `plugins/` — one file per plugin or plugin group, lazy-loaded.
 - `guides/` — hand-written markdown reference cards, opened with `<leader>?`.
-  Eleven of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
+  Twelve of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
   link between them, and `<C-g>` in the picker switches from matching titles to
   grepping their contents.
 

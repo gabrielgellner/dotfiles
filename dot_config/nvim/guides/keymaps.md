@@ -209,6 +209,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   never asked for
 - [Shell history and completion](shell-history.md) — atuin's SQLite history and
   zsh, outside nvim
+- [Floats](floats.md) — plv, lazygit and Claude in a window over your work, and
+  the one key that takes it back from them
 - [Music](music.md) — gmuse in a tmux popup, reachable from any session
 - Keymap conventions — this one
 

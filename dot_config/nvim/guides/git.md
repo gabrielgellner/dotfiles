@@ -198,7 +198,8 @@ their own sign so you can see which you're aiming at.
 lazygit is a snacks terminal float like any other. The float is 90% of the
 editor, which is a column short for a wide diff — measured 180x45 out of
 200x50, growing to the full 200x50 and back. The cost is that lazygit itself
-never receives `<a-m>`.
+never receives `<a-m>`. If it does nothing, press `<C-x>` first —
+[Floats](floats.md) has why.
 
 ## Recipes
 
