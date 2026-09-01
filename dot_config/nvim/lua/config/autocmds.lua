@@ -226,3 +226,16 @@ vim.api.nvim_create_autocmd("VimResized", {
     vim.cmd("tabdo wincmd =")
   end,
 })
+
+-- ── plv: formats Neovim must not read ────────────────────────────────────────
+-- BufReadCmd replaces the read entirely, which is the point: a parquet that
+-- reaches a buffer is one a stray `:w` corrupts (measured — see config/plv.lua).
+-- Registered for the extensions in plv.BINARY, and it protects the file whether
+-- or not plv is installed to show it.
+vim.api.nvim_create_autocmd("BufReadCmd", {
+  group = vim.api.nvim_create_augroup("plv_binary_formats", { clear = true }),
+  pattern = { "*.parquet", "*.ducklake" },
+  callback = function(ev)
+    require("config.plv").open_binary(ev.buf, ev.file)
+  end,
+})

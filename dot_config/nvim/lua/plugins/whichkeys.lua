@@ -55,6 +55,7 @@ return {
         { "<leader>v", group = "multicursor" },
         { "<leader>q", group = "quit" },
         { "<leader>s", group = "search/replace" },
+        { "<leader>t", group = "table (plv)" },
         { "<leader>u", group = "ui" },
         { "<leader>w", group = "window" },
         { "<leader>x", group = "diagnostics/quickfix" },

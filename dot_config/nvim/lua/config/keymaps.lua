@@ -261,6 +261,15 @@ vim.keymap.set("n", "<leader>xR", function()
   end
 end, { desc = "Ruff check project" })
 
+-- ── Tables (plv) ──────────────────────────────────────────────────────────────
+-- plv is an external viewer, not a plugin — see config/plv.lua for why it is
+-- checked for on every press rather than once at startup. In an oil buffer
+-- this takes the entry under the cursor, so a directory of data files can be
+-- browsed and read without leaving the explorer.
+map("n", "<leader>tt", function()
+  require("config.plv").open_current()
+end, { desc = "View file in plv" })
+
 -- ── Just ──────────────────────────────────────────────────────────────────────
 -- Recipes run in the tmux console window (see config/just.lua), not in nvim.
 -- Focus stays here; <leader>jw is the "watch it" variant that follows the run.
