@@ -156,12 +156,31 @@ return {
                 statuscolumn = "",
                 signcolumn = "no",
               },
-              keys = { ["O"] = "explorer_oil" },
+              -- Both hand the entry under the cursor to another tool. `O` is
+              -- the capital of snacks' own `o` (open in the system app) and
+              -- means "open it elsewhere"; `T` is for table. Neither is taken
+              -- by snacks — checked against the picker list defaults and the
+              -- explorer source's own key block in the installed copy.
+              --
+              -- `T` is not unmapped, though, and checking snacks alone was the
+              -- wrong check: these are buffer-local and silently beat globals,
+              -- which is this config's most common keymap fault. `maparg("T")`
+              -- answers properly — it is flash's clever-f backwards till
+              -- (char.lua, and plugins/flash.lua enables `char` on purpose).
+              -- Shadowing it here is the one place that costs nothing: the
+              -- list is read-only and moved through with j/k, so a horizontal
+              -- till-motion has nothing to do. That is also why `T` is *not*
+              -- bound in oil, where <leader>tt already reaches plv and the
+              -- buffer is editable text in which dT/ and cT, are real edits.
+              keys = { ["O"] = "explorer_oil", ["T"] = "explorer_plv" },
             },
           },
           actions = {
             explorer_oil = function(picker, item)
               require("config.files").oil_from_explorer(picker, item)
+            end,
+            explorer_plv = function(picker, item)
+              require("config.plv").open_from_explorer(picker, item)
             end,
           },
         },

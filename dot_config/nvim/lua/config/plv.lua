@@ -148,17 +148,12 @@ local function current_path()
   return name ~= "" and name or nil
 end
 
----<leader>tt: view the current file in plv.
-function M.open_current()
-  local path = current_path()
-  if not path then
-    vim.notify("plv: this buffer has no file", vim.log.levels.WARN)
-    return
-  end
-
-  -- A soft warning rather than a refusal. plv reads by extension, so this is
-  -- the check it would make itself, but being wrong about the list should not
-  -- stop you opening something — a .data that is really a CSV is your call.
+---Open `path`, warning first if plv is unlikely to understand it.
+---
+---A soft warning rather than a refusal. plv reads by extension, so this is
+---the check it would make itself, but being wrong about the list should not
+---stop you opening something — a .data that is really a CSV is your call.
+local function open_checked(path)
   if not VIEWABLE[ext(path)] then
     vim.notify(
       ("plv: %s is not a format it opens (csv, tsv, tab, txt, parquet, ducklake) — trying anyway"):format(
@@ -169,6 +164,65 @@ function M.open_current()
   end
 
   M.open(path)
+end
+
+---<leader>tt: view the current file in plv.
+function M.open_current()
+  local path = current_path()
+  if not path then
+    vim.notify("plv: this buffer has no file", vim.log.levels.WARN)
+    return
+  end
+
+  open_checked(path)
+end
+
+---`T` in the snacks explorer: view the entry under the cursor in plv.
+---
+---The explorer needs its own entry point rather than reaching current_path()
+---above, because inside the picker there is no such thing as "the current
+---file": the focused buffer is the picker's own list, so <leader>tt there
+---warns "this buffer has no file". Measured, which is why this exists.
+---
+---parquet and ducklake do not need this key — the BufReadCmd in
+---config/autocmds.lua intercepts them however they are opened, so plain <CR>
+---in the explorer already hands those to plv (driven and confirmed: the float
+---opens and the buffer left behind is the protected placeholder). This key is
+---for the *text* formats, where Neovim is the sensible default and plv is the
+---occasional second opinion.
+---
+---The picker is closed first, the same as the oil handoff in config/files.lua.
+---Leaving it open was tried and is worse: both are floats, and the explorer
+---sits *over* plv's window rather than behind it, so the tree is drawn across
+---the middle of the table you are trying to read. A viewer you cannot see is
+---not a viewer. Reopen with <leader>fe to carry on browsing.
+---@param picker snacks.Picker
+---@param item snacks.picker.Item?
+function M.open_from_explorer(picker, item)
+  -- Guard on the path, not on `item` — the same trap oil_from_explorer
+  -- documents: an item carrying no file is as useless here as no item at all.
+  local path = item and item.file
+  if not path then
+    vim.notify("plv: nothing under the cursor", vim.log.levels.WARN)
+    return
+  end
+
+  -- `item.dir` is the explorer's own flag for a directory entry. plv takes a
+  -- file, so say so rather than letting it fail on a path it cannot read.
+  --
+  -- Both guards return *before* the close: a keystroke that could not do what
+  -- it meant should leave the tree where it was, so the cursor is still on the
+  -- row you pressed it from.
+  if item.dir then
+    vim.notify(
+      ("plv: %s is a directory"):format(vim.fn.fnamemodify(path, ":t")),
+      vim.log.levels.WARN
+    )
+    return
+  end
+
+  picker:close()
+  open_checked(path)
 end
 
 ---Called from the BufReadCmd autocmd in config/autocmds.lua.

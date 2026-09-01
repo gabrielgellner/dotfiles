@@ -15,10 +15,23 @@ The short version: **find in the explorer, change in oil.**
 | Key                 | Does                                       |
 | ------------------- | ------------------------------------------ |
 | `O` in the explorer | open oil on the directory under the cursor |
+| `T` in the explorer | view the file under the cursor in plv      |
 | `<leader>fe` in oil | explorer rooted where oil is, not the cwd  |
 
 So the loop is: `<leader>fe`, drill down through the tree to the directory you
 want, `O`, do the editing, `<leader>fe` to carry on browsing from there.
+
+`T` is the third handoff and closes the explorer the way `O` does. Leaving it
+open was tried first, on the theory that a directory of data files is browsed
+several at a time — but the explorer and plv are both floats and the tree draws
+*over* the table, which makes the viewer unreadable. So the loop is `T`, look,
+`q`, `<leader>fe` to pick up browsing again.
+
+Only csv/tsv/txt need the key. parquet and ducklake hand themselves to plv on
+plain `<CR>` — Neovim must not read those at all, so a `BufReadCmd` intercepts
+them however they are opened and leaves an unwritable placeholder behind.
+`config/plv.lua` has the measurement (`:w` on a parquet grew it by a byte and
+pyarrow then refused the file).
 
 ## Explorer — finding
 
