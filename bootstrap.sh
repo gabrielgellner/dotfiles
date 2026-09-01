@@ -253,6 +253,18 @@ uv_tool_install djlint
 # ── Rust / rustup ─────────────────────────────────────────────────────────────
 
 blue "\nChecking Rust toolchain..."
+
+# rustup installs with --no-modify-path, so ~/.cargo/env is the only thing that
+# puts ~/.cargo/bin on PATH — and this script runs under bash, which never
+# reads dot_zshenv. Without this, a machine that already has a full Rust
+# toolchain looks like one that has none: `command -v rustup` fails and the
+# installer runs again over the top of it. Sourcing first is also what makes
+# the verification pass's claim below true on every run rather than only on the
+# run that installed rustup.
+if [[ -f "$HOME/.cargo/env" ]]; then
+    source "$HOME/.cargo/env"
+fi
+
 if ! command -v rustup &>/dev/null; then
     green "Installing rustup..."
     if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; then
@@ -302,7 +314,11 @@ else
         yellow "no codelldb build for $(uname -s)-$(uname -m), skipping"
     else
         green "Installing codelldb $CODELLDB_VERSION ($CODELLDB_ARCH)..."
-        CODELLDB_VSIX="$(mktemp -t codelldb).vsix"
+        # Explicit template rather than `mktemp -t codelldb`. BSD mktemp
+        # treats the -t argument as a prefix and appends its own X's; GNU
+        # requires the template to carry them and fails on one that does not.
+        # This form means the same thing to both.
+        CODELLDB_VSIX="$(mktemp "${TMPDIR:-/tmp}/codelldb.XXXXXX").vsix"
         mkdir -p "$CODELLDB_DIR"
         if curl -fsSL -o "$CODELLDB_VSIX" \
                 "https://github.com/vadimcn/codelldb/releases/download/v${CODELLDB_VERSION}/codelldb-${CODELLDB_ARCH}.vsix" \
