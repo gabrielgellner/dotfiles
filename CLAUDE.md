@@ -138,8 +138,9 @@ development — so two instances is the normal accident, not a rare one. The
 `prefix + C-p` cannot start a second one; a bare `gmuse` in an ordinary window
 still can, and both copies then open the audio device and write the same
 `session.toml` and `last-data-dir`, library cache, and play history under the
-library's `data_dir`. `session.toml` is saved unconditionally on quit, so the
-instance quit *last* decides what the next launch restores. Not the audit log,
+library's `data_dir`. `session.toml` is saved on quit unless `--no-resume` is
+passed (it opts out of restoring and saving together), so the instance quit
+*last* decides what the next launch restores; the popup passes no flags. Not the audit log,
 which an earlier version of this section wrongly listed: it is opt-in (`--log`
 / `GMUSE_LOG`, `audit.rs` defaults it disabled) and the popup runs bare
 `gmuse`. `just listen` turns it on, which is also the likeliest way a second

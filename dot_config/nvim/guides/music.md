@@ -35,8 +35,9 @@ is the whole of that guarantee — a `gmuse` started by hand in an ordinary
 window is a second instance, and both write `session.toml` and `last-data-dir`
 in `~/.local/state/gmuse`, the library cache, and the play history under the
 library's own `.gmuse`. `session.toml` is the one you notice: it is saved on
-quit, unconditionally, so whichever instance you quit *last* decides what the
-next launch restores.
+quit unless you passed `--no-resume`, which opts out of restoring and saving
+together, so whichever instance you quit *last* decides what the next launch
+restores. The popup passes no flags, so it always saves.
 
 Not the audit log, though — that one is opt-in (`--log`, or `GMUSE_LOG`), and
 the popup runs bare `gmuse`. "Disabled is the default: a player that writes to
