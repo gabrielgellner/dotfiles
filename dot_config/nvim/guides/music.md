@@ -15,6 +15,9 @@ client; it does not stop playback or quit gmuse.
 | `prefix + Ctrl-P` | inside the popup: close it, music keeps playing |
 | `q`               | quit gmuse itself — the session goes with it    |
 
+`q` quits without asking. While a `:` or `/` prompt is open it is text, not the
+binding — gmuse has a test for exactly that.
+
 `prefix` is `Ctrl-A`. It sits beside `prefix + Ctrl-J`, which opens the `dev`
 session picker — both overlays, reached the same way.
 
@@ -29,8 +32,17 @@ session picker — both overlays, reached the same way.
 only if it is not, so pressing the key twice never gives you two players
 fighting over the audio device. gmuse holds no lock of its own, so this binding
 is the whole of that guarantee — a `gmuse` started by hand in an ordinary
-window is a second instance, and both will write
-`~/.local/state/gmuse/session.toml` and the audit log.
+window is a second instance, and both write `session.toml` and `last-data-dir`
+in `~/.local/state/gmuse`, the library cache, and the play history under the
+library's own `.gmuse`. `session.toml` is the one you notice: it is saved on
+quit, unconditionally, so whichever instance you quit *last* decides what the
+next launch restores.
+
+Not the audit log, though — that one is opt-in (`--log`, or `GMUSE_LOG`), and
+the popup runs bare `gmuse`. "Disabled is the default: a player that writes to
+disk during every session without being asked is a surprise," as `audit.rs`
+puts it. `just listen` is the recipe that turns it on, which is also the most
+likely way you end up with a second instance in the first place.
 
 The session is called `music`, not `gmuse`, because `dev` names sessions after
 project directories and `~/dev/gmuse` is one of them. `-s gmuse` made this key
@@ -42,12 +54,12 @@ the popup, or `tmux kill-session -t music` from anywhere.
 
 ## The keys
 
-Not listed here, on purpose. gmuse's **view 7** is its own keymap guide, and it
-is _generated from the live binding table_ rather than written — a `:bind` at
-runtime shows up in it, so there is no second copy of the keymap to fall out of
-step. `7gt` gets there (views are nvim tab style: a count and `gt`), and the
-other six entries in that view are prose guides on moving around, the library
-tree, playlists, finding things, saved rules and format strings.
+Not listed here, on purpose. gmuse's **view 7** is its guides, and the last of
+the seven — **Index** — is a keymap _generated from the live binding table_
+rather than written, so a `:bind` at runtime shows up in it and there is no
+second copy to fall out of step. `7gt` gets there (views are nvim tab style: a
+count and `gt`). The other six are prose: Moving around, The library tree,
+Building playlists, Finding things, Rules that make lists, Writing the lines.
 
 A copy of that table here would be a third copy, and the one guaranteed to be
 wrong first.
@@ -62,9 +74,12 @@ move artist to artist; `dd` removes a row. Transport lives behind `<leader>` —
 ## Config and the binary
 
 `~/.config/gmuse/config.toml` is tracked by chezmoi. gmuse never writes to it —
-it keeps its state in `$XDG_STATE_HOME/gmuse` and its library index in
-`$XDG_CACHE_HOME/gmuse`, both untracked — so unlike `settings.json` or
-`karabiner.json` there is no `re-add` dance before an apply.
+`config.rs` is deserialize-only, with no `Serialize` anywhere and no write path
+to that file at all. Its mutable state goes elsewhere: session and machine id
+to `$XDG_STATE_HOME/gmuse`, the library index to `$XDG_CACHE_HOME/gmuse`, and
+ratings and play history to the library's own `data_dir` (`~/MusicLibrary/.gmuse`
+here), so they travel with the music. All three are untracked, so unlike
+`settings.json` or `karabiner.json` there is no `re-add` dance before an apply.
 
 `gmuse` on PATH is a symlink: `~/.local/bin/gmuse` points into
 `~/dev/gmuse/target/release/gmuse`, which is the artifact `just ui` already

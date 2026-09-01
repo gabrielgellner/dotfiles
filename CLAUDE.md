@@ -136,8 +136,14 @@ running peer), and it is both the daily player and the thing under active
 development — so two instances is the normal accident, not a rare one. The
 `new-session -A` in the popup binding is the whole of the guarantee that
 `prefix + C-p` cannot start a second one; a bare `gmuse` in an ordinary window
-still can, and both copies then write the same `session.toml` and audit log and
-both open the audio device. A lock inside gmuse is the intended fix and is
+still can, and both copies then open the audio device and write the same
+`session.toml` and `last-data-dir`, library cache, and play history under the
+library's `data_dir`. `session.toml` is saved unconditionally on quit, so the
+instance quit *last* decides what the next launch restores. Not the audit log,
+which an earlier version of this section wrongly listed: it is opt-in (`--log`
+/ `GMUSE_LOG`, `audit.rs` defaults it disabled) and the popup runs bare
+`gmuse`. `just listen` turns it on, which is also the likeliest way a second
+instance appears. A lock inside gmuse is the intended fix and is
 being written; until it lands, treat the binding as load-bearing rather than
 convenient.
 
