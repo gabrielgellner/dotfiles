@@ -77,7 +77,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 6 settings + a theme include; rest is commented     |
-| `dot_config/private_cmus/rc`       | `~/.config/cmus/rc`       | cmus: frappe colours — the one file cmus never rewrites       |
+| `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/eilmeldung/`           | `~/.config/eilmeldung/`   | eilmeldung RSS reader: frappe palette + the tracked feed list |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
@@ -99,15 +99,57 @@ makes control and command each reachable from either hand. It is tracked
 because nothing else here can express it: `dot_config/kitty/kitty.conf` tried
 the same remap and kitty rejected it as an unknown key.
 
-`~/.config/cmus/` is the same problem solved the other way round. cmus rewrites
-`autosave` on exit — and saves *colours* into it, so a `.theme` file applies
-once and is then carried by autosave, where a later edit to the theme does
-nothing. But cmus also reads `rc` immediately afterwards and documents that it
-never writes to it, so the colours live there and are re-applied every start
-with no `re-add` dance. `.chezmoiignore` excludes everything else in that
-directory: autosave, the cache, the library index and a unix socket. The
-`private_` prefix is not decoration either — the socket is why the directory is
-0700, and chezmoi would otherwise widen it to 0755.
+`~/.config/gmuse/config.toml` is the *easy* case, and worth naming as the
+contrast to the three above. gmuse never writes it — `src/config.rs` reads it
+and nothing there writes it back — because its mutable state goes to
+`$XDG_STATE_HOME/gmuse` (`session.toml`, `last-data-dir`, `machine-id`,
+`session.log`) and its library index to `$XDG_CACHE_HOME/gmuse`. Both are
+outside `~/.config`, so the tracked directory holds exactly one file and
+`.chezmoiignore` needs no entry for it at all. No `private_` either: cmus
+needed 0700 for its socket, and there is no socket here.
+
+The **binary** is the part with a caveat. `gmuse` on PATH is a symlink,
+`~/.local/bin/gmuse` -> `~/dev/gmuse/target/release/gmuse`, and it is
+deliberately **not** tracked: `~/dev/gmuse` exists on the laptop and not on the
+Linux machine, where a tracked `symlink_` entry would only dangle. It is
+machine-local in the same way `~/.gitconfig.local` is. Recreate it with a plain
+`ln -sfn`; there is no `cargo install` step, because `target/release/gmuse` is
+already what `just ui` builds in that tree (its justfile notes debug builds are
+too slow for glitch-free audio, so release is the only sensible target anyway).
+
+Three consequences, all measured:
+
+- A symlink is safe here in the way it is *not* for `~/bin/codelldb`. gmuse has
+  no `current_exe` or argv[0] use anywhere in `src/` — every path comes from an
+  XDG environment variable — so it resolves the same through a link. Checked by
+  running `gmuse --version` through one.
+- `cargo clean` makes gmuse **absent, not broken**: a dangling symlink fails
+  `command -v` (rc 1), `test -x`, and execution ("command not found"). That is
+  the good failure, but the popup binding has no fallback, so it opens and
+  closes again with nothing in it. `cargo build --release` puts it back.
+- A rebuild does not disturb the running player. The tmux session holds the old
+  inode and plays on; the new build is what the *next* launch gets. So `q` in
+  the popup and reopen is the way to pick up a change.
+
+gmuse holds **no instance lock** (nothing in `src/` flocks or checks for a
+running peer), and it is both the daily player and the thing under active
+development — so two instances is the normal accident, not a rare one. The
+`new-session -A` in the popup binding is the whole of the guarantee that
+`prefix + C-p` cannot start a second one; a bare `gmuse` in an ordinary window
+still can, and both copies then write the same `session.toml` and audit log and
+both open the audio device. A lock inside gmuse is the intended fix and is
+being written; until it lands, treat the binding as load-bearing rather than
+convenient.
+
+The player's tmux session is named **`music`, not `gmuse`**, and that is a
+measured fix rather than a preference. `bin/executable_dev` names sessions
+after directories in `~/dev`, and `~/dev/gmuse` is one of them, so `-s gmuse`
+collided with the project's own editing session two ways at once: the popup
+attached to *that* — verified in a nested tmux, the popup came up showing
+`gmuse 1 nvim 2 console 3 console 4 zsh` and no player — and
+`UTILITY_SESSIONS="gmuse"` hid the source session from the picker and took its
+ctrl-x with it. Any utility session added here has the same trap: name it for
+its role, and check the name against `ls ~/dev` first.
 
 `~/.config/btop/btop.conf` is the karabiner problem a third time, with an extra
 edge. btop rewrites the whole file on quit whenever `save_config_on_exit` is

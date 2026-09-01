@@ -1,11 +1,11 @@
-# Music (cmus in a tmux popup)
+# Music (gmuse in a tmux popup)
 
-`prefix + Ctrl-P` opens cmus in a floating popup from **any** tmux session, and
+`prefix + Ctrl-P` opens gmuse in a floating popup from **any** tmux session, and
 the same key inside the popup closes it. The point is not having to remember
 which session the music is in — there is no "music window" to navigate back to.
 
 The player keeps running when the popup closes. Closing the popup detaches a
-client; it does not stop playback or quit cmus.
+client; it does not stop playback or quit gmuse.
 
 ## Getting in and out
 
@@ -13,7 +13,7 @@ client; it does not stop playback or quit cmus.
 | ----------------- | ----------------------------------------------- |
 | `prefix + Ctrl-P` | open the popup — from any session               |
 | `prefix + Ctrl-P` | inside the popup: close it, music keeps playing |
-| `q`               | quit cmus itself (asks first)                   |
+| `q`               | quit gmuse itself — the session goes with it    |
 
 `prefix` is `Ctrl-A`. It sits beside `prefix + Ctrl-J`, which opens the `dev`
 session picker — both overlays, reached the same way.
@@ -23,87 +23,60 @@ session picker — both overlays, reached the same way.
 > `dev` picker. `Ctrl-J` escapes this only because it is a different byte,
 > `0x0A`.
 
-## Playback
+## One player, one session
 
-The five that matter are one row on the keyboard: `z x c v b`.
+`new-session -A` attaches the `music` session if it is there and creates it
+only if it is not, so pressing the key twice never gives you two players
+fighting over the audio device. gmuse holds no lock of its own, so this binding
+is the whole of that guarantee — a `gmuse` started by hand in an ordinary
+window is a second instance, and both will write
+`~/.local/state/gmuse/session.toml` and the audit log.
 
-| Key       | Does                           |
-| --------- | ------------------------------ |
-| `x`       | play                           |
-| `c`       | pause / unpause                |
-| `v`       | stop                           |
-| `z` / `b` | previous / next track          |
-| `Z` / `B` | previous / next **album**      |
-| `.` / `,` | seek forward / back one minute |
-| `l` / `h` | seek forward / back 5 seconds  |
+The session is called `music`, not `gmuse`, because `dev` names sessions after
+project directories and `~/dev/gmuse` is one of them. `-s gmuse` made this key
+attach the player's *source* session instead of starting the player.
 
-## Volume
+It is hidden from the `dev` picker (`UTILITY_SESSIONS` in `bin/executable_dev`)
+so a stray `ctrl-x` there cannot kill the music. To end it deliberately: `q` in
+the popup, or `tmux kill-session -t music` from anywhere.
 
-| Key       | Does              |
-| --------- | ----------------- |
-| `+` / `-` | ±10%              |
-| `]` / `}` | right channel ±1% |
-| `[` / `{` | left channel ±1%  |
+## The keys
 
-## Moving around
+Not listed here, on purpose. gmuse's **view 7** is its own keymap guide, and it
+is _generated from the live binding table_ rather than written — a `:bind` at
+runtime shows up in it, so there is no second copy of the keymap to fall out of
+step. `7gt` gets there (views are nvim tab style: a count and `gt`), and the
+other six entries in that view are prose guides on moving around, the library
+tree, playlists, finding things, saved rules and format strings.
 
-cmus is two panes side by side in the library view: artists on the left, tracks
-on the right.
+A copy of that table here would be a third copy, and the one guaranteed to be
+wrong first.
 
-| Key                 | Does                                         |
-| ------------------- | -------------------------------------------- |
-| `Tab`               | **switch between the artist and track pane** |
-| `j` / `k`           | down / up                                    |
-| `g` / `G`           | top / bottom                                 |
-| `Ctrl-D` / `Ctrl-U` | half page down / up                          |
-| `Enter`             | play the selected track                      |
-| `/` then `n`/`N`    | search, next / previous match                |
+The short version of what to expect: the keymap is **nvim's, not cmus's**.
+Navigation is `j`/`k`, `gg`/`G`, `Ctrl-D`/`Ctrl-U`; folds are vim's whole `z`
+vocabulary, where `zr`/`zm` expand to albums and collapse to artists; `{`/`}`
+move artist to artist; `dd` removes a row. Transport lives behind `<leader>` —
+`<leader>x` play, `<leader>c` pause, `<leader>z`/`<leader>b` previous and next
+— which is why the letters look like cmus's but the reach does not.
 
-`Tab` is the one to learn first — without it the left pane is all you can reach,
-which makes the library look broken rather than half-focused.
+## Config and the binary
 
-## Views
+`~/.config/gmuse/config.toml` is tracked by chezmoi. gmuse never writes to it —
+it keeps its state in `$XDG_STATE_HOME/gmuse` and its library index in
+`$XDG_CACHE_HOME/gmuse`, both untracked — so unlike `settings.json` or
+`karabiner.json` there is no `re-add` dance before an apply.
 
-| Key | View                               |
-| --- | ---------------------------------- |
-| `1` | library, as a tree by artist       |
-| `2` | library, as a flat sorted list     |
-| `3` | playlists                          |
-| `4` | play queue                         |
-| `5` | file browser — add music from disk |
-| `6` | filters                            |
-| `7` | settings                           |
+`gmuse` on PATH is a symlink: `~/.local/bin/gmuse` points into
+`~/dev/gmuse/target/release/gmuse`, which is the artifact `just ui` already
+builds. So a rebuild is the install, with no `cargo install` step. Two
+consequences worth knowing:
 
-## Queue and playlists
+- The running player keeps the old inode and plays on through a rebuild. The
+  new build is what the **next** launch gets, so `q` and reopen is how you pick
+  up a change.
+- `cargo clean` makes gmuse _absent_ rather than broken — a dangling symlink
+  fails `command -v` — and the popup then opens and closes again with nothing
+  in it. `cargo build --release` puts it back.
 
-| Key | Does                                   |
-| --- | -------------------------------------- |
-| `e` | add selection to the **queue**         |
-| `E` | add to the front of the queue          |
-| `a` | add selection to the **library**       |
-| `y` | add selection to a **playlist**        |
-| `D` | remove selection from the current view |
-
-## Modes
-
-These four are the ones worth knowing, because they change what "next track"
-means. The status line's right-hand side shows which are on.
-
-| Key | Toggles                                            |
-| --- | -------------------------------------------------- |
-| `r` | repeat                                             |
-| `s` | shuffle                                            |
-| `C` | continue — keep playing after the current track    |
-| `m` | aaa mode — confine playback to one artist or album |
-
-## Config
-
-Colours live in `~/.config/cmus/rc`, tracked by chezmoi, catppuccin frappe to
-match everything else. That file is the one cmus never writes to — it saves its
-own state, colours included, into `autosave` on exit, so a theme put anywhere
-else is overwritten the first time you quit. `rc` is read _after_ `autosave`,
-which is why the colours here survive. Nothing else in that directory is
-tracked.
-
-None of the keys above are rebound: they are all cmus defaults, so `man cmus` is
-the full reference and this is only the part worth memorising.
+That symlink is machine-local and deliberately untracked: `~/dev/gmuse` exists
+on the laptop and not on the Linux box, where a tracked link would only dangle.

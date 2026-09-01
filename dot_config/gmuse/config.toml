@@ -1,0 +1,35 @@
+# gmuse — see examples/config.toml in the repo for every option.
+#
+# NOTE: top-level keys must come BEFORE any [table] header. A bare key written
+# after one belongs to that table, which TOML does silently.
+
+# Omit, or ["all"], to start with everything.
+active_catalogs = ["all"]
+
+# Ratings, play history and (later) playlists. Kept inside the library so they
+# travel with the music and land in the same backup.
+#
+# Two files, and they must stay together: history.toml is the base, and
+# events-<machine>.log is everything since. Backing up only the first would
+# silently lose recent plays and ratings.
+data_dir = "~/MusicLibrary/.gmuse"
+
+# A vim-style distance gutter beside list rows. Counts tracks, so an album
+# divider never shifts it.
+[settings]
+relative_numbers = true
+
+# One catalog per top-level folder. Browsing and shuffle stay inside whichever
+# are active; playlists and the queue cross them freely.
+#
+# Roots live here rather than only in the cache, which is derived data and gets
+# discarded whenever its format changes.
+
+[catalogs.general]
+roots = ["~/MusicLibrary/General"]
+
+[catalogs.dance]
+roots = ["~/MusicLibrary/Dance"]
+
+[format]
+now_playing = "{artist}[ — {album}] — {title}"

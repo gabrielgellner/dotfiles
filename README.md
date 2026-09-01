@@ -15,14 +15,14 @@ Claude status counts are all one prefix key away from wherever you are.
 | **starship** | `dot_config/private_starship.toml` | prompt: vi mode indicators, custom `uv_python` module                     |
 | **tmux**     | `dot_tmux.conf`                    | Ctrl-A prefix, vi keys, catppuccin frappe inline, popups                  |
 | **neovim**   | `dot_config/nvim/`                 | lazy.nvim, LSP, DAP, treesitter — 30 plugin files, 12 local modules       |
-| **cmus**     | `dot_config/private_cmus/rc`       | frappe colours, in the one file cmus never overwrites                     |
+| **gmuse**    | `dot_config/gmuse/config.toml`     | the music player — a dev-tree symlink, see the caveat below               |
 | **kitty**    | `dot_config/kitty/`                | six settings, plus a vendored catppuccin theme pinned to its upstream sha |
 | **scripts**  | `bin/`                             | session switcher, session layout, Claude state, codelldb wrapper          |
 
 ## The bits worth knowing about
 
 **Popups reachable from any session.** `prefix + Ctrl-J` opens an fzf session
-switcher; `prefix + Ctrl-P` opens cmus in a float and closes it again, so there
+switcher; `prefix + Ctrl-P` opens gmuse in a float and closes it again, so there
 is no "music window" to navigate back to. Both are overlays over whatever you
 were doing.
 
@@ -78,9 +78,9 @@ template too, which is how one tree serves both machines.
 Two tracked files have a second writer — `~/.claude/settings.json` and
 `karabiner.json`. Both apps rewrite their own config, so a change made inside
 one is reverted by the next `chezmoi apply` unless you `chezmoi re-add` it
-first. cmus has the same hazard and dodges it instead: the file it rewrites is
-untracked, and the colours live in `rc`, which it only ever reads. `CLAUDE.md`
-has the reasoning for all three.
+first. `btop.conf` is a third. gmuse avoids the hazard by construction: it
+never writes its own config, keeping state in `$XDG_STATE_HOME` instead.
+`CLAUDE.md` has the reasoning for all of them.
 
 ## Conventions
 

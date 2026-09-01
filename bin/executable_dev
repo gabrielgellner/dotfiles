@@ -61,12 +61,24 @@ resolve_dir() {
 # long and browsed by name, and churn there would cost more than it gave.
 # Sessions that are not projects and never worth switching *to* from here.
 #
-# cmus lives in its own session so prefix + m can reach it from anywhere
-# (dot_tmux.conf); it is a player you toggle over the top of your work, not a
-# place you go. Listing it here put it among the projects and gave it a
+# The player (gmuse) lives in its own session so prefix + C-p can reach it from
+# anywhere (dot_tmux.conf); it is a player you toggle over the top of your work,
+# not a place you go. Listing it here put it among the projects and gave it a
 # switch-to entry it has no use for — and, worse, a ctrl-x that would kill the
 # music.
-UTILITY_SESSIONS="cmus"
+#
+# The name is `music`, not `gmuse`, because ~/dev/gmuse is a project and the
+# sessions here are named after project directories. `gmuse` would have hidden
+# the player's own *source* session from this picker and taken its ctrl-x with
+# it — the exact opposite of what this list is for.
+#
+# Hidden here still leaves two deliberate ways to end it, which matters while
+# gmuse is being developed and the running player has to get out of a test's
+# way: `q` inside the popup quits the player and the session dies with it,
+# since gmuse is the session's only command. `tmux kill-session -t music`
+# does the same from anywhere. Neither is reachable by a stray ctrl-x here,
+# which is the whole point.
+UTILITY_SESSIONS="music"
 
 is_utility() {
   local n
@@ -116,7 +128,9 @@ is_active() {
 #
 # Colours are the plain ANSI names rather than 256-cube indices, so kitty
 # resolves them to frappe exactly: yellow #e5c890 for working, green #a6d189
-# for idle. Same reasoning as dot_config/private_cmus/rc.
+# for idle — an index would be whatever the terminal's cube holds there, which
+# is not the palette. (This pointed at dot_config/private_cmus/rc, which stated
+# the same rule; that file went with cmus.)
 claude_marker() {
   local f="${XDG_STATE_HOME:-$HOME/.local/state}/claude-tmux/${1//\//%2F}"
   [[ -r "$f" ]] || return 0

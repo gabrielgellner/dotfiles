@@ -209,7 +209,7 @@ ones these rules shaped; the rest document tools that came with their own keys.
   never asked for
 - [Shell history and completion](shell-history.md) — atuin's SQLite history and
   zsh, outside nvim
-- [Music](music.md) — cmus in a tmux popup, reachable from any session
+- [Music](music.md) — gmuse in a tmux popup, reachable from any session
 - Keymap conventions — this one
 
 `<leader>?` opens the picker over all of them, and `<C-g>` there switches it
