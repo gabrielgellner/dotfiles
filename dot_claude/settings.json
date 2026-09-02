@@ -57,6 +57,7 @@
   "effortLevel": "high",
   "theme": "dark",
   "agentPushNotifEnabled": true,
+  "remoteControlAtStartup": false,
   "skipAutoPermissionPrompt": true,
   "autoMode": {
     "allow": [
