@@ -15,3 +15,35 @@
 # /Users/gabrielgellner hardcoded, which would have expanded to nothing useful
 # on the Linux machine had it ever been synced.
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin:$PATH"
+
+# Keep Claude Code out of the alternate screen, so its output lands in Neovim's
+# terminal scrollback.
+#
+# Claude is a full-screen float in nvim (plugins/claudecode.lua), and <C-x>
+# leaves terminal mode to scroll and yank its output. That stops working the
+# moment Claude renders in the alternate screen: alt-screen content never
+# scrolls off, so 'scrollback' has nothing to record and <C-u> has nowhere to
+# go. Measured in the live float, forcing 200 lines through it — the buffer
+# held 44 lines against a 44-line window, and 217 with this set. <C-x><C-u>
+# scrolls, and keeps scrolling, only in the second case.
+#
+# The mouse wheel keeps working either way, which is what makes the fault
+# confusing rather than obvious: Claude requests mouse tracking (?1000h ?1002h
+# ?1003h ?1006h), so nvim forwards the wheel to Claude and Claude scrolls its
+# own history. The content is genuinely there; the keyboard is just asking a
+# different buffer for it. PageUp/PageDown in *terminal* mode reach Claude's
+# scrollback and are the fallback if this variable ever stops being honoured —
+# <C-b>, <C-u>, <M-Up> and <S-Up> were all measured doing nothing there.
+#
+# Set here rather than left to chance because the two machines disagreed on the
+# same 2.1.236 with the same config: the laptop's float held 3996 lines while
+# the Linux one held 44. Neither sets any CLAUDE_CODE_* variable, so the
+# difference is outside these dotfiles — a rollout flag or a terminal-capability
+# check, not something the repo controls. The binary carries
+# CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL alongside this, which suggests alt-screen
+# arrived with a newer scrolling feature. Pinning it makes both machines
+# explicit rather than accidental.
+#
+# Verified as the real switch, not a coincidence: =1 emits no ESC[?1049h, =0
+# emits it.
+export CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1
