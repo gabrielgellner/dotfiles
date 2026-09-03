@@ -79,7 +79,6 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 6 settings + a theme include; rest is commented     |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
-| `dot_config/eilmeldung/`           | `~/.config/eilmeldung/`   | eilmeldung RSS reader: frappe palette + the tracked feed list |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -194,7 +193,7 @@ meters — `btop --default-config` (1.4.7) has no option for it, so the only kno
 there are the graph symbol and hiding the box, which is what the second and
 third presets do.
 
-Driving btop to check any of this is easy in a way eilmeldung is not:
+Driving btop to check any of this is easy:
 `-c <file>` and `--themes-dir <dir>` take throwaway copies, so an A/B is two
 `tmux new-session -d` calls and a `capture-pane` diff, and `ctrl+r` reloads the
 config from disk without restarting.
@@ -227,29 +226,6 @@ the tree, which is the relationship `lazy-lock.json` has with lazy.nvim.
 `.config/yazi/flavors` is ignored. To move the pin,
 `ya pkg upgrade` and then `chezmoi re-add ~/.config/yazi/package.toml`, the same
 two steps as `:Lazy update` followed by committing the lockfile.
-
-`dot_config/eilmeldung/feeds.opml` is the same idea again, for RSS
-subscriptions. The live list is rows in the news-flash SQLite database, which
-on macOS sits under `~/Library/Application Support/org.christo-auer.eilmeldung`
-and is state, not config — so the OPML is the tracked copy and
-`eilmeldung --import-opml ~/.config/eilmeldung/feeds.opml` seeds a new machine
-from it. `--export-opml` goes the other way, but writes a single unformatted line
-titled "NewsFlash OPML export" with the file's header comment gone — so it is
-for *checking* what the database holds, not for regenerating the tracked file.
-Two things bite when editing that file: XML forbids `--` inside a comment, so
-the flags cannot be spelled out in the file's own header, and an OPML holding
-one is *rejected* by the importer rather than ignored (measured — the import
-failed with "invalid comment at 2:1" until the header was reworded).
-To add a single feed to a database that is already seeded, import a *one-feed*
-OPML rather than the whole file — naming an existing category in it puts the
-feed in that category rather than creating a second one of the same name
-(measured, adding lucumr.pocoo.org to `Tech`). Then hand-add the same entry
-here and diff the two. Whether re-importing the whole file duplicates was not
-tested, only avoided.
-
-`config.toml` carries `[login_setup]` with `provider = "local_rss"` and
-`login_type = "no_login"`, which is what keeps a fresh machine out of the
-interactive first-run wizard.
 
 ## Neovim Configuration Architecture
 
@@ -323,31 +299,6 @@ terminal grid, so `capture-pane` reads the label out and it can be sent straight
 back. The exception is `vim.fn.input()` under noice — invisible to
 `capture-pane` but still receiving keys, so a blank capture there is not
 evidence of a broken prompt.
-
-eilmeldung is the awkward case for that method: a session accepts keys right
-after launch and then goes deaf, three times out of four, with `send-keys`
-reporting success and the pane still repainting. Driving it by keystroke is
-therefore unreliable — but it does not need to be driven. Two of its own
-features replace the harness:
-
-- `startup_commands` in `config.toml` runs any command at launch, so a popup
-  can be opened with no keystrokes at all. Two throwaway config dirs passed to
-  `--config-dir`, differing in one line, gave a clean A/B of `shadows`: the
-  same help float with 141 `░` glyphs and with none.
-
-  Re-checked on 1.7.3 and *not* reproduced: `startup_commands = ["help"]`,
-  `["cmd"]` and the `?` key each left the main view alone, so both arms of the
-  A/B measured zero `░` and the comparison said nothing. The command name that
-  opened the float was never written down, which is the gap — `shadows` is
-  still a real field (it is in the accepted-field list the parser prints), so
-  this is a lost recipe rather than a wrong claim. Find the name before
-  trusting the A/B again.
-- its config parser **rejects unknown fields** — `shadowz = false` aborts at
-  `src/config/mod.rs:440` and prints every accepted field name. That is the
-  opposite of the nvim plugins below, where a misspelled key just sits in the
-  merged table. A config that starts eilmeldung at all is a config with no
-  typos in its key names, so `--config-dir <dir> --sync` is a cheap syntax
-  check.
 
 ## Faults this config has had
 

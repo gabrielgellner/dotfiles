@@ -3,7 +3,7 @@
 #
 # btop 1.4.7 ships 41 themes of its own (see ../share/btop/themes relative to
 # the binary) and none of them is catppuccin, so this one is carried here to
-# match the frappe palette used by tmux, kitty, gmuse and eilmeldung.
+# match the frappe palette used by tmux, kitty and gmuse.
 # To update: re-copy this file from upstream and bump the commit above.
 
 # Main background, empty for terminal default, need to be empty if you want transparent background

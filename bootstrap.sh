@@ -210,36 +210,6 @@ ensure_command tmux
 # notes (zk drives plugins/zk.lua and ZK_NOTEBOOK_DIR in dot_zshrc)
 ensure_command zk
 
-# RSS reader, and a home-machine tool — gated on macOS for that reason rather
-# than any technical one. It is reading, not work, and the Linux machine is for
-# work; the same split ffmpeg is on.
-#
-# Gating also sidesteps a failure that is not ours to fix. Not in homebrew-core
-# — it lives in the author's own tap, and `brew install <tap>/<formula>/<name>`
-# taps it on the way, so no separate `brew tap` line is needed. That clone is
-# the fragile part: on 2026-09-02 it failed on the Linux machine with
-#
-#     fatal: could not read Username for 'https://github.com'
-#
-# which is what an anonymous HTTPS clone reports when the repo answers 404 or
-# 401 — a third-party tap that moved, went private, or was deleted looks
-# exactly like a missing credential. brew-core bottles downloaded fine in the
-# same run, so it was the tap, not the network.
-#
-# dot_config/eilmeldung/ configures it and is NOT gated: the config applies on
-# both machines, so the Linux one carries an inert config directory. Left that
-# way deliberately — the feed list is worth tracking either way, and dropping
-# it from .chezmoiignore would delete ~/.config/eilmeldung on the next apply.
-#
-# Seeding the feed list is left as a manual step, because nothing here can tell
-# an empty database from a seeded one, and whether re-importing an
-# already-seeded database duplicates every feed was never tested — only avoided:
-#
-#     eilmeldung --import-opml ~/.config/eilmeldung/feeds.opml
-if $IS_MACOS; then
-    ensure_command eilmeldung christo-auer/eilmeldung/eilmeldung
-fi
-
 # dev tooling
 brew_install git
 brew_install just
@@ -406,11 +376,6 @@ done
 # Gated on macOS to match the install above, which is gated because
 # .chezmoiignore applies bin/mkv2mp4 there alone.
 $IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
-
-# Same shape, and for the same reason the install is gated: a home-machine
-# tool. Without this the Linux machine reports it missing on every run and the
-# gate above would only have moved the noise from the failure list to this one.
-$IS_MACOS && { command -v eilmeldung &>/dev/null || missing+=("eilmeldung"); }
 
 # Ask uv rather than PATH, because the question is who *manages* these. All
 # four do put a binary in ~/.local/bin — `uv tool list` names the executables
