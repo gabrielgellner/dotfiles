@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# gmuse-tmux-status - what is playing, for tmux status-right.
+#
+# Asks the running player over its socket (`gmuse --remote`). Prints nothing at
+# all when no player is running, and nothing when one is running but stopped, so
+# the status bar stays as quiet as it was before this existed — the same rule
+# claude-tmux-status follows.
+#
+# The format is asked for rather than truncated. gmuse's `now_playing` here is
+# "{artist}[ — {album}] — {title}", which renders ~41 columns and puts the title
+# **last**, so cutting it to fit the bar would throw away the field you actually
+# wanted. `status <format>` takes the same format language the config uses, so
+# this asks for exactly what fits.
+#
+# Colours are #rrggbb rather than ANSI names, matching dot_tmux.conf and
+# claude-tmux-status: the bar already carries frappe values inline.
+
+set -uo pipefail
+
+command -v gmuse >/dev/null 2>&1 || exit 0
+
+# State first, because it is the cheap question and it decides whether the
+# second one is worth asking. Two round-trips rather than one: `status <format>`
+# answers with the rendering alone, by design, so the state has to be asked for
+# separately. Both are microseconds over a unix socket, and the worst a track
+# change between them can do is pair one track's title with the other's state
+# for a single 5-second tick.
+state=$(gmuse --remote status 2>/dev/null | cut -f1) || exit 0
+[[ "$state" == "stopped" || -z "$state" ]] && exit 0
+line=$(gmuse --remote 'status {title} · {artist}' 2>/dev/null) || exit 0
+
+# A player running but stopped has nothing to say, and that is checked above:
+# it is the ordinary state of a player you have not asked for music yet, not an
+# error.
+[[ -z "$line" ]] && exit 0
+
+# An unknown field in the format above would be reported rather than silently
+# blank, which is the point — but the bar is the wrong place to read it.
+[[ "$line" == err\ * ]] && exit 0
+
+# Budget. status-right-length is 110 in dot_tmux.conf, and the date, clock and
+# Claude's three counters already filled the 70 it was before; ~34 is what the
+# widening bought and so what this may spend. Truncated here rather than by
+# tmux so the ellipsis is ours and lands on a character boundary.
+limit=34
+if ((${#line} > limit)); then
+  line="${line:0:limit-1}…"
+fi
+
+# Teal, which none of the other indicators use: Claude's are yellow, pink and
+# green, the window list is mauve, and the clock is grey. Paused drops to the
+# same grey the date uses — still there, deliberately not competing.
+case "$state" in
+  playing) printf '#[fg=#81c8be]♪ %s#[default] ' "$line" ;;
+  paused) printf '#[fg=#737994]⏸ %s#[default] ' "$line" ;;
+  *) exit 0 ;;
+esac
