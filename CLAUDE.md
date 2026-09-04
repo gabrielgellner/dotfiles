@@ -80,6 +80,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 6 settings + a theme include; rest is commented     |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
+| `dot_visidatarc`                   | `~/.visidatarc`           | VisiData — a Catppuccin Frappé theme; see the caveat below    |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bin/executable_codelldb`          | `~/bin/codelldb`          | CodeLLDB adapter wrapper — see the caveat below               |
@@ -197,6 +198,60 @@ Driving btop to check any of this is easy:
 `-c <file>` and `--themes-dir <dir>` take throwaway copies, so an A/B is two
 `tmux new-session -d` calls and a `capture-pane` diff, and `ctrl+r` reloads the
 config from disk without restarting.
+
+`~/.visidatarc` is the only file here that is *code* rather than settings:
+visidata `exec`s it as Python at startup (`settings.py:loadConfigFile`). It is
+tracked at that path and not under `.config` on purpose. VisiData does look for
+an XDG config first — `user_config_dir('visidata')/config.py`, used only if it
+exists — but that comes from its vendored appdirs, which answers
+`~/.config/visidata` on Linux and `~/Library/Preferences/visidata` on macOS
+(measured by calling it). `~/.visidatarc` is the fallback on both, so one
+tracked file serves both machines where a `config.py` would need a template and
+a second target path.
+
+Only one writer, unlike karabiner and btop above: nothing in visidata rewrites
+this file behind your back. The single write path is `setPersistentOptions`,
+which *appends* `options.x=...` lines and only after a y/n prompt naming the
+file — it exists for API keys, not for theming. So `chezmoi re-add` is not part
+of the workflow here.
+
+What it holds is a Catppuccin Frappé theme, registered in `vd.themes` and
+selected with `options.theme` rather than written as loose
+`options.color_x = ...` assignments. VisiData 3.4 has a theme registry
+(`theme.py`) and going through it buys two things bare assignments do not:
+`theme-input` in the View menu switches between this and the four packaged
+themes at runtime, and `theme-default` puts everything back, because
+`set_theme()` unsets every `color_`/`disp_`/`note_` option before applying a
+dict.
+
+The colours are terminal colour *numbers*, and that is a hard limit, not a
+preference: `color.py:_get_colornum` resolves a colour name to `int(name)` or a
+curses `COLOR_` constant and nothing else, so hex is not expressible. Two
+things follow, and they are what the file is built on.
+
+ANSI 0-15 are *already* Frappé, because kitty paints them from
+`dot_config/kitty/catppuccin-frappe.conf`. `red` is exactly `#e78284`, `black`
+is surface1, `8` is surface2, `white` is subtext1, `15` is subtext0 — naming
+those is exact, and it follows the terminal if the flavour ever changes. The
+same goes for leaving a colour unset: the terminal's background *is* base and
+its foreground *is* text, so `color_default = ''` beats any approximation of
+`#303446`. Only the colours with no ANSI slot — peach, mauve, maroon, and a
+dark base to write *on* an accent — are xterm-256 approximations, and each is
+written as `'<256> <ansi-fallback>'`, the fallback form visidata documents in
+`help_color`.
+
+Setting an option visidata does not know is not an error — `options.set` warns
+`setting unknown option` and carries on — so the theme dict is restricted to
+keys that exist at startup. That rules out the `color_git_*` options (defined
+only when `apps/vgit` is imported) and the `color_diff*` ones
+(`experimental/diff_sheet`). Checked by loading the config headless and
+asserting `vd.statusHistory` came back empty.
+
+Driving visidata is the same detached-tmux method as everything else here, with
+one addition worth knowing: `capture-pane -e` keeps the SGR escapes, so the
+check is on the actual attributes rather than on how a screenshot looks —
+`^[[38;5;216m` on a selected row is peach, `^[[100m` under the cursor cell is
+surface2. `VD_CONFIG=<file>` points a throwaway run at an untracked copy.
 
 `~/bin/codelldb` is a wrapper, not a symlink, and that is load-bearing.
 CodeLLDB finds `liblldb` relative to its own argv[0], so a link in `~/bin` sends
@@ -355,8 +410,8 @@ that *fails* is the error it reports: the run continues, and ends non-zero
 naming what failed, rather than aborting at the first one and leaving the rest
 uninstalled. Core:
 `tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `btop`,
-`zoxide`, `atuin`, `starship`, `direnv`, `lazygit`, `zk`, `just`, `git-cliff`,
-`tree-sitter`, `uv` (Python).
+`visidata` (`vd`), `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`, `zk`,
+`just`, `git-cliff`, `tree-sitter`, `uv` (Python).
 
 Language servers: `lua-language-server`, `bash-language-server`, `pyrefly`,
 `ruff`, `just-lsp` — the five `plugins/lsp.lua` enables. bash-language-server

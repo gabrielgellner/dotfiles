@@ -1,0 +1,105 @@
+# VisiData configuration — a Catppuccin Frappé theme.
+#
+# This file is Python, exec'd by visidata at startup (settings.py:loadConfigFile).
+#
+# Why ~/.visidatarc and not an XDG path: visidata prefers
+# `user_config_dir('visidata')/config.py` *if it exists* and falls back here
+# otherwise (settings.py:config_file). That directory comes from its vendored
+# appdirs, which answers ~/.config/visidata on Linux but
+# ~/Library/Preferences/visidata on macOS — measured, not assumed. One tracked
+# file at ~/.visidatarc serves both machines; a config.py would need a template
+# and a second target path for the sake of the same content.
+#
+# Registered as a theme rather than as bare `options.color_x = ...` assignments,
+# because visidata 3.4 has a theme registry (theme.py) and it does two things
+# loose assignments cannot: `theme-input` in the View menu switches between this
+# and the packaged themes at runtime, and `theme-default` puts everything back —
+# set_theme() unsets every color_/disp_/note_ option before applying a dict.
+#
+# Colours here are terminal colour *numbers*, not hex. visidata parses a colour
+# string into `int(name)` or a curses COLOR_ name and nothing else
+# (color.py:_get_colornum), so 24-bit values are not expressible. Two
+# consequences shape everything below:
+#
+#   1. ANSI 0-15 are already Frappé. kitty paints them from
+#      dot_config/kitty/catppuccin-frappe.conf, so `red` is exactly #e78284,
+#      `black` is surface1 #51576d, `8` is surface2 #626880, `white` is
+#      subtext1 and `15` is subtext0. Naming those is *exact*, not an
+#      approximation, and it follows the terminal if the flavour ever changes.
+#   2. The rest of the palette has no ANSI slot, so it is the nearest entry in
+#      the xterm-256 cube, written with an ANSI colour after it as the fallback
+#      visidata uses when the first is unavailable (help_color in color.py).
+#
+# Backgrounds are mostly left unset. The terminal background *is* base
+# (#303446) and its foreground *is* text (#c6d0f5), so an unset colour is an
+# exact match where an approximation would not be.
+
+from visidata import vd
+
+# Frappé colours with no ANSI slot, as '<nearest-256> <ansi-fallback>'.
+peach = '216 yellow'   # #ef9f76 -> #ffaf87
+mauve = '183 magenta'  # #ca9ee6 -> #d7afff
+maroon = '174 red'     # #ea999c -> #d78787
+dark = '236 black'     # base #303446 -> #303030, for text *on* an accent
+
+# ANSI slots, named for what kitty paints them.
+surface1 = '0'
+surface2 = '8'
+
+vd.themes['catppuccin-frappe'] = dict(
+    # The sheet itself.
+    color_default='',                       # text on base, straight from the terminal
+    color_column_sep=surface2,
+    color_default_hdr='bold blue',
+    color_bottom_hdr='underline blue',
+    color_key_col='cyan',                   # teal
+    color_readonly=maroon,
+
+    # Cursor: a surface1 crosshair with surface2 at the intersection, rather
+    # than the default reverse-video row.
+    color_current_row=f'on {surface1}',
+    color_current_col=f'on {surface1}',
+    color_current_cell=f'on {surface2}',
+
+    # Marks on rows and cells.
+    color_selected_row=peach,
+    color_note_row='yellow',
+    color_note_type=mauve,
+    color_highlight_search=f'{dark} on 3',
+
+    # Status bar.
+    color_status=f'on {surface1}',
+    color_active_status=f'bold blue on {surface1}',
+    color_inactive_status=f'{surface2} on {surface1}',
+    color_highlight_status=f'{dark} on green',
+    color_keystrokes=f'bold white on {surface1}',
+    color_error='red',
+    color_warning=peach,
+    color_working='green',
+
+    # Editing.
+    color_edit_cell=f'{dark} on {peach}',
+    color_edit_unfocused=f'15 white on {surface1}',
+
+    # Menu, command palette, sidebar: dark surface1 panels with accent text,
+    # instead of visidata's default light-blue blocks, which are a light-theme
+    # shape Frappé has nothing to match.
+    color_menu=f'white on {surface1}',
+    color_menu_active=f'bold blue on {surface2}',
+    color_menu_spec=f'cyan on {surface1}',
+    color_menu_help=f'italic 15 white on {surface1}',
+    color_cmdpalette=f'white on {surface1}',
+    color_match='bold blue',
+    color_sidebar=f'white on {surface1}',
+    color_sidebar_title=f'bold {peach} on {surface1}',
+    color_heading=f'bold {peach}',
+
+    # Guides and help.
+    color_code=f'bold cyan on {surface1}',
+    color_longname_guide=surface2,
+    color_guide_unwritten=surface2,
+    color_aggregator=f'bold white on {surface2}',
+    color_graph_hidden=surface2,
+)
+
+vd.options.theme = 'catppuccin-frappe'
