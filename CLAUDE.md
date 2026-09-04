@@ -294,7 +294,7 @@ Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
   `scratch`, `markdown_checkbox`, `markdown_outline`, `rules_lookup`.
 - `plugins/` — one file per plugin or plugin group, lazy-loaded.
 - `guides/` — hand-written markdown reference cards, opened with `<leader>?`.
-  Twelve of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
+  Thirteen of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
   link between them, and `<C-g>` in the picker switches from matching titles to
   grepping their contents.
 
