@@ -71,8 +71,8 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `bin/executable_dev`               | `~/bin/dev`               | fzf-based tmux session/project switcher                       |
 | `bin/executable_new-session`       | `~/bin/new-session`       | Creates tmux sessions with nvim + console windows             |
 | `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
-| `bin/executable_claude-tmux-state` | `~/bin/claude-tmux-state` | Records working/idle per tmux session, from Claude's hooks    |
-| `bin/executable_claude-tmux-status`| `~/bin/claude-tmux-status`| Summarises those states for tmux's status-right               |
+| `bin/executable_claude-tmux-state` | `~/bin/claude-tmux-state` | Records Claude's state per tmux session — see its section below |
+| `bin/executable_claude-tmux-status`| `~/bin/claude-tmux-status`| Summarises those states for the status bar — same section      |
 | `bin/executable_gmuse-tmux-status` | `~/bin/gmuse-tmux-status` | Asks the running gmuse what is playing, for the same bar       |
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
@@ -281,6 +281,70 @@ the tree, which is the relationship `lazy-lock.json` has with lazy.nvim.
 `.config/yazi/flavors` is ignored. To move the pin,
 `ya pkg upgrade` and then `chezmoi re-add ~/.config/yazi/package.toml`, the same
 two steps as `:Lazy update` followed by committing the lockfile.
+
+## Claude's State in the Status Bar
+
+Hooks in `~/.claude/settings.json` drive `~/bin/claude-tmux-state`, which writes
+one file per tmux session under `$XDG_STATE_HOME/claude-tmux`;
+`~/bin/claude-tmux-status` counts those into the `⣿ ⣤ ⣀` slots in
+`status-right`, and `dev` shows the same three as `[a]` / `[q]` / `[i]`.
+
+Editing that settings file from a script makes you a third writer alongside the
+two named above, so keep the serialiser faithful: Python's `json.dump` defaults
+to `ensure_ascii=True`, which turns the em dashes in `autoMode.environment` into
+`\uXXXX` escapes. The file still parses and still means the same thing, but
+every one of those lines shows up in `chezmoi diff` and in the next diff Claude
+Code's own writer produces.
+
+What the hooks write is a **latch, not a sample** — nothing polls.
+`status-interval 5` re-renders a file that only hooks write, so a missed edge is
+permanent rather than late. That is the whole of the bug this feature carried
+for its first month: `working` was written by `UserPromptSubmit` alone, so once
+a permission prompt was answered nothing re-armed it and the bar read "wants
+you" for the rest of the turn.
+Caught live on 2026-09-05 — `sdmxlib` held `waiting permission_prompt` from the
+previous evening while its pane showed `✳ Combobulating… (34m 20s)`.
+
+Four things follow, all re-measured on Claude Code v2.1.236 by wiring every
+candidate event to a logger in a throwaway detached session:
+
+- **The event set is not the schema, and it is bigger than this repo used to
+  claim.** `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`,
+  `Notification`, `Stop`, `SubagentStop` and `SessionEnd` fire. `StopFailure`,
+  `PermissionRequest`, `PermissionDenied`, `Elicitation` and `PreCompact` stay
+  silent. `PostToolUse` does **not** fire when a tool errors — measured on a
+  `git status` that exited 128 — so `PreToolUse` is the only per-tool event to
+  rely on.
+- **`working` has four writers**, three of them tool events, which is what
+  re-arms the latch mid-turn. They fire on every tool call, so the script is on
+  a hot path: one `tmux display-message` and one small write. The write is
+  deliberately unconditional rather than skipped when the file already says
+  `working`, because the mtime is then the last tool call — a heartbeat, and
+  the thing that made the original bug findable. Long autonomous stretches need
+  this: re-invocation by background-task output fires no `UserPromptSubmit` at
+  all, and one session went fifteen hours on four prompts.
+- **`Notification` carries more than `idle_prompt`.** `permission_prompt` fires
+  too, about 6s after the dialog opens, and answering inside that window
+  produces no notification at all. The kind decides a colour rather than being
+  recorded for interest: `idle_prompt` means "finished, and you have not come
+  back", which is what green already says, so pink `⣤` and `dev`'s `[q]` are
+  left to the kinds genuinely blocked on you. `dev` splits them the same way on
+  purpose — the bar and the picker must not disagree about one session. Because
+  the kind is load-bearing it is read with `grep`, not `jq`: jq is a dependency
+  of nothing else here, is absent from `bootstrap.sh`, and merely happens to sit
+  in `/usr/bin` on macOS.
+- **Liveness is a process question, not a session question.** `SessionEnd` fires
+  on a clean exit only, so a Claude killed under a surviving tmux session left
+  `working` on disk for ever, and `tmux has-session` could not see it. The
+  status script walks `ppid` from every process named exactly `claude` up to a
+  `pane_pid` instead — cheaper than the per-file `has-session` it replaced, and
+  it answers both staleness cases at once. The walk must go several levels:
+  claudecode.nvim's instance sits under `nvim --embed` under the pane's `nvim`.
+
+Driving this is the usual detached-tmux method, with one wrinkle: the first
+`send-keys` after launch is swallowed by Claude's startup screen, so send the
+prompt twice. Sample the state file rather than the bar — content plus mtime, a
+few times a second — and the transitions read out directly.
 
 ## Neovim Configuration Architecture
 
