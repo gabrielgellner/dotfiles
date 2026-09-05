@@ -14,23 +14,84 @@ set -uo pipefail
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/claude-tmux"
 [[ -d "$STATE_DIR" ]] || exit 0
 
+# Sessions that actually contain a running Claude, one name per line.
+#
+# This replaced a `tmux has-session` per state file, and it is both cheaper —
+# one ps and one tmux call instead of one tmux call per file — and stricter.
+# has-session only caught the case where the whole tmux session went away;
+# SessionEnd fires on a clean exit, so a Claude killed underneath a session
+# that survives left `working` on disk for ever. Asking after the process
+# answers both at once: no live Claude means the file is stale, whatever it
+# says.
+#
+# The walk up ppid is not optional. claudecode.nvim starts Claude as a child of
+# `nvim --embed`, itself a child of the pane's nvim, so the chain is three deep
+# before it reaches a pane pid — measured on a live session: 472 -> 208 (nvim
+# --embed) -> 207 (nvim) -> 99947 (the pane).
+#
+# Matching is on the basename being exactly `claude`, not a substring: this
+# script and claude-tmux-state would both match a looser test.
+live_sessions() {
+  {
+    ps -Ao pid=,ppid=,comm=
+    echo '---'
+    tmux list-panes -a -F '#{pane_pid} #{session_name}' 2>/dev/null
+  } | awk '
+    /^---$/ { panes = 1; next }
+    !panes {
+      line = $0
+      sub(/^[ \t]*[0-9]+[ \t]+[0-9]+[ \t]+/, "", line)
+      sub(/.*\//, "", line)
+      ppid[$1] = $2
+      if (line == "claude") claude[++n] = $1
+      next
+    }
+    { pane[$1] = substr($0, index($0, " ") + 1) }
+    END {
+      for (i = 1; i <= n; i++) {
+        p = claude[i]
+        # 24 is a ceiling, not a depth anyone reaches; it stops a ppid cycle
+        # (which cannot happen) from hanging the status bar (which would).
+        for (h = 0; h < 24 && p != "" && p != 0 && p != 1; h++) {
+          if (p in pane) { print pane[p]; break }
+          p = ppid[p]
+        }
+      }
+    }
+  ' | sort -u
+}
+
+live=$(live_sessions)
+# Delimited on both ends so a substring match cannot succeed against a longer
+# name. Pure bash rather than a grep per file: this runs every five seconds.
+live_set=$'\n'"$live"$'\n'
+
 working=0
 idle=0
 waiting=0
 for f in "$STATE_DIR"/*; do
   [[ -r "$f" ]] || continue
-  # A session that has gone away leaves its file behind — SessionEnd fires when
-  # Claude exits cleanly, not when the tmux session is killed from under it.
-  # Checking liveness here keeps the count honest without a reaper.
   name=${f##*/}
   name=${name//%2F//}
-  tmux has-session -t "=$name" 2>/dev/null || continue
-  # "waiting <notification_type>" — only the first field is the state.
-  read -r state _ < "$f" 2>/dev/null || continue
+  [[ "$live_set" == *$'\n'"$name"$'\n'* ]] || continue
+  # "waiting <notification_type>" — the kind is the difference between the two
+  # things pink used to mean at once.
+  read -r state kind < "$f" 2>/dev/null || continue
   case "$state" in
     working) working=$((working + 1)) ;;
     idle) idle=$((idle + 1)) ;;
-    waiting) waiting=$((waiting + 1)) ;;
+    waiting)
+      # idle_prompt is not a question. It fires sixty seconds after Stop and
+      # means "finished, and you have not come back" — which is what green
+      # already says, so it goes in the idle bucket. Pink is reserved for the
+      # kinds that are genuinely blocked on you, permission_prompt being the
+      # one seen. An unknown or missing kind counts as blocked: a false pink
+      # costs a glance, a missed one costs the wait it was there to prevent.
+      case "$kind" in
+        idle_prompt) idle=$((idle + 1)) ;;
+        *) waiting=$((waiting + 1)) ;;
+      esac
+      ;;
   esac
 done
 

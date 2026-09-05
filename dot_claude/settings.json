@@ -14,6 +14,26 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/bin/claude-tmux-state working"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/bin/claude-tmux-state working"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

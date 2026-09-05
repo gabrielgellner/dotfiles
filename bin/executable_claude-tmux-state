@@ -2,28 +2,56 @@
 # claude-tmux-state - record whether the Claude session in this tmux session is
 # working or idle, so `dev` and the tmux status bar can show it.
 #
-#   claude-tmux-state working   # a prompt was submitted
+#   claude-tmux-state working   # a prompt was submitted, or a tool ran
 #   claude-tmux-state idle      # Claude stopped responding
-#   claude-tmux-state waiting   # Claude has been idle long enough to notify
+#   claude-tmux-state waiting   # a notification fired; the kind is recorded
 #   claude-tmux-state clear     # the session ended
 #
-# idle and waiting are both "not working", and the difference is how long. Stop
-# fires the moment Claude finishes; the idle_prompt Notification fires sixty
-# seconds later — measured, Stop 22:35:02 then Notification 22:36:02. So idle
-# means just finished and waiting means you have not come back yet, which is
-# the one worth walking to.
+# Which events exist here was measured, not read off the schema. A throwaway
+# `claude` in a detached tmux session, with every candidate event wired to a
+# logger, produced: SessionStart, UserPromptSubmit, PreToolUse, PostToolUse,
+# Notification, Stop, SubagentStop, SessionEnd. StopFailure, PermissionRequest,
+# PermissionDenied, Elicitation and PreCompact stayed silent.
 #
-# Which events exist here was measured, not read off the schema. Of the
-# candidates instrumented, UserPromptSubmit, Stop, SubagentStop, Notification
-# and SessionEnd fire; StopFailure, PermissionRequest, PermissionDenied,
-# Elicitation, PreCompact and the rest stayed silent through a full working
-# session, so there is deliberately no state for them.
+# `working` has four writers, and three of them are the fix for a bug this
+# script had for its first month. It used to be written by UserPromptSubmit
+# alone, which made the state a latch that only a *new prompt* could re-arm.
+# Measured sequence, from the log above:
 #
-# SessionEnd was missing from that list until re-measured: `claude -p` in a
-# throwaway tmux session wrote `working` 0.6s in and the state file was gone
-# 4.2s later, when the run exited — which is this script's `clear` verb, on the
-# SessionEnd hook. It fires on a clean exit only, so claude-tmux-status still
-# checks liveness for the case where the tmux session is killed underneath it.
+#   10:38:07  UserPromptSubmit                 -> working
+#   10:38:09  PreToolUse Write
+#   10:38:15  Notification permission_prompt   -> waiting
+#     ... the prompt is answered ...
+#   10:38:28  PostToolUse Write
+#   10:38:29  Stop                             -> idle
+#
+# Nothing between :15 and :29 wrote anything, so the bar said "wants you" for
+# the whole of the rest of the turn — 34 minutes in the case that prompted
+# this, caught live: session sdmxlib showed `waiting permission_prompt` from
+# 19:52 the previous evening while its pane read `✳ Combobulating… (34m 20s)`.
+# Long autonomous stretches make it worse: that session's transcript held four
+# user prompts in fifteen hours, everything else being re-invocation by
+# background-task output, which fires no UserPromptSubmit at all.
+#
+# So PreToolUse and PostToolUse write `working` too. PreToolUse is the reliable
+# one — PostToolUse does *not* fire when a tool errors (measured on a `git
+# status` that exited 128: PreToolUse, then straight to Stop). PostToolUse is
+# wired anyway for the case PreToolUse cannot cover, a permission granted on a
+# tool that then runs for ten minutes.
+#
+# The two of them fire on every tool call, so this script is on a hot path now.
+# It is one `tmux display-message` and one small write, a few milliseconds; the
+# write is deliberately unconditional rather than skipped when the file already
+# says `working`, because the mtime is then a heartbeat — the last tool call —
+# and that is what made the bug above findable.
+#
+# PostToolUse and Stop land about a second apart at the end of a turn, so a
+# slow PostToolUse hook could in principle write `working` after Stop wrote
+# `idle`. It self-heals: the idle_prompt notification sixty seconds later
+# overwrites it, and that reads as idle. Not seen in practice.
+#
+# SessionEnd fires on a clean exit only, so claude-tmux-status still checks
+# liveness for the case where Claude is killed underneath it.
 #
 # Called from the hooks in ~/.claude/settings.json. Claude inherits TMUX and
 # TMUX_PANE from the shell that launched it — including the instance that
@@ -60,14 +88,23 @@ case "${1:-}" in
     printf '%s\n' "$1" > "$STATE_DIR/$safe"
     ;;
   waiting)
-    # The payload carries notification_type — "idle_prompt" is the only value
-    # seen so far, but a permission prompt would presumably use another, so it
-    # is recorded rather than assumed. Read from stdin, which is the hook's
-    # JSON; jq is a hard dependency of nothing else here, so degrade quietly.
-    kind=""
-    if command -v jq >/dev/null; then
-      kind=$(jq -r '.notification_type // empty' 2>/dev/null) || kind=""
-    fi
+    # The payload carries notification_type, and the *kind* now decides a
+    # colour rather than being recorded for interest: idle_prompt means Claude
+    # finished and you have not come back, permission_prompt means it is
+    # blocked on you. claude-tmux-status paints only the second one pink.
+    #
+    # Both values are measured. "idle_prompt is the only one seen so far" is
+    # what this comment used to say, and the state directory disproved it —
+    # sdmxlib held `waiting permission_prompt` on disk.
+    #
+    # Extracted with grep rather than jq, on purpose. jq is a dependency of
+    # nothing else here and is not in bootstrap.sh; it happens to sit in
+    # /usr/bin on macOS and may be absent on the Linux machine. That was
+    # harmless while the kind was decoration, but now an empty kind would
+    # misclassify every notification, so the one flat string field this needs
+    # is read without it.
+    kind=$(grep -o '"notification_type"[[:space:]]*:[[:space:]]*"[^"]*"' \
+      | sed 's/.*"\([^"]*\)"$/\1/' | head -1) || kind=""
     mkdir -p "$STATE_DIR"
     printf 'waiting %s\n' "$kind" > "$STATE_DIR/$safe"
     ;;
