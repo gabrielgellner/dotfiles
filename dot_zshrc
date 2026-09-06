@@ -198,6 +198,47 @@ alias ls='eza --group-directories-first --icons=auto'
 alias ll='eza -lh --git'
 alias la='eza -lha'
 
+# yazi, with the shell following it out. `q` writes the directory you ended in
+# to --cwd-file and this cd's there; `Q` quits without writing, so the shell
+# stays where it was. Upstream's own wrapper, from
+# https://yazi-rs.github.io/docs/quick-start, kept verbatim except for the name.
+#
+# Named `yazi_lastdir` rather than upstream's `y`, so the function itself says
+# what it does, and reached by two aliases. `yazi`, so following the cwd is the
+# default rather than something you have to remember to ask for; and `y`,
+# because zoxide already owns `z` here and the two are the same verb — `z`
+# jumps when you know where you are going, `y` browses when you do not. A
+# single letter is not a new pattern in this shell, it is the established one.
+#
+# Not `ya`, the obvious two-letter form: that is yazi's own package manager,
+# the `ya pkg install` that bootstrap.sh runs and that pins the flavor.
+#
+# `command yazi` is load-bearing, and more so here than upstream: it bypasses
+# both the alias and this function, so `yazi` -> alias -> yazi_lastdir ->
+# command yazi -> the binary terminates. A plain alias expands only in command
+# position and the `yazi` after `command` is an argument, so this holds
+# whichever order the alias and the function are written in — measured both.
+#
+# Drop the `command` and the safety becomes accidental and order-dependent,
+# which is worse than broken. zsh expands aliases when it *parses* a function
+# body, so with the alias below the function — the order here — a bare `yazi`
+# inside is still literal and happens to work. Move the alias above and the
+# same code dies with "maximum nested function level reached". Also measured,
+# both ways.
+#
+# Aliases exist only in interactive shells, so bootstrap.sh and anything else
+# that runs yazi from a script still gets the binary.
+yazi_lastdir() {
+  local tmp cwd
+  tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+  command yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd < "$tmp"
+  [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd" || builtin true
+  command rm -f -- "$tmp"
+}
+alias yazi=yazi_lastdir
+alias y=yazi_lastdir
+
 # Zoxide
 eval "$(zoxide init zsh)"
 
