@@ -239,6 +239,26 @@ yazi_lastdir() {
 alias yazi=yazi_lastdir
 alias y=yazi_lastdir
 
+# broot's `br`, which is the same trick one tool over. broot writes the command
+# it wants the shell to run — a `cd`, almost always — to a file, and the
+# function evals it, because a subshell cannot change your directory.
+# `yazi_lastdir` above reaches the same end through `--cwd-file`.
+#
+# Sourced rather than copied in: broot generates the launcher itself
+# (`broot --install`) and rewrites it on upgrade, so a copy here would go stale
+# without saying so. Tracking the `source` line is the whole of what is needed.
+#
+# It got here by broot appending that line to ~/.zshrc during install, which is
+# the behaviour bootstrap.sh denies rustup with --no-modify-path. Tracked now so
+# the two writers agree and `chezmoi apply` stops wanting to delete it.
+#
+# Guarded on the launcher file rather than on the binary, and XDG rather than a
+# literal path: the Linux machine may have neither, and sourcing a file that is
+# not there is an error on every new shell, not a quiet no-op.
+_broot_launcher="${XDG_CONFIG_HOME:-$HOME/.config}/broot/launcher/bash/br"
+[[ -r "$_broot_launcher" ]] && source "$_broot_launcher"
+unset _broot_launcher
+
 # Zoxide
 eval "$(zoxide init zsh)"
 
