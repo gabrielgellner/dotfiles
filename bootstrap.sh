@@ -163,6 +163,7 @@ brew_install ripgrep
 brew_install eza
 brew_install bat
 brew_install yazi
+brew_install broot
 
 # system monitor
 brew_install btop
@@ -358,6 +359,49 @@ else
     ya pkg add yazi-rs/flavors:catppuccin-frappe || record_failure "yazi:flavor"
 fi
 
+# ── broot launcher ────────────────────────────────────────────────────────────
+# `br` is a shell function, not a binary, so the formula is only half of it.
+# broot writes the command it wants the shell to run to a file and the function
+# evals it — dot_zshrc sources the launcher that defines it, and has the note.
+#
+# `broot --install` generates that launcher, and there is no flag to stop it
+# also patching the shell rc files. It appends a literal
+# `source /Users/you/.config/broot/launcher/bash/br` to both .zshrc and .bashrc,
+# and it does so even when a reference is already present, because it matches
+# its own absolute-path line rather than the XDG-based one dot_zshrc uses —
+# measured, by running it against a throwaway HOME already carrying that block.
+#
+# chezmoi apply runs before this script (see README), so that append would land
+# *after* chezmoi wrote .zshrc and leave a fresh machine dirty on its first
+# `chezmoi status` — the exact drift tracking the line was meant to end. So it
+# is removed again here, matched on `^source ` so the tracked lines, which
+# begin `_broot_launcher=` and `[[ -r`, cannot be caught by it. .bashrc is
+# untracked and no shell here reads it, so its copy is left where it fell.
+blue "\nChecking broot launcher..."
+BROOT_LAUNCHER="${XDG_CONFIG_HOME:-$HOME/.config}/broot/launcher/bash/br"
+if [[ -r "$BROOT_LAUNCHER" ]]; then
+    yellow "br launcher already installed, skipping"
+elif command -v broot &>/dev/null; then
+    green "Generating the br launcher..."
+    broot --install || record_failure "broot:launcher"
+    # Portable in-place edit: sed -i takes an argument on BSD and not on GNU.
+    #
+    # The awk half is not decoration. broot appends a blank line *and* the
+    # source line, so deleting the source line alone leaves a trailing blank —
+    # one byte of difference that `chezmoi status` reports as a dirty .zshrc,
+    # which is the very thing this block exists to prevent (measured: 312 lines
+    # in, 313 out, before this was added). awk holds blank lines back and emits
+    # them only when something follows, so trailing ones are dropped and blank
+    # lines inside the file are untouched.
+    if [[ -f "$HOME/.zshrc" ]] && grep -qE '^source .*/broot/launcher/bash/br$' "$HOME/.zshrc"; then
+        sed -e '/^source .*\/broot\/launcher\/bash\/br$/d' "$HOME/.zshrc" \
+            | awk '/^$/ { held++; next } { while (held-- > 0) print ""; held = 0; print }' \
+            > "$HOME/.zshrc.broot.$$" \
+            && mv "$HOME/.zshrc.broot.$$" "$HOME/.zshrc" \
+            && yellow "removed the line broot appended to .zshrc; dot_zshrc already sources it"
+    fi
+fi
+
 # ── Verify ────────────────────────────────────────────────────────────────────
 # The reason this exists: nothing else checks that bootstrap still provisions
 # what the config expects. tmux, zk, pyrefly and just-lsp had all drifted out of
@@ -370,7 +414,7 @@ missing=()
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi btop vd starship zoxide atuin direnv lazygit just uv tree-sitter \
+         yazi broot btop vd starship zoxide atuin direnv lazygit just uv tree-sitter \
          git git-cliff shellcheck stylua prettier taplo shfmt biome \
          yamlfmt yamllint lua-language-server bash-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
