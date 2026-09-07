@@ -168,6 +168,62 @@ the way back; the Finder is.
 The reason to know these is the handoff: `cc` here, then paste into a command,
 is usually faster than typing a path you are already looking at.
 
+## From inside nvim
+
+`yazi.nvim` opens the same yazi in a float, so everything above still applies —
+these are the keys that get you in and the ones nvim adds while you are there.
+
+| Key          | Opens yazi at                          |
+| ------------ | -------------------------------------- |
+| `<leader>fy` | the directory of the buffer you are in |
+| `<leader>fY` | nvim's working directory               |
+| `Y`          | in the snacks explorer, the entry under the cursor |
+
+`fy` / `fY` are a scope pair in the sense keymaps.md means — same action, the
+capital wider. `Y` in the explorer is the third of the hand-off capitals beside
+`O` (oil) and `T` (plv); read them as a family rather than as the capitals of
+`o`, `t` and `y`, because `y` there is yank.
+
+This is a third browser, not a replacement for either of the other two, and the
+split is in what each is shaped for. The explorer is a tree, so it answers
+"where is that file". oil is one directory as an editable buffer, so it answers
+"rename all of these". yazi is the one that marks files **across** directories
+and then opens the whole set at once, which neither of the others can do:
+
+```
+<leader>fY     # start at the project root
+<Space>...     # mark, walk somewhere else, mark more
+<c-v>          # every marked file, into vertical splits
+```
+
+Opening a directory still gets oil, deliberately — `open_for_directories` is
+left off so `-` and `<leader>-` keep meaning what they always did.
+
+### Keys nvim adds inside the float
+
+| Key       | Does                                            |
+| --------- | ----------------------------------------------- |
+| `<c-v>` `<c-x>` `<c-t>` | open the marked files in vsplits / splits / tabs |
+| `<c-q>`   | send them to the quickfix list                  |
+| `<c-o>`   | open, picking the target window                 |
+| `<Tab>`   | cycle to buffers already open in nvim           |
+| `<c-y>`   | copy the relative path of the marked files      |
+| `<c-s>`   | grep the directory yazi is in                   |
+| `<c-g>`   | search-and-replace over it, in grug-far         |
+| `<c-\>`   | change nvim's working directory to it           |
+| `<f1>`    | yazi.nvim's help, which is not yazi's `~`       |
+
+Two of those are wired to tools rather than to yazi. `<c-g>` hands the
+directory to grug-far, which is `<leader>sr`'s window — see
+[Search and replace](replace.md). `<c-s>` is pointed at **snacks**: yazi.nvim
+routes it through telescope by default, and there is no telescope here, so
+without the redirect it would be a key that could only error. It now lands in
+the same picker `<leader>fg` does — see [Pickers](pickers.md).
+
+`q` closes the float and returns to nvim. There is no shell cwd to inherit
+here, so the `q`/`Q` distinction above is a terminal-only concern; `<c-\>` is
+the nvim equivalent, and it is explicit rather than automatic.
+
 ## Where the real list is
 
 `~` opens yazi's own help, and it reflects your **live** bindings rather than

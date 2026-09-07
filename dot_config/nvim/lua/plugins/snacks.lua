@@ -156,11 +156,21 @@ return {
                 statuscolumn = "",
                 signcolumn = "no",
               },
-              -- Both hand the entry under the cursor to another tool. `O` is
-              -- the capital of snacks' own `o` (open in the system app) and
-              -- means "open it elsewhere"; `T` is for table. Neither is taken
-              -- by snacks — checked against the picker list defaults and the
-              -- explorer source's own key block in the installed copy.
+              -- All three hand the entry under the cursor to another tool.
+              -- `O` is the capital of snacks' own `o` (open in the system app)
+              -- and means "open it elsewhere"; `T` is for table; `Y` is for
+              -- yazi. None is taken by snacks — checked against the picker
+              -- list defaults and the explorer source's own key block in the
+              -- installed copy.
+              --
+              -- Read these as a *family of capitals*, not as case pairs. That
+              -- distinction matters for `Y`, because snacks binds `y` here to
+              -- explorer_yank and guides/keymaps.md is emphatic that a capital
+              -- should be the wider version of its lowercase and never a
+              -- different action. `Y` is not "yank, but more" — it is the third
+              -- hand-off, and the letter is the tool's initial exactly as `O`
+              -- and `T` are. The rule is bent knowingly here rather than by
+              -- accident; the alternative was a letter with no mnemonic at all.
               --
               -- `T` is not unmapped, though, and checking snacks alone was the
               -- wrong check: these are buffer-local and silently beat globals,
@@ -172,7 +182,16 @@ return {
               -- till-motion has nothing to do. That is also why `T` is *not*
               -- bound in oil, where <leader>tt already reaches plv and the
               -- buffer is editable text in which dT/ and cT, are real edits.
-              keys = { ["O"] = "explorer_oil", ["T"] = "explorer_plv" },
+              --
+              -- `Y` shadows a global too, and a real one: nvim's own default
+              -- maps `Y` to `y$` (measured with maparg). Same answer as `T`
+              -- above — the list is read-only, so a yank-to-end-of-line has
+              -- nothing to act on.
+              keys = {
+                ["O"] = "explorer_oil",
+                ["T"] = "explorer_plv",
+                ["Y"] = "explorer_yazi",
+              },
             },
           },
           actions = {
@@ -181,6 +200,9 @@ return {
             end,
             explorer_plv = function(picker, item)
               require("config.plv").open_from_explorer(picker, item)
+            end,
+            explorer_yazi = function(picker, item)
+              require("config.files").yazi_from_explorer(picker, item)
             end,
           },
         },

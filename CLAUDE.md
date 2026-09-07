@@ -351,8 +351,8 @@ few times a second — and the transitions read out directly.
 Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
 
 - `config/` — loaded unconditionally. Beyond `options`, `keymaps` and `autocmds`
-  this holds standalone features: `files` (oil ↔ explorer handoff), `float`
-  (maximize a snacks float, which snacks.win itself cannot), `folds`
+  this holds standalone features: `files` (the explorer ↔ oil ↔ yazi handoffs),
+  `float` (maximize a snacks float, which snacks.win itself cannot), `folds`
   (LSP/treesitter fold dispatch), `guides` (the `<leader>?` picker), `just`
   (run recipes into a tmux console window), `plv` (the table viewer handoff),
   `scratch`, `markdown_checkbox`, `markdown_outline`, `rules_lookup`.
