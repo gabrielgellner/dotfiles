@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # gmuse-tmux-status - what is playing, for tmux status-right.
 #
-# Asks the running player over its socket (`gmuse --remote`). Prints nothing at
-# all when no player is running, and nothing when one is running but stopped, so
-# the status bar stays as quiet as it was before this existed — the same rule
-# claude-tmux-status follows.
+# Asks the running engine over its socket (`gmuse ctl playback.get`). Prints
+# nothing at all when no engine is running, and nothing when one is running but
+# stopped, so the status bar stays as quiet as it was before this existed — the
+# same rule claude-tmux-status follows.
 #
-# The format is asked for rather than truncated. gmuse's `now_playing` here is
+# **It asks the engine, not the TUI.** This used `gmuse --remote status`, which was
+# served by the *TUI process* and published from its render loop — so the bar went
+# blank whenever the player was running without a view in front of it, which is
+# exactly the case the engine was built for. `playback.get` is answered by the
+# engine itself and does not care whether anything is attached.
+#
+# The format is asked for rather than truncated. gmuse's `now_playing` is
 # "{artist}[ — {album}] — {title}", which renders ~41 columns and puts the title
 # **last**, so cutting it to fit the bar would throw away the field you actually
-# wanted. `status <format>` takes the same format language the config uses, so
-# this asks for exactly what fits.
+# wanted. `playback.get` takes the same format language the config uses, so this
+# asks for exactly what fits.
 #
 # Colours are #rrggbb rather than ANSI names, matching dot_tmux.conf and
 # claude-tmux-status: the bar already carries frappe values inline.
@@ -19,24 +25,43 @@ set -uo pipefail
 
 command -v gmuse >/dev/null 2>&1 || exit 0
 
-# State first, because it is the cheap question and it decides whether the
-# second one is worth asking. Two round-trips rather than one: `status <format>`
-# answers with the rendering alone, by design, so the state has to be asked for
-# separately. Both are microseconds over a unix socket, and the worst a track
-# change between them can do is pair one track's title with the other's state
-# for a single 5-second tick.
-state=$(gmuse --remote status 2>/dev/null | cut -f1) || exit 0
+# **One round trip, not two.** The old socket answered `status <format>` with the
+# rendering alone, so state and line had to be asked for separately — and a track
+# change between the two calls could pair one track's title with the other's state.
+# `playback.get` returns both in one object, so that window is gone.
+#
+# Params are a JSON word after the method: `ctl` takes everything after the command
+# as part of the command, so a trailing `--format` could not work and inventing a
+# shell-ish syntax for one caller would be worse than quoting an object.
+reply=$(gmuse ctl --json playback.get '{"format":"{title} · {artist}"}' 2>/dev/null) || exit 0
+[[ -z "$reply" ]] && exit 0
+
+# Extracted with grep rather than jq, for the reason claude-tmux-state says it
+# there: jq is a dependency of nothing else here and is absent from bootstrap.sh,
+# so requiring it would trade a bar that is blank when the TUI is closed — the bug
+# this whole change fixes — for one that is blank on the Linux machine.
+#
+# `--json` and not `ctl`'s human form, even though grep could read either. The
+# human form is `key: value` per line, so a title holding a newline could forge a
+# field; JSON escapes it to a literal \n and the forgery arrives inert — measured
+# with `"rendered":"Evil\nstate: stopped"`, which read back whole and did not
+# become a state.
+#
+# What that costs in return is a title holding a quote: it arrives as \" and stops
+# `[^"]*` early, so `The "Real" Thing` shows as `The \`. A title cut short, rather
+# than a wrong line or a blank bar — the smallest of the three failures, and the
+# price of not decoding JSON in sed.
+state=$(grep -o '"state"[[:space:]]*:[[:space:]]*"[^"]*"' <<<"$reply" |
+  sed 's/.*"\([^"]*\)"$/\1/')
 [[ "$state" == "stopped" || -z "$state" ]] && exit 0
-line=$(gmuse --remote 'status {title} · {artist}' 2>/dev/null) || exit 0
 
-# A player running but stopped has nothing to say, and that is checked above:
-# it is the ordinary state of a player you have not asked for music yet, not an
-# error.
+line=$(grep -o '"rendered"[[:space:]]*:[[:space:]]*"[^"]*"' <<<"$reply" |
+  sed 's/^"rendered"[[:space:]]*:[[:space:]]*"//; s/"$//')
+# A player running but stopped has nothing to say, and that is checked above: it is
+# the ordinary state of a player you have not asked for music yet, not an error.
+# `rendered` is absent entirely when no format was asked for, which greps to empty
+# and lands here too.
 [[ -z "$line" ]] && exit 0
-
-# An unknown field in the format above would be reported rather than silently
-# blank, which is the point — but the bar is the wrong place to read it.
-[[ "$line" == err\ * ]] && exit 0
 
 # Budget. status-right-length is 110 in dot_tmux.conf, and the date, clock and
 # Claude's three counters already filled the 70 it was before; ~34 is what the

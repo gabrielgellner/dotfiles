@@ -107,7 +107,18 @@ and nothing there writes it back — because its mutable state goes to
 `session.log`) and its library index to `$XDG_CACHE_HOME/gmuse`. Both are
 outside `~/.config`, so the tracked directory holds exactly one file and
 `.chezmoiignore` needs no entry for it at all. No `private_` either: cmus
-needed 0700 for its socket, and there is no socket here.
+needed 0700 for its socket, and the engine's socket is not here — it lives in
+`$XDG_RUNTIME_DIR/gmuse/` (`$TMPDIR/gmuse/` on macOS), in a directory gmuse
+chmods 0700 itself.
+
+The hazard is the other direction: **the schema changes under the tracked
+copy**, and nothing warns, because the file is only ever read. `[catalogs.*]`
+and `active_catalogs` became views (`view`, `library`) and the tracked copy went
+stale — at which point `chezmoi apply` would have quietly pushed the obsolete
+shape back over a working config. gmuse keeps the dead keys *only* to report
+them (`src/config.rs:78`), which is what makes this recoverable rather than
+silent. So after upgrading gmuse, diff before applying, the same as for the
+files with two writers above — the reason differs, the workflow does not.
 
 The **binary** is the part with a caveat. `gmuse` on PATH is a symlink,
 `~/.local/bin/gmuse` -> `~/dev/gmuse/target/release/gmuse`, and it is
@@ -128,32 +139,34 @@ Three consequences, all measured:
   `command -v` (rc 1), `test -x`, and execution ("command not found"). That is
   the good failure, but the popup binding has no fallback, so it opens and
   closes again with nothing in it. `cargo build --release` puts it back.
-- A rebuild does not disturb the running player. The tmux session holds the old
-  inode and plays on; the new build is what the *next* launch gets. So `q` in
-  the popup and reopen is the way to pick up a change.
+- A rebuild does not disturb anything running. Old inodes play on; the new build
+  is what the *next* launch gets — and since the split there are two launches.
+  `q` and reopen picks up a new **view**; a change to the audio path needs
+  `gmuse ctl engine.shutdown` first, because the engine is a daemon and the
+  popup closing does not end it.
 
-gmuse **holds an instance lock** now, and this section used to say it did not.
-`src/lock.rs` takes an OS lock (`File::try_lock`) on
-`$XDG_STATE_HOME/gmuse/lock` at `main.rs:70` — deliberately *before* the audio
-device is opened, so a refused second instance never touches the speakers — and
-a second one exits naming the pid that holds it. `--no-lock` (`cli.rs:111`)
-starts anyway.
+**gmuse is a client/server pair now, and this section twice said otherwise.**
+Playback lives in a `gmuse engine` daemon, listening on
+`$XDG_RUNTIME_DIR/gmuse/engine.sock` (`$TMPDIR/gmuse/` on macOS, where there is
+no `XDG_RUNTIME_DIR`). Bare `gmuse` is a **view**: no audio device, no player
+lock, it starts an engine if none answers and attaches. So quitting the TUI
+leaves the music playing, and two views run side by side quite happily —
+measured, two at once with the player lock unheld by either.
 
-An OS lock rather than a pid file is the part worth keeping: the kernel drops
-it however the process ends, so `kill -9` and a crashed popup leave nothing to
-clean up, and a stale file holding a dead pid is not a lock. The pid is stored
-only so the refusal can name something.
+Which makes the instance lock this section used to describe the wrong lock to
+care about. `src/lock.rs` still exists and still guards a `--no-attach` player,
+but the default path never takes it. "Not twice" is now `engine.lock`, beside
+the socket, and it is about the daemon: one engine per user, and a second exits
+rather than opening a second device. Same reasoning as before — an OS lock
+rather than a pid file, because the kernel drops it however the process ends.
 
-So the popup binding no longer carries that weight alone. The two answer
-different questions: the lock says "not twice", `new-session -A` says "and here
-it is". What the lock does *not* undo is `session.toml` — saved on quit unless
-`--no-resume` is passed (it opts out of restoring and saving together), so
-before the lock the instance quit last decided what the next launch restored.
-Ratings and plays were never at risk: `events-*.log` is append-only, one short
-line at a time, which is the same design that lets two machines share a library.
-The audit log is opt-in (`--log` / `GMUSE_LOG`, `audit.rs` defaults it
-disabled) and the popup runs bare `gmuse`, so it was never contended either —
-an earlier version of this section wrongly listed it.
+The popup binding is back to answering one question rather than sharing two.
+`new-session -A` says "and here it is"; nothing about it constrains how many
+views exist, and it no longer needs to. `session.toml` is likewise the engine's
+concern rather than a race between popups. Ratings and plays were never at risk:
+`events-*.log` is append-only, one short line at a time, which is the same
+design that lets two machines share a library. The audit log is opt-in
+(`--log` / `GMUSE_LOG`, `audit.rs` defaults it disabled).
 
 The player's tmux session is named **`music`, not `gmuse`**, and that is a
 measured fix rather than a preference. `bin/executable_dev` names sessions

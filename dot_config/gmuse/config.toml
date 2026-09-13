@@ -3,8 +3,11 @@
 # NOTE: top-level keys must come BEFORE any [table] header. A bare key written
 # after one belongs to that table, which TOML does silently.
 
-# Omit, or ["all"], to start with everything.
-active_catalogs = ["all"]
+# The view in force at startup — one source line, which is all a view is.
+# Omit for everything. `saved="dance"` recalls a view you saved with
+# `:view save dance`; `in="Dance"` names a collection directly.
+#
+# view = 'in="Dance"'
 
 # Ratings, play history and (later) playlists. Kept inside the library so they
 # travel with the music and land in the same backup.
@@ -14,22 +17,34 @@ active_catalogs = ["all"]
 # silently lose recent plays and ratings.
 data_dir = "~/MusicLibrary/.gmuse"
 
+# Where the music is. The only thing that says so now that a catalog has no
+# roots — and durable, unlike the cache, which is discarded whenever its
+# format changes.
+library = ["~/MusicLibrary"]
+
 # A vim-style distance gutter beside list rows. Counts tracks, so an album
 # divider never shifts it.
 [settings]
 relative_numbers = true
 
-# One catalog per top-level folder. Browsing and shuffle stay inside whichever
-# are active; playlists and the queue cross them freely.
+# Browsing and shuffle stay inside whatever view is in force; playlists and the
+# queue cross it freely.
 #
-# Roots live here rather than only in the cache, which is derived data and gets
-# discarded whenever its format changes.
-
-[catalogs.general]
-roots = ["~/MusicLibrary/General"]
-
-[catalogs.dance]
-roots = ["~/MusicLibrary/Dance"]
+# **There is no [catalogs] table any more.** A catalog was a saved view with a
+# second name, living in the config where it could not sync, merge or carry
+# provenance. Your crates are collections in the library — facts, so they stay
+# filed when a file moves and mean the same thing on another machine:
+#
+#   :view in="Dance"        what the Dance collection holds
+#   :view save dance        name that, as a fact
+#   :view saved="dance"     recall it
+#   :view 6                 list what you have saved, space to add, enter to set
+#
+# They are allowed to overlap. A pop song belongs in Dance when you are DJing
+# with it and in General the rest of the time, which is the choice the
+# filesystem was forcing.
+#
+# For what is in neither: `:view -in="Dance" -in="General"`.
 
 [format]
 now_playing = "{artist}[ — {album}] — {title}"
