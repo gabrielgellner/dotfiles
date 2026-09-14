@@ -25,10 +25,16 @@ bootstrap.sh
   i3 and i3status are the window manager and its status bar: Linux only. Only
   fontconfig looked like a candidate to join them, and it turns out to be
   present on macOS too.
+
+  .xsession joins them because it is the file that *starts* i3 — two lines,
+  `exec i3`, read by /etc/xrdp/startwm.sh at login. It was the one part of that
+  setup living nowhere but the machine's disk. Inert on macOS, which has no X
+  session to start.
 */ -}}
 {{ if ne .chezmoi.os "linux" -}}
 .config/i3/**
 .config/i3status/**
+.xsession
 {{ end -}}
 
 {{/*

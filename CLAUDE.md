@@ -71,6 +71,14 @@ Machine-local secrets stay out of the repo entirely — `dot_gitconfig` includes
 (`dot_config/git/ignore`) *is* tracked, since its rules should hold on both
 machines; git finds it at the XDG default, with `core.excludesfile` unset.
 
+The Linux machine runs its desktop over RDP, which is why `.xsession`,
+`.config/i3` and `.config/i3status` are tracked and Linux-only — `.xsession` is
+what xrdp reads to start i3. That constraint reaches further than it looks:
+anything i3-, font- or terminal-size-shaped on that machine is answering to the
+remote display rather than to taste, which is why `dot_config/kitty/font.conf.tmpl`
+exists at all. `.config/fontconfig` is tracked but *not* Linux-only; it turned
+out to be present on macOS too.
+
 ## Key Files and Their Roles
 
 | File                               | Destination               | Purpose                                                       |
@@ -90,6 +98,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 5 settings, a theme include, and a font-size include; rest is commented |
 | `dot_config/kitty/font.conf.tmpl`  | `~/.config/kitty/font.conf` | Font size per machine — see the caveat below                  |
 | `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: flavor and plugin pins, theme, `c a` to archive          |
+| `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; Linux only                              |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_visidatarc`                   | `~/.visidatarc`           | VisiData — a Catppuccin Frappé theme; see the caveat below    |
