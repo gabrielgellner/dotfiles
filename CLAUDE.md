@@ -201,14 +201,27 @@ is what gets saved. Quitting on a preset that hides the net box wrote
 `shown_boxes = "cpu proc"` into the file (measured, twice). So quit from
 preset 0 before re-adding, or fix the line up by hand.
 
-`disks_filter = "/ /System/Volumes/Data"` in that file is macOS-shaped and is
-deliberately *not* a template: `chezmoi re-add` refuses to overwrite templates,
-which would break the workflow above for the sake of one line. On macOS the
-filter earns its place — `use_fstab` and `only_physical` are both useless there,
-because `VM`, `Preboot`, `Update`, `xarts` and `iSCPreboot` are genuine APFS
-volumes on the one device and btop lists all five (measured with `use_fstab`
-both ways). On Linux the line means "show only `/`", which is wrong if that
-machine has a separate `/home`; widen it there.
+`disks_filter = "/ /media/triples /System/Volumes/Data"` names mountpoints for
+*both* machines at once, and is deliberately *not* a template: `chezmoi re-add`
+refuses to overwrite templates, which would break the workflow above for the
+sake of one line. The union is safe because the match is by **equality**, not
+prefix — btop tests each mountpoint for membership in the list — so an entry
+naming a path the machine does not have is inert rather than wrong. That is what
+lets one line serve both: `/System/Volumes/Data` matches nothing on Linux and
+`/media/triples` matches nothing on macOS. (A prefix match would make `/` alone
+select everything, which it plainly does not.)
+
+On macOS the filter earns its place — `use_fstab` and `only_physical` are both
+useless there, because `VM`, `Preboot`, `Update`, `xarts` and `iSCPreboot` are
+genuine APFS volumes on the one device and btop lists all five (measured with
+`use_fstab` both ways). On Linux `use_fstab = true` makes *fstab* the candidate
+list, which on the Azure machine is `/`, `/boot/efi`, `/media/triples` and
+`/mnt` — nothing outside those four can be filtered back in. It has no separate
+`/home`, so the old "show only `/`" value was not wrong here, just blind to the
+5TB CIFS share. `/boot/efi` (104 MiB) and `/mnt` (the ephemeral Azure resource
+disk) are left out on purpose; add either by name to get it back. Measured by
+running `btop -c` on a throwaway copy listing all four, which drew root, efi,
+triples and mnt as four separate meters.
 
 The graph settings in it are the point of the file. `mem_graphs = false` turns
 the memory box from braille traces into labelled `■■■` meters, `show_io_stat`
