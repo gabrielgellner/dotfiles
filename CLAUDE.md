@@ -87,7 +87,8 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
-| `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 6 settings + a theme include; rest is commented     |
+| `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 5 settings, a theme include, and a font-size include; rest is commented |
+| `dot_config/kitty/font.conf.tmpl`  | `~/.config/kitty/font.conf` | Font size per machine — see the caveat below                  |
 | `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: flavor and plugin pins, theme, `c a` to archive          |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
@@ -103,6 +104,22 @@ setting changes from inside the tool — model, theme, effort level, enabled
 plugins — while chezmoi holds its own copy. Whichever wrote last wins, so a
 change made in the tool is reverted by the next `chezmoi apply`. Capture such a
 change with `chezmoi re-add ~/.claude/settings.json` before applying.
+
+`~/.config/kitty/font.conf` is a three-line file for one setting, and the split
+is forced rather than chosen. `kitty.conf` here is kitty's full annotated
+reference config, and it folds on triple braces — the same two characters Go's
+template parser treats as the start of an action. So the file cannot be a
+`.tmpl`: `chezmoi execute-template` rejects it with `unexpected "{" in command`.
+Measured, and then measured again when the new file's own comment quoted the
+markers literally and broke the same way.
+
+The setting has to differ per machine because the *unit* does. kitty sizes text
+in points; a point is 1/72 inch to CoreText and 1/96 inch to the Linux machine's
+Xvnc (`-dpi 96`), so the same number renders a third larger over RDP. The laptop
+keeps 14.0 and the VM uses 12.0; parity would be 10.5. The grid each size
+produces at 1920x1080 is tabulated in the file, measured by reading `stty size`
+out of a full-screen kitty on a throwaway `Xvnc :99` — which also showed that
+13.5 is a no-op, quantising to the same cell as 14.0.
 
 `~/.config/karabiner/karabiner.json` has the same shape of problem: Karabiner
 rewrites it whenever a setting changes in its GUI, so re-add before applying

@@ -1,0 +1,30 @@
+# Font size, per machine. Included by kitty.conf, which cannot itself be a
+# chezmoi template: it is kitty's full annotated reference config, and it folds
+# on triple braces — the same two characters Go's template parser treats as the
+# start of an action, which it then rejects outright. Measured twice, in fact:
+# `chezmoi execute-template` answers `unexpected "{" in command`, and it said so
+# a second time when this very comment first quoted the markers literally.
+# A small include sidesteps the whole problem, and leaves the 2761-line file
+# plain — which also means `kitten choose-fonts` can rewrite it without
+# stepping on this.
+#
+# The number differs because the *unit* does. kitty sizes text in points, and a
+# point is 1/72 inch to CoreText but 1/96 inch to this Xvnc (`-dpi 96`, and
+# `xdpyinfo` agrees), so the same number renders a third larger over RDP than it
+# does on the laptop. True parity would be 14 x 72/96 = 10.5; 12.0 is the
+# deliberate middle — smaller, without the laptop's density.
+#
+# Measured on a throwaway `Xvnc :99 -geometry 1920x1080 -depth 16 -dpi 96`,
+# reading `stty size` back out of a kitty sized to the full screen:
+#
+#     14.0   174x46   cell 11x23     13.5 is a no-op: it quantises to the
+#     13.5   174x46   cell 11x23     same cell as 14.0, so half-point steps
+#     13.0   174x49   cell 11x22     buy nothing here. 12.5 is the first
+#     12.5   192x51   cell 10x21     size where the cell gets *narrower*.
+#     12.0   192x54   cell 10x20
+#     10.5   213x60   cell  9x18
+{{ if eq .chezmoi.os "darwin" -}}
+font_size 14.0
+{{- else -}}
+font_size 12.0
+{{- end }}
