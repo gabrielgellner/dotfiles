@@ -35,13 +35,23 @@ Common tasks are wrapped in the `justfile` — `just diff`, `just apply`, `just 
 `just release` refuses to run on a dirty tree or an existing tag; the changelog
 recipe carries a note about commits git-cliff silently drops.
 
-A published release is final. `main` is protected against force-push and, since
-2026-08-27, `v*` is a protected tag pattern on GitLab — a delete push comes back
-"You can only delete protected tags using the web interface" (measured, with the
-tag left intact). So a release that ships something wrong is fixed by cutting
-the next version, not by moving the tag. v1.1.0 was retagged once, before the
-protection existed, because its changelog was dated in UTC; doing that again
-means unprotecting in the project settings first, on purpose.
+**The remote is GitHub since 2026-09-23.** `origin` is
+github.com/gabrielgellner/dotfiles, public; the GitLab project it moved off is
+still there, kept as the remote `gitlab` and no longer pushed to. `just release`
+ends in `git push --follow-tags` with no remote named, so it follows `main`'s
+upstream and lands on GitHub without a change to the recipe.
+
+A published release is final, and that survived the move. Two GitHub rulesets
+carry it: `protect-main` (deletion, non_fast_forward) on `refs/heads/main`, and
+`protect-version-tags` (deletion, update, non_fast_forward) on `refs/tags/v*`.
+`GET /repos/.../rules/branches/main` lists both of the branch rules as applying,
+which is how they were checked — the rejection itself is *not* measured here,
+unlike the GitLab original, where a delete push came back "You can only delete
+protected tags using the web interface" with the tag left intact. So a release
+that ships something wrong is still fixed by cutting the next version, not by
+moving the tag. v1.1.0 was retagged once, under GitLab and before any protection
+existed, because its changelog was dated in UTC; doing that again means
+disabling the ruleset in Settings → Rules first, on purpose.
 
 ## Per-Machine Configuration
 

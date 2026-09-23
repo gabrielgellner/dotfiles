@@ -49,7 +49,7 @@ tree.
 
 ```bash
 brew install chezmoi
-chezmoi init git@gitlab.com:gabrielgellner/dotfiles.git
+chezmoi init https://github.com/gabrielgellner/dotfiles.git
 chezmoi apply
 
 cd ~/.local/share/chezmoi && ./bootstrap.sh

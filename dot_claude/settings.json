@@ -94,15 +94,15 @@
     ],
     "environment": [
       "### Org-wide",
-      "**Organization**: None configured (personal GitLab account gabrielgellner)",
+      "**Organization**: None configured (personal GitHub account gabrielgellner)",
       "**Cloud provider(s)**: None configured",
-      "**Repository visibility**: assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public — origin is gitlab.com/gabrielgellner/dotfiles and was not queryable via gh; treat as private",
+      "**Repository visibility**: origin is github.com/gabrielgellner/dotfiles and is PUBLIC — created public on 2026-09-23 when this repo moved off GitLab. For any other repo, assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public",
       "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
       "**Secrets management**: None configured",
-      "**Default / protected branches**: default branch `main`; protection not queryable (origin is not github.com)",
+      "**Default / protected branches**: default branch `main`, protected by the `protect-main` ruleset (deletion, non_fast_forward); tags matching `v*` protected by `protect-version-tags` (deletion, update, non_fast_forward)",
       "**CI/CD deploy targets**: None configured",
       "**Network posture**: None configured",
-      "**Source control**: The trusted repo and its remote(s) only (no additional orgs configured) — gitlab.com/gabrielgellner/dotfiles via https",
+      "**Source control**: The trusted repo and its remote(s) only (no additional orgs configured) — origin github.com/gabrielgellner/dotfiles, plus the former origin kept as `gitlab` at gitlab.com/gabrielgellner/dotfiles; both over https",
       "**Trusted internal domains**: None configured",
       "**Trusted cloud buckets**: None configured",
       "**Key internal services**: None configured",
@@ -114,8 +114,8 @@
       "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
       "### User-specific",
       "**Primary use of Claude Code**: maintaining a personal chezmoi dotfiles repository (zsh, tmux, neovim, starship config and helper scripts)",
-      "**Trusted repo**: /Users/gabrielgellner/.local/share/chezmoi and its remote gitlab.com/gabrielgellner/dotfiles (treated as private). Visibility scopes confidential material only: secrets and sensitive data (personal & entrusted) are never cleared into any repo by its visibility.",
-      "**Org-specific CLIs**: chezmoi (45x in this project), glab, nvim, brew, just, stylua — personal tooling, no org-specific CLI configured",
+      "**Trusted repo**: /Users/gabrielgellner/.local/share/chezmoi and its remotes github.com/gabrielgellner/dotfiles (origin, public) and gitlab.com/gabrielgellner/dotfiles (`gitlab`, the former origin). Visibility scopes confidential material only: secrets and sensitive data (personal & entrusted) are never cleared into any repo by its visibility.",
+      "**Org-specific CLIs**: chezmoi (45x in this project), gh, glab, nvim, brew, just, stylua — personal tooling, no org-specific CLI configured",
       "**Routine under this repo**: `chezmoi diff` / `chezmoi apply` and `just` targets (apply, diff, changelog, changelog-preview, next-version, release, update) are the routine workflow in this checkout"
     ]
   }
