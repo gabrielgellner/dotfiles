@@ -91,6 +91,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_visidatarc`                   | `~/.visidatarc`           | VisiData — a Catppuccin Frappé theme; see the caveat below    |
+| `dot_config/mermaid/puppeteer.json` | `~/.config/mermaid/puppeteer.json` | Browser mmdc renders mermaid with — see the caveat below |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bin/executable_codelldb`          | `~/bin/codelldb`          | CodeLLDB adapter wrapper — see the caveat below               |
@@ -305,6 +306,45 @@ the tree, which is the relationship `lazy-lock.json` has with lazy.nvim.
 `ya pkg upgrade` and then `chezmoi re-add ~/.config/yazi/package.toml`, the same
 two steps as `:Lazy update` followed by committing the lockfile.
 
+`~/.config/mermaid/puppeteer.json` is there so that `mmdc` can find a browser at
+all. snacks.image renders a ```mermaid fence inline in markdown, in kitty, by
+converting it to a PNG with mermaid-cli first — and mermaid-cli draws by driving
+a headless Chrome through puppeteer, which pins the copy it wants to the exact
+version it was built against. The brew bottle ships no browser, so a bare `mmdc`
+exits 1 with "Could not find chrome-headless-shell (ver. 152.0.7977.54)".
+
+`{"channel": "chrome"}` is the answer to that, and it is chosen over the obvious
+`npx puppeteer browsers install`: puppeteer then resolves the *installed* Google
+Chrome by its well-known path, which is stable across Chrome's own updates,
+needs no ~150MB download beside the three chromiums already in
+`~/.cache/puppeteer`, and re-pins nothing when mermaid-cli is upgraded. It is
+also the portable spelling — the same key works on Linux, where an
+`executablePath` would have forced a template. Measured: 1.7s for a four-node
+flowchart, against a hard failure without it.
+
+`plugins/snacks.lua` passes it with `-p`, guarded on the file existing, because
+`-p` naming a missing file is itself a hard error in mmdc. Only mmdc ever reads
+that file and nothing writes it, so this is the gmuse case rather than the btop
+one: no `chezmoi re-add` in the workflow. snacks needs `image` *named* in its
+opts — it is one of the `needs_setup` modules, where an `enabled` flag alone is
+not enough — and needs nothing from kitty or tmux, because it runs
+`tmux set -p allow-passthrough all` on the pane itself.
+
+The other two lines in that block are both about size. `doc.max_height = 20`
+is a sharpness fix as much as a fitting one: snacks sizes an image as
+`px / dpi * 96 * scale`, mmdc writes 72dpi, and the `-s {scale}` snacks passed
+mmdc had *already* rendered at that scale — so the default 40 rows asked kitty
+to stretch a 587x790 chart over the whole window. 20 rows puts that chart at
+34x20 cells, within a cell of its own pixels. Capping the height is enough
+because `fit` keeps the aspect ratio, and the clamp that bites is always the
+vertical one. `convert.notify = true` is there because the alternative to a
+message is nothing at all: a failed convert leaves no image and no clue.
+
+What makes any of it render in a session `dev` built is `SNACKS_KITTY=1`, set
+in `dot_zshenv` — see the comment there. Without it snacks never learns it is
+in kitty, because `new-session` starts nvim in a detached session and tmux
+answers no terminal query from a pane nobody is watching.
+
 ## Claude's State in the Status Bar
 
 Hooks in `~/.claude/settings.json` drive `~/bin/claude-tmux-state`, which writes
@@ -442,6 +482,21 @@ back. The exception is `vim.fn.input()` under noice — invisible to
 `capture-pane` but still receiving keys, so a blank capture there is not
 evidence of a broken prompt.
 
+**Images are testable detached only because `dot_zshenv` forces the answer.**
+snacks detects kitty by writing `\033[>q` through tmux passthrough and waiting
+for the reply, and tmux drops passthrough output from a pane nobody is looking
+at — so without `SNACKS_KITTY=1`, a detached session or a background window
+reports `name = "tmux"` with `supported` unset and places nothing, and it does
+not recover, because `doc._attach` latches `b:snacks_image_attached` *before* it
+tests support. With the override the geometry is computed normally wherever the
+pane lives, so read the result from the extmark rather than the screen:
+`nvim_buf_get_extmarks` on the `snacks.image` namespace returns `virt_lines`
+full of kitty placeholder characters, which `capture-pane` does not show. Only
+the pixels need a window you are actually looking at.
+
+That was three false negatives before it was understood — each one a probe that
+raced the tmux client rather than a config that did not work.
+
 ## Faults this config has had
 
 Each of these has bitten more than once. Worth checking for when touching
@@ -499,6 +554,8 @@ uninstalled. Core:
 `tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `broot`,
 `btop`, `visidata` (`vd`), `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`,
 `zk`, `just`, `git-cliff`, `tree-sitter`, `uv` (Python).
+`mermaid-cli` (`mmdc`) is there for the markdown diagrams above; it pulls in
+`node`, and leans on a Google Chrome that nothing here installs.
 
 Language servers: `lua-language-server`, `bash-language-server`, `pyrefly`,
 `ruff`, `just-lsp` — the five `plugins/lsp.lua` enables. bash-language-server

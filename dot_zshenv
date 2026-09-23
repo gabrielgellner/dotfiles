@@ -47,3 +47,24 @@ export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin:$PATH"
 # Verified as the real switch, not a coincidence: =1 emits no ESC[?1049h, =0
 # emits it.
 export CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1
+
+# Tell snacks.image it is talking to kitty, because inside tmux it cannot ask.
+#
+# snacks detects the terminal by writing ESC[>q through tmux's passthrough and
+# waiting for the reply, and tmux drops passthrough output from a pane nobody is
+# looking at. Every session `dev` builds starts exactly that way: new-session
+# runs `tmux new-session -d`, types `nvim` into the detached session, and only
+# then switches the client to it — so nvim asks its question with no client
+# attached, gets no answer, and settles on "tmux, no graphics" for the life of
+# the process. It does not retry either: doc._attach latches
+# b:snacks_image_attached before it tests support, so reopening the file changes
+# nothing. Measured both ways in a background window — mermaid fences render
+# with this set and silently do not without it.
+#
+# SNACKS_KITTY is snacks' own override (it reads SNACKS_<env name> for each
+# terminal it knows), and KITTY_PID is set by kitty itself and reaches every
+# tmux pane through the server's global environment — so this claims kitty only
+# where kitty really started the tree. The case it gets wrong is attaching that
+# same tmux server from a terminal that is not kitty, where the override is
+# believed and the graphics escapes arrive as garbage.
+[[ -n "$KITTY_PID" ]] && export SNACKS_KITTY=1

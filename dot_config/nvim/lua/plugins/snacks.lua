@@ -307,6 +307,64 @@ return {
         { section = "startup" },
       },
     },
+    -- ── inline images (mermaid diagrams in markdown) ─────────────────────────
+    -- Needs a key here at all: snacks.image is one of the modules marked
+    -- `needs_setup`, so it stays off until opts mentions it, unlike notifier or
+    -- bigfile which only need a flag flipped.
+    --
+    -- Nothing here is about kitty or tmux, because neither needs anything.
+    -- snacks detects kitty through `tmux display-message -p #{client_termname}`
+    -- rather than a TermResponse query (extended-keys would eat that), and it
+    -- runs `tmux set -p allow-passthrough all` on the pane itself — pane-scoped,
+    -- so `.tmux.conf` stays out of it and a pane that never shows an image never
+    -- gets the option set.
+    image = {
+      enabled = true,
+      doc = {
+        -- A diagram that fills the window is not inline rendering, it is a
+        -- slide. The default 40 rows *is* the whole window here, and it is
+        -- also upscaled: snacks sizes an image by reading the PNG's dpi
+        -- (mmdc writes 72) and computing `px / 72 * 96 * scale`, while the
+        -- `-s {scale}` it passed mmdc already rendered at that scale — so a
+        -- 587x790 chart is asked for at 98x57 cells when its own pixels are
+        -- worth 33x19, and kitty stretches it to fit.
+        --
+        -- Capping the height is what corrects both at once, because `fit`
+        -- keeps the aspect ratio: 20 rows puts this chart at 34x20, within a
+        -- cell of its native resolution, and leaves half the window for the
+        -- prose around it. max_width is left alone — the clamp that bites is
+        -- always the vertical one, a chart being taller than it is wide.
+        max_height = 20,
+      },
+      convert = {
+        -- A failed convert is silent by default: no image, no message, and
+        -- nothing in the buffer to say why. Every failure this has had so far
+        -- was mmdc's, so let them speak.
+        notify = true,
+        -- snacks' own mermaid args plus `-p`. mermaid-cli renders through a
+        -- headless Chrome that puppeteer pins by exact version, and the brew
+        -- bottle ships no browser at all, so a bare `mmdc` dies with
+        -- "Could not find chrome-headless-shell (ver. 152.0.7977.54)".
+        -- `{"channel": "chrome"}` in the config file points puppeteer at the
+        -- *installed* Google Chrome instead: no second browser to download,
+        -- and nothing to re-pin the next time mermaid-cli is upgraded.
+        -- (Measured: 1.7s for a four-node flowchart, against a hard failure
+        -- without it.)
+        --
+        -- Guarded on the file existing, because `-p` naming a missing file is
+        -- a hard error in mmdc — a machine without the config gets the plain
+        -- args and whatever browser puppeteer can find on its own.
+        mermaid = function()
+          local theme = vim.o.background == "light" and "neutral" or "dark"
+          local args = { "-i", "{src}", "-o", "{file}", "-b", "transparent", "-t", theme, "-s", "{scale}" }
+          local puppeteer = vim.fn.expand("~/.config/mermaid/puppeteer.json")
+          if vim.uv.fs_stat(puppeteer) then
+            vim.list_extend(args, { "-p", puppeteer })
+          end
+          return args
+        end,
+      },
+    },
     -- ── lazygit ──────────────────────────────────────────────────────────────
     lazygit = { enabled = true },
     -- ── indent guides (using mini.indentscope instead) ────────────────────────

@@ -181,6 +181,17 @@ fi
 # editor
 brew_install neovim
 
+# mermaid diagrams, rendered inline in markdown by snacks.image. The formula is
+# `mermaid-cli`, the binary is `mmdc`, and node is pulled in as its dependency.
+#
+# The bottle ships no browser, and mmdc renders by driving one through
+# puppeteer, which pins the copy it wants by exact version — a bare `mmdc`
+# fails with "Could not find chrome-headless-shell (ver. ...)". That is what
+# `.config/mermaid/puppeteer.json` answers, by naming the *installed* Google
+# Chrome instead. So this install covers everything but the browser: a machine
+# with no Chrome gets a working mmdc that cannot render, and says so.
+brew_install mermaid-cli
+
 # lua (for editing neovim config)
 brew_install lua-language-server
 brew_install stylua
@@ -415,7 +426,7 @@ missing=()
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
          yazi broot btop vd starship zoxide atuin direnv lazygit just uv tree-sitter \
-         git git-cliff shellcheck stylua prettier taplo shfmt biome \
+         git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc \
          yamlfmt yamllint lua-language-server bash-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done
