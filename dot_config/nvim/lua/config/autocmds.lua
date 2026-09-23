@@ -20,6 +20,21 @@ vim.filetype.add({
   },
 })
 
+-- ── .scrawl ───────────────────────────────────────────────────────────────────
+-- A custom markdown variant from a side project. Its own filetype, so it can
+-- be told apart, highlighted with markdown's treesitter parser so it reads as
+-- markdown.
+--
+-- Registering the parser rather than setting `syntax = "markdown"` from a
+-- FileType autocmd, which does not work here: Neovim runs `syntax on` *after*
+-- init.lua, so the built-in syntaxset autocmd is defined after ours, runs
+-- after it, and puts `syntax=scrawl` back (measured — the buffer reported
+-- syntax=scrawl with the autocmd in place). And it is the parser that
+-- highlights markdown in this config anyway; plugins/treesitter.lua's attach
+-- clears 'syntax' the moment it succeeds.
+vim.filetype.add({ extension = { scrawl = "scrawl" } })
+vim.treesitter.language.register("markdown", "scrawl")
+
 -- --- Detect filetype even if unset ----------------------------------------------
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   group = augroup("filetype_detect"),
