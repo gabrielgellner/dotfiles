@@ -163,6 +163,11 @@ brew_install ripgrep
 brew_install eza
 brew_install bat
 brew_install yazi
+# 7zz, and it is not optional here despite nothing declaring it: `brew deps
+# yazi` is empty, yet yazi opens an archive by extracting it with 7z and
+# compress.yazi reaches for the same binary (its fallback list is 7z, 7zz,
+# 7za, and homebrew installs only the middle one). Without it both stay silent.
+brew_install sevenzip
 brew_install broot
 
 # system monitor
@@ -425,7 +430,7 @@ missing=()
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi broot btop vd starship zoxide atuin direnv lazygit just uv tree-sitter \
+         yazi broot btop vd starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
          git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc \
          yamlfmt yamllint lua-language-server bash-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")

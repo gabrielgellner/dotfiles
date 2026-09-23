@@ -88,6 +88,7 @@ machines; git finds it at the XDG default, with `core.excludesfile` unset.
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 6 settings + a theme include; rest is commented     |
+| `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: flavor and plugin pins, theme, `c a` to archive          |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_visidatarc`                   | `~/.visidatarc`           | VisiData — a Catppuccin Frappé theme; see the caveat below    |
@@ -298,13 +299,30 @@ divided into windows (`prefix + 1/2/3`), never panes. `.tmux/plugins` stays in
 `.chezmoiignore` as a guard.
 
 yazi sits between the two. `dot_config/yazi/package.toml` **is** tracked: it
-names the flavor and the commit it is pinned to, so `ya pkg install` reproduces
-the tree, which is the relationship `lazy-lock.json` has with lazy.nvim.
-`theme.toml` is tracked alongside it and is what actually *selects* that flavor
-— the pin does nothing on its own. The fetched content under
-`.config/yazi/flavors` is ignored. To move the pin,
-`ya pkg upgrade` and then `chezmoi re-add ~/.config/yazi/package.toml`, the same
-two steps as `:Lazy update` followed by committing the lockfile.
+names the flavor and the plugin and the commits they are pinned to, so
+`ya pkg install` reproduces both trees, which is the relationship
+`lazy-lock.json` has with lazy.nvim. `theme.toml` is tracked alongside it and is
+what actually *selects* that flavor — the pin does nothing on its own. The
+fetched content under `.config/yazi/flavors` and `.config/yazi/plugins` is
+ignored. To move a pin, `ya pkg upgrade` and then
+`chezmoi re-add ~/.config/yazi/package.toml`, the same two steps as
+`:Lazy update` followed by committing the lockfile.
+
+The plugin is `KKV9/compress`, and `keymap.toml` binds it to `c a` — yazi's `c`
+is the copy-something prefix (c, C, d, D, f, n, all "copy the path or the
+name", read off the which-key popup rather than assumed), so `a` was free under
+it. It prompts for the output name and takes the format from the extension you
+type. Measured on 26.9.1: `sub.zip` from a hovered directory, `both.7z` and
+`all.tar.zst` from a two-file selection, each verified by listing the archive
+afterwards. Every key in that file is under `prepend_keymap`, which merges — a
+bare `keys = [...]` replaces yazi's whole default set for that section, which
+is the usual way a keymap file silently loses navigation.
+
+Extraction needed no configuration at all: `Enter` on an archive already
+extracts it, and it does not clobber — a second extract of `sub.zip` beside an
+existing `sub/` produced `sub_1/`. Both halves go through `7zz`, which nothing
+declares: `brew deps yazi` is empty, so `bootstrap.sh` installs `sevenzip`
+explicitly and the verification pass checks for the binary.
 
 `~/.config/mermaid/puppeteer.json` is there so that `mmdc` can find a browser at
 all. snacks.image renders a ```mermaid fence inline in markdown, in kitty, by

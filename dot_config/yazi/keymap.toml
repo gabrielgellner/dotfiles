@@ -1,0 +1,15 @@
+# Keys added to yazi's own, not in place of them.
+#
+# `prepend_keymap` merges; a bare `keys = [...]` in the same section replaces
+# the whole default set, which is how a keymap file usually loses navigation
+# before it is noticed.
+#
+# `c` is yazi's copy-something prefix — c, C, d, D, f, n are all "copy the
+# path / URL / filename", read off the which-key popup on 26.9.1 — so `a` is
+# free under it and archive is the obvious thing for the letter to mean.
+# compress.yazi asks for the output name and picks the format from the
+# extension you type: `.zip`, `.7z`, `.tar.zst`, and so on.
+[[mgr.prepend_keymap]]
+on = ["c", "a"]
+run = "plugin compress"
+desc = "Archive the selection"

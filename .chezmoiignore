@@ -43,13 +43,15 @@ bootstrap.sh
 .config/nvim/spell/*.spl
 
 {{/*
-  ~/.config/yazi/flavors is `ya pkg`'s install directory, the same relationship
-  ~/.tmux/plugins has with tpm. package.toml *is* tracked — it records the
-  flavor and the commit it is pinned to, so `ya pkg install` reproduces the
-  tree — but the fetched content is not, and is ignored here so `chezmoi add`
-  cannot pull it in later.
+  ~/.config/yazi/flavors and ~/.config/yazi/plugins are `ya pkg`'s install
+  directories, the same relationship ~/.tmux/plugins has with tpm.
+  package.toml *is* tracked — it records the flavor and the plugin and the
+  commits they are pinned to, so `ya pkg install` reproduces both trees — but
+  the fetched content is not, and is ignored here so `chezmoi add` cannot pull
+  it in later.
 */ -}}
 .config/yazi/flavors/**
+.config/yazi/plugins/**
 
 {{/*
   Karabiner-Elements is macOS-only. The profile it holds is the whole reason
