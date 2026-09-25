@@ -514,9 +514,12 @@ a ```` ```diff ```` fence: the new `diff/highlights.scm` names a
 `Invalid node type "change"` to `~/.local/state/nvim/nvim.log`, from
 treesitter-context. Nothing reached the screen, and `:messages` was empty. The
 check is to compare `site/parser-info/*.revision` against the `revision` each
-language has in the plugin's `parsers.lua` — `:checkhealth nvim-treesitter`
-does *not* do this (its `health.lua` never reads a revision), and
-`:TSUpdate` is idempotent, so run it rather than wonder.
+language has in the plugin's `parsers.lua`, and to compare them as *strings*:
+not every pin is a SHA. Ten of them are version tags, and `python`'s `v0.25.0`
+is the one that lands here, so a check asserting 40 hex characters calls it
+stale every time. `:checkhealth nvim-treesitter` does *not* do this comparison
+(its `health.lua` never reads a revision), and `:TSUpdate` is idempotent, so
+run it rather than wonder.
 
 ## Keymap Conventions
 
