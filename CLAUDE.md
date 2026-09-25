@@ -496,6 +496,23 @@ Plugin categories: LSP + completion (blink.cmp), DAP debugging, treesitter,
 formatting/linting, UI (noice, snacks, mini), navigation (flash, spider, oil),
 git (gitsigns, codediff), Rust, Scheme (conjure, paredit).
 
+**`:Lazy restore` does not rebuild treesitter parsers; run `:TSUpdate` after
+it.** The lockfile pins nvim-treesitter, and its queries move with it, but the
+compiled parsers live outside the plugin in `~/.local/share/nvim/site/parser/`
+and only `build = ":TSUpdate"` rebuilds them — which lazy runs on `:Lazy update`
+on the machine doing the updating, not on the machine that later pulls the
+lockfile. Measured 2026-09-18: the plugin was restored here on 2026-09-11 and
+six parsers (`diff`, `json`, `luadoc`, `markdown`, `markdown_inline`, `racket`)
+stayed at their July revisions. The symptom was markdown-specific and only in
+files with a ```` ```diff ```` fence: the new `diff/highlights.scm` names a
+`change` node the old grammar lacks, so every redraw logged
+`Invalid node type "change"` to `~/.local/state/nvim/nvim.log`, from
+treesitter-context. Nothing reached the screen, and `:messages` was empty. The
+check is to compare `site/parser-info/*.revision` against the `revision` each
+language has in the plugin's `parsers.lua` — `:checkhealth nvim-treesitter`
+does *not* do this (its `health.lua` never reads a revision), and
+`:TSUpdate` is idempotent, so run it rather than wonder.
+
 ## Keymap Conventions
 
 `dot_config/nvim/guides/keymaps.md` records the rules this config follows and
