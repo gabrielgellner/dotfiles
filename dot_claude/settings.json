@@ -76,8 +76,8 @@
   },
   "effortLevel": "high",
   "theme": "dark",
-  "agentPushNotifEnabled": true,
   "remoteControlAtStartup": false,
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "autoMode": {
     "allow": [
