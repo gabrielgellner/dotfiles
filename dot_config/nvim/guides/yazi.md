@@ -147,26 +147,39 @@ switch tabs and paste, because the clipboard crossed with you.
 
 **It is `tt`, not `t`** — `t` alone is a prefix, which is also why `tr` exists.
 
-**There is no switch-by-index.** This card used to list `1`–`9` for it; yazi has
-never bound them, and they are motion counts here now. A count does not combine
-with the brackets either — `2]` moves nothing, the count is simply swallowed.
+**Switch by index is `{count}gt`**, exactly as in vim, and it is 1-based:
+`1gt` is the first tab, `3gt` the third. An earlier version of this card said
+there was no switch-by-index at all, which was wrong — the digits alone are not
+it, but `gt` after a count is.
 
-**A count does work on `H` and `L`, and changes what they mean.** Those keys are
-directory history on their own, and tab movement with a number in front:
+That leaves `gt` meaning two things, which is fine because they never collide:
+bare it is the Trash (see above), and after a count it is a tab. Measured on
+three tabs — `1gt`/`2gt`/`3gt` each landed on the right one, and a bare `gt`
+from the second tab opened Finder without moving.
 
-| Key         | Does                                      |
-| ----------- | ----------------------------------------- |
-| `H` `L`     | back / forward through this tab's history |
-| `2H` `2L`   | jump two **tabs** left / right            |
+**A count also changes what `H`, `L` and `w` mean:**
 
-Measured both ways: `2L` from the first of three tabs landed on the third, `2H`
-took it back, while bare `L` stayed put and walked the history instead. It comes
-from `relative-motions`, which claims the tab commands after a count.
+| Key         | Bare                          | After a count                 |
+| ----------- | ----------------------------- | ----------------------------- |
+| `H` `L`     | back / forward through history | `2H` `2L` — jump two **tabs** |
+| `w`         | task manager                  | `2w` — **close tab 2**        |
+| `t`         | prefix (`tt`, `tr`)           | `2t` — create two tabs        |
 
-**Which makes `2w` a trap worth knowing.** Bare `w` is the task manager; with a
-count it is `tab_close` by index, so a stale count turns a glance at the tasks
-into a closed tab — no prompt, no message. Measured: `2w` took three tabs to two
-and said nothing.
+The reason is worth understanding once, because it explains every oddity on
+this page at a stroke. Pressing a digit hands the keyboard to
+`relative-motions`, which then reads the rest of the sequence itself from a
+**fixed list** of keys — the digits, `d v y x`, the tab commands
+`t L H w W < > ~`, and the movement keys. Yazi's own binding for those keys
+never sees the keystroke.
+
+So `2w` is not yazi's `w` behaving oddly: it is the plugin's `w`, which is
+`tab_close` by index. No prompt and no message — measured, `2w` took three tabs
+to two silently. Worth knowing because `w` is a key you might press with a stale
+count pending.
+
+And a key that is **not** on that list cancels the whole motion rather than
+falling through. That is why `2]` moves nothing: `]` is not a candidate, so the
+count is discarded and the bracket goes nowhere.
 
 Two tabs is the tool for shuffling files between distant directories: source in
 one, destination in the other, mark and `y` in the first, `2` and `p` in the
