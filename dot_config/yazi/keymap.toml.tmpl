@@ -165,3 +165,92 @@ desc = "Linemode: owner"
 on = ["i", "n"]
 run = "linemode none"
 desc = "Linemode: none"
+
+# ── audit: case pairs that were never scope ───────────────────────────────────
+#
+# keymaps.md: "a capital is the wider version of the lowercase key. Never a
+# different action, never an on/off partner." Three of yazi's presets break it,
+# and `noop` is what takes a preset away — a virtual action added for exactly
+# this (yazi CHANGELOG, #1882), and necessary because `prepend_keymap` can only
+# add. Measured: with `Y` on noop a yank survives the keypress and still pastes,
+# where the preset would have cancelled it.
+#
+# Note both halves of the test matter. An *unknown* command is also silently
+# ignored — a bogus string in `run` produces no error at startup or on press —
+# so "the key stopped doing things" alone would not have shown that `noop` is
+# real. The changelog is what settles it.
+
+# `y`/`Y` was copy/cancel and `x`/`X` cut/cancel: the on/off partner the rule
+# names, twice, with two keys bound to the one action. Cancelling a yank is
+# undoing it, so it goes to `u` — free, and undo everywhere else.
+[[mgr.prepend_keymap]]
+on = ["u"]
+run = "unyank"
+desc = "Cancel the yank status"
+
+[[mgr.prepend_keymap]]
+on = ["Y"]
+run = "noop"
+desc = "Disabled — cancel yank is `u`"
+
+[[mgr.prepend_keymap]]
+on = ["X"]
+run = "noop"
+desc = "Disabled — cancel yank is `u`"
+
+# `j`/`J` and `k`/`K` moved the cursor and scrolled the *preview pane* — not a
+# wider scope, a different pane. Preview scrolling is `<C-e>`/`<C-y>` in vim and
+# both were unbound here. Same `seek 5` the presets ran, so the behaviour is
+# unchanged; only the key moved.
+[[mgr.prepend_keymap]]
+on = ["<C-e>"]
+run = "seek 5"
+desc = "Scroll the preview down"
+
+[[mgr.prepend_keymap]]
+on = ["<C-y>"]
+run = "seek -5"
+desc = "Scroll the preview up"
+
+[[mgr.prepend_keymap]]
+on = ["J"]
+run = "noop"
+desc = "Disabled — preview scroll is `<C-e>`"
+
+[[mgr.prepend_keymap]]
+on = ["K"]
+run = "noop"
+desc = "Disabled — preview scroll is `<C-y>`"
+
+# `d` (trash) and `D` (permanent) are deliberately left alone. It is the one
+# case pair here that survives the rule — "permanently" reads as the wider
+# version — and the ordering is right the way round: the reflexive, unshifted
+# key is the recoverable one. Swapping them to match which key gets used would
+# put the irreversible action on the cheaper keystroke, which is the wrong trade
+# whatever the muscle memory says.
+#
+# `d` was never broken. It trashes, and the file leaves the directory cleanly —
+# measured under $HOME and under /private/tmp, both on the one APFS volume, with
+# no error either time, and the confirm dialog takes `y` and `<Enter>` alike.
+# What is missing is the evidence: see `gt` below.
+{{ if eq .chezmoi.os "darwin" }}
+# ── macOS: make `gt` work rather than advertise a key that cannot ─────────────
+#
+# yazi's `gt` goes to `trash:///@//` and fails there with "Operation not
+# permitted (os error 1)". That is macOS TCC, not yazi: a terminal without Full
+# Disk Access cannot read ~/.Trash at all — plain `ls ~/.Trash` gives the same
+# error, which is also why `d` looks like it did nothing.
+#
+# keymaps.md says to hide a key that can only error. Handing it to Finder is
+# better than hiding it: Finder holds the entitlement the terminal does not, so
+# `open ~/.Trash` shows the trash with no privilege granted to the terminal —
+# measured, the window comes up titled "Trash" while this shell still cannot
+# list the directory.
+#
+# Linux keeps yazi's own `gt`, where the trash is an ordinary readable
+# directory and the preset works. Which is why this file is a template.
+[[mgr.prepend_keymap]]
+on = ["g", "t"]
+run = 'shell -- open ~/.Trash'
+desc = "Open the Trash in Finder"
+{{ end }}
