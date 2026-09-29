@@ -211,6 +211,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   zsh, outside nvim
 - [Floats](floats.md) — plv, lazygit and Claude in a window over your work, and
   the one key that takes it back from them
+- [Notes](notes.md) — three tiers sorted by friction: the scratch log, the
+  global journal, and zk — plus what is synced and what is not
 - [Music](music.md) — gmuse in a tmux popup, reachable from any session
 - [VisiData](visidata.md) — making a sheet fit: column width, hiding, row
   height, and the Columns sheet
