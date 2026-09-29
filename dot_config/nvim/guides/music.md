@@ -4,8 +4,10 @@
 the same key inside the popup closes it. The point is not having to remember
 which session the music is in — there is no "music window" to navigate back to.
 
-The player keeps running when the popup closes. Closing the popup detaches a
-client; it does not stop playback or quit gmuse.
+**Playback outlives all of it.** gmuse is a client/server pair: an `engine`
+daemon holds the audio device, and what the popup shows is a *view* that asks it
+over a socket. Closing the popup detaches a tmux client, and quitting the view
+leaves the music playing.
 
 ## Getting in and out
 
@@ -13,10 +15,22 @@ client; it does not stop playback or quit gmuse.
 | ----------------- | ----------------------------------------------- |
 | `prefix + Ctrl-P` | open the popup — from any session               |
 | `prefix + Ctrl-P` | inside the popup: close it, music keeps playing |
-| `q`               | quit gmuse itself — the session goes with it    |
+| `q`               | quit the **view** — the music keeps playing     |
 
 `q` quits without asking. While a `:` or `/` prompt is open it is text, not the
 binding — gmuse has a test for exactly that.
+
+**`q` no longer stops the music, and this card used to say it did.** It quits
+the view; the engine is a daemon and carries on. gmuse's own help puts it
+plainly — the TUI "leaves what is playing alone when it starts and when it
+exits". To actually stop it:
+
+```
+gmuse ctl engine.shutdown
+```
+
+That is also what a change to the audio path needs before the next view will
+pick up a new build.
 
 `prefix` is `Ctrl-A`. It sits beside `prefix + Ctrl-J`, which opens the `dev`
 session picker — both overlays, reached the same way.
@@ -26,47 +40,55 @@ session picker — both overlays, reached the same way.
 > `dev` picker. `Ctrl-J` escapes this only because it is a different byte,
 > `0x0A`.
 
-## One player, one session
+## One engine, many views
 
-Two things now, answering different questions. **gmuse holds the lock** — an OS
-lock on `~/.local/state/gmuse/lock`, taken before the audio device is opened.
-A second gmuse refuses to start and names the pid holding it:
+**It is the engine that is single, not the view**, and this section used to
+describe the wrong lock. Two views run side by side quite happily — neither
+opens a device, neither takes a player lock — so a `gmuse` typed in an ordinary
+window now attaches to the same engine instead of being refused.
 
-```
-another gmuse is already running (pid 79533)
-```
+What is "not twice" is the daemon. `engine.lock` sits beside the socket in
+`$XDG_RUNTIME_DIR/gmuse/` — `$TMPDIR/gmuse/` on macOS, where there is no
+`XDG_RUNTIME_DIR` — and a second engine exits rather than opening a second
+device.
 
-So a `gmuse` typed in an ordinary window stops instead of fighting the popup for
-the speakers. **The binding says where it is** — `new-session -A` attaches the
-`music` session if it is there and creates it only if it is not, so the key
-takes you to the running player rather than being refused by it.
+The old player lock still exists at `~/.local/state/gmuse/lock`, but only
+`--no-attach` takes it, and the default path never does. Finding that file with
+an old timestamp means nothing.
+
+**The binding says where it is** — `new-session -A` attaches the `music` session
+if it is there and creates it only if it is not, so the key takes you to the
+running view rather than starting a second window of them. That is now the whole
+of its job: it constrains the window, not the player.
 
 The lock is an OS one rather than a pid file, which is why nothing has to be
-cleaned up: the kernel drops it when the process ends _however_ it ends. `q`,
-a crash, `kill -9`, this popup's terminal going away — the next launch starts
-fine, and a leftover file holding a dead pid is not a lock. The pid inside it
-is only there so the refusal can name a process.
+cleaned up: the kernel drops it when the process ends _however_ it ends. A
+crash, `kill -9`, the terminal going away — the next engine starts fine, and a
+leftover file holding a dead pid is not a lock.
 
-`--no-lock` starts anyway, and the refusal says so. **`just play <file>` is
-`--repl`, so it is refused while the player runs** — that is the flag it wants.
+`--no-lock` starts anyway. `--no-attach` goes back to the old shape — a player
+in this process, one device, playback that ends when the program does — and is
+worth keeping only for measuring the audio path.
 
-### What the lock is and is not protecting
+### What two views can and cannot collide over
 
-Narrower than it looks, and measured rather than assumed:
+Narrower than it looks, and narrower than it used to be: since the split the
+views do not play anything, so most of this stopped being a question.
 
-| state                              | two instances                          |
-| ---------------------------------- | -------------------------------------- |
-| ratings and plays (`events-*.log`) | **safe** — appends never tear a line   |
-| the library cache                  | safe — a whole-file write, regenerable |
-| `session.toml`                     | **last quit wins**                     |
-| the audio device                   | **both play**                          |
+| state                              | two views                                 |
+| ---------------------------------- | ----------------------------------------- |
+| ratings and plays (`events-*.log`) | **safe** — appends never tear a line      |
+| the library cache                  | safe — a whole-file write, regenerable    |
+| `session.toml`                     | the **engine's**, not a race between views |
+| the audio device                   | the engine's alone — a view opens none    |
 
 Ratings were never at risk: an event is one short append, so two writers
 interleave whole lines. The append-only design that lets two _machines_ share a
-library makes two _processes_ safe too. `session.toml` is the one you would have
-noticed — saved on quit unless `--no-resume`, so whichever instance you quit
-last decided what the next launch restored. The popup passes no flags, so it
-always saves.
+library makes two _processes_ safe too.
+
+`session.toml` used to be the one you would notice — saved on quit, so whichever
+instance you quit last decided what the next launch restored. That moved to the
+engine with everything else about playback.
 
 Not the audit log, though — that one is opt-in (`--log`, or `GMUSE_LOG`), and
 the popup runs bare `gmuse`. "Disabled is the default: a player that writes to
@@ -107,7 +129,9 @@ move artist to artist; `dd` removes a row. Transport lives behind `<leader>` —
 `~/.config/gmuse/config.toml` is tracked by chezmoi. gmuse never writes to it —
 `config.rs` is deserialize-only, with no `Serialize` anywhere and no write path
 to that file at all. Its mutable state goes elsewhere: session, machine id and
-the lock to `$XDG_STATE_HOME/gmuse`, the library index to `$XDG_CACHE_HOME/gmuse`, and
+the old player lock to `$XDG_STATE_HOME/gmuse`, the engine's socket and
+`engine.lock` to `$XDG_RUNTIME_DIR/gmuse` (`$TMPDIR/gmuse` on macOS, which has
+no `XDG_RUNTIME_DIR`), the library index to `$XDG_CACHE_HOME/gmuse`, and
 ratings and play history to the library's own `data_dir` (`~/MusicLibrary/.gmuse`
 here), so they travel with the music. All three are untracked, so unlike
 `settings.json` or `karabiner.json` there is no `re-add` dance before an apply.
@@ -117,9 +141,11 @@ here), so they travel with the music. All three are untracked, so unlike
 builds. So a rebuild is the install, with no `cargo install` step. Two
 consequences worth knowing:
 
-- The running player keeps the old inode and plays on through a rebuild. The
-  new build is what the **next** launch gets, so `q` and reopen is how you pick
-  up a change.
+- The running processes keep the old inode and play on through a rebuild. The
+  new build is what the **next** launch gets — and since the split there are two
+  launches to think about. `q` and reopen picks up a new **view**; a change to
+  the audio path needs `gmuse ctl engine.shutdown` first, because the engine is
+  a daemon and the popup closing does not end it.
 - `cargo clean` makes gmuse _absent_ rather than broken — a dangling symlink
   fails `command -v` — and the popup then opens and closes again with nothing
   in it. `cargo build --release` puts it back.
