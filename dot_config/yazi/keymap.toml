@@ -67,3 +67,101 @@ desc = "Move in relative steps"
 on = ["9"]
 run = "plugin relative-motions 9"
 desc = "Move in relative steps"
+
+# ── whoosh bookmarks, on vim's marks grammar ──────────────────────────────────
+#
+# `m` sets and `'` jumps, which is vim's `m{key}` / `'{key}` keystroke for
+# keystroke — whoosh takes the keyboard after the first press and reads the
+# bookmark key itself, exactly as relative-motions does with digits.
+#
+# `m` is `save_cwd`, not `save`: whoosh's plain `save` bookmarks the *hovered*
+# directory and warns "Selected item is not a directory" on anything else, which
+# is a poor fit for a key that should mean "mark where I am" — measured by
+# hovering a file, where `m` no-ops and the next keystroke falls through to
+# yazi's own binding. The hovered-directory form is still there, on `bm`.
+#
+# `m` was yazi's linemode prefix (ms/mp/mb/mm/mo/mn) and is moved to `i` below.
+# That is the one default this file displaces, and it is deliberate: a prefix
+# that only changes what each row *shows* is worth less than the mark key to
+# anyone coming from vim. `'` and `b` were both unbound — checked against the
+# help palette on 26.9.1, which is also where the displacement was found.
+[[mgr.prepend_keymap]]
+on = ["m"]
+run = "plugin whoosh save_cwd"
+desc = "Set a bookmark here"
+
+[[mgr.prepend_keymap]]
+on = ["'"]
+run = "plugin whoosh jump_by_key"
+desc = "Jump to a bookmark"
+
+# The management half lives under `b`, away from the hot path. `bb` is the
+# ordinary case on a doubled key, and `bd`/`bD` is scope — delete one, delete
+# all — which is the case rule this repo's keymaps.md insists on.
+#
+# Bookmark deletion deliberately does *not* hang off `d`. `d` is a complete
+# action (trash), so making it a prefix would put a 'what happens when the clock
+# wins' race on a key whose timeout destroys files.
+[[mgr.prepend_keymap]]
+on = ["b", "b"]
+run = "plugin whoosh jump_by_fzf"
+desc = "Jump to a bookmark (fzf)"
+
+[[mgr.prepend_keymap]]
+on = ["b", "m"]
+run = "plugin whoosh save"
+desc = "Set a bookmark on the hovered directory"
+
+[[mgr.prepend_keymap]]
+on = ["b", "t"]
+run = "plugin whoosh save_cwd_temp"
+desc = "Set a temporary bookmark here"
+
+[[mgr.prepend_keymap]]
+on = ["b", "r"]
+run = "plugin whoosh rename_by_key"
+desc = "Rename a bookmark"
+
+[[mgr.prepend_keymap]]
+on = ["b", "d"]
+run = "plugin whoosh delete_by_key"
+desc = "Delete a bookmark"
+
+[[mgr.prepend_keymap]]
+on = ["b", "D"]
+run = "plugin whoosh delete_all"
+desc = "Delete all bookmarks"
+
+# ── linemode, displaced from `m` by the mark key above ────────────────────────
+#
+# `i` for the information each row carries. Every one of these is yazi's own
+# binding with the prefix changed; the actions are untouched.
+[[mgr.prepend_keymap]]
+on = ["i", "s"]
+run = "linemode size"
+desc = "Linemode: size"
+
+[[mgr.prepend_keymap]]
+on = ["i", "p"]
+run = "linemode permissions"
+desc = "Linemode: permissions"
+
+[[mgr.prepend_keymap]]
+on = ["i", "b"]
+run = "linemode btime"
+desc = "Linemode: btime"
+
+[[mgr.prepend_keymap]]
+on = ["i", "m"]
+run = "linemode mtime"
+desc = "Linemode: mtime"
+
+[[mgr.prepend_keymap]]
+on = ["i", "o"]
+run = "linemode owner"
+desc = "Linemode: owner"
+
+[[mgr.prepend_keymap]]
+on = ["i", "n"]
+run = "linemode none"
+desc = "Linemode: none"

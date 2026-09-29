@@ -29,3 +29,23 @@ require("relative-motions"):setup({
 	show_motion = true,
 	enter_mode = "cache",
 })
+
+-- whoosh: bookmarks, with the vim marks model on `m` and `'` (keymap.toml has
+-- the bindings and what they displaced).
+--
+-- `bookmarks_path` is the one option set here, and it is set because the
+-- default is wrong for a tracked config: whoosh would write
+-- `~/.config/yazi/bookmarks` — mutable state, rewritten on every bookmark, in
+-- the directory chezmoi manages. That is the trap the gmuse section of
+-- CLAUDE.md describes from the other side; gmuse gets this right by keeping its
+-- state in $XDG_STATE_HOME, so whoosh is pointed there too. ~/.local/state/yazi
+-- already exists — yazi puts its own log there — so nothing needs creating.
+--
+-- Everything else is left at its default on purpose. `jump_notify`,
+-- `history_size = 10`, and the four path-truncation pairs are all fine as
+-- shipped, and restating a default is the fault this repo keeps finding in
+-- lua/plugins — a line that looks like a decision and is not one.
+require("whoosh"):setup({
+	bookmarks_path = (os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state"))
+		.. "/yazi/bookmarks",
+})
