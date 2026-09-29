@@ -34,6 +34,29 @@ return {
   },
 
   -- structural editing for s-expressions
+  --
+  -- `.scm` only, and that is a limit of the plugin rather than a choice here.
+  -- paredit dispatches on a per-language **treesitter query**, and it ships
+  -- queries for clojure, commonlisp, fennel, janet_simple and scheme — there is
+  -- no racket one. So a racket buffer gets no structural editing, which matters
+  -- because the SICP work the conjure client above exists for is `.rkt`.
+  --
+  -- Three ways round it were measured and none works:
+  --   * adding "racket" to paredit's own `filetypes` binds all 24 keys in a
+  --     .rkt buffer and every one of them is inert — worse than unbound, by
+  --     this config's rule about not advertising what cannot work.
+  --   * `vim.treesitter.language.register("scheme", "racket")`, the trick
+  --     `.scrawl` uses for markdown, makes the parser report scheme and still
+  --     does not make slurp fire — and it costs `#lang` its keyword highlight.
+  --   * `add_language_extension` is gone; it was removed in paredit 1.0.0 in
+  --     favour of the query design above.
+  --
+  -- The comparison that pins it: identical `(foo (bar) baz)` with the cursor in
+  -- the inner form, slurped through the API rather than a keystroke —
+  -- ft=scheme gives `(foo (bar baz))`, ft=racket is unchanged.
+  --
+  -- So: write `.scm` when structural editing matters, and `ft` below stays as
+  -- it is because conjure is the half that does work in both.
   {
     "julienvincent/nvim-paredit",
     ft = { "racket", "scheme", "fennel", "clojure" },

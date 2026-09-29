@@ -209,6 +209,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   overlaps between them are cut
 - [Treesitter](treesitter.md) — the parser layer under highlighting, indent and
   folds, and why only the parsers go stale
+- [Scheme and Racket](scheme.md) — conjure's REPL keys, and why paredit works
+  in `.scm` and not `.rkt`
 - [Debugging](debugging.md) — nvim-dap without a UI: breakpoints, the REPL, and
   the two adapters
 - [Completion](completion.md) — `blink.cmp` and LuaSnip, and why the popup is
