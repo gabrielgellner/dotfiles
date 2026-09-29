@@ -357,17 +357,31 @@ else
     atuin import auto || record_failure "atuin:import"
 fi
 
-# ── yazi flavors ──────────────────────────────────────────────────────────────
+# ── yazi packages ─────────────────────────────────────────────────────────────
 
-blue "\nChecking yazi catppuccin flavor..."
-YAZI_FLAVOR_DIR="$HOME/.config/yazi/flavors/catppuccin-frappe.yazi"
-if [[ -d "$YAZI_FLAVOR_DIR" ]]; then
-    yellow "catppuccin-frappe.yazi already installed, skipping"
-elif [[ -f "$HOME/.config/yazi/package.toml" ]]; then
+blue "\nChecking yazi packages..."
+if [[ -f "$HOME/.config/yazi/package.toml" ]]; then
     # `install`, not `add`. package.toml is tracked and records a rev, so this
     # checks out the pinned commit rather than whatever is current — the same
     # relationship lazy-lock.json has with :Lazy install. chezmoi apply runs
     # before this script (see README), so the file is already in place.
+    #
+    # Unconditional, and that is a fix rather than sloppiness. This used to be
+    # gated on the *flavor* directory existing, which silently covered only half
+    # of what the command installs: a machine with catppuccin-frappe already in
+    # place and compress.yazi missing skipped the install and never got compress,
+    # taking `c a` with it. Running it always is safe because `ya pkg install` is
+    # idempotent — measured with everything present, and no checksum under
+    # plugins/, flavors/ or package.toml itself moved.
+    #
+    # It also repairs a drifted tree: with package.toml pinning 20b47bf and the
+    # flavor checked out at a later 1183892, this put it back to 20b47bf. So it
+    # is the way out of an accidental `ya pkg upgrade`, which takes everything it
+    # manages rather than the one package you meant.
+    #
+    # relative-motions is deliberately not here. It is vendored into the repo
+    # rather than fetched, so `chezmoi apply` places it and `ya pkg` has no entry
+    # for it — see the yazi section of CLAUDE.md.
     green "Installing yazi packages from the pinned package.toml..."
     ya pkg install || record_failure "yazi:packages"
 else
@@ -477,6 +491,26 @@ for plug in zsh-autosuggestions/zsh-autosuggestions.zsh \
             zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
             fzf-tab/fzf-tab.zsh; do
     [[ -f "$(brew --prefix)/share/$plug" ]] || missing+=("plugin:${plug%%/*}")
+done
+
+# yazi's three trees, none of which has a binary to test. They arrive by two
+# different routes and fail in two different ways, so both are checked here:
+# the flavor and compress come from `ya pkg install` above, while
+# relative-motions is vendored in the repo and placed by `chezmoi apply`. A
+# missing flavor is cosmetic, but a missing compress silently costs `c a`, and a
+# missing relative-motions costs the digit keys — which then do nothing at all,
+# since keymap.toml still binds them to a plugin that is not there.
+#
+# The marker file differs by kind and the directory alone will not do: `ya pkg`
+# leaves the directory behind on a half-finished install. A plugin is entered
+# through main.lua, a flavor through flavor.toml — checked by listing both, and
+# the first draft of this loop looked for main.lua in all three and would have
+# called the flavor missing on every run.
+for tree in plugins/compress.yazi:main.lua \
+            plugins/relative-motions.yazi:main.lua \
+            flavors/catppuccin-frappe.yazi:flavor.toml; do
+    [[ -f "$HOME/.config/yazi/${tree%%:*}/${tree##*:}" ]] \
+        || missing+=("yazi:$(basename "${tree%%:*}")")
 done
 
 # What .config/i3 launches, on the machine that applies it. None of these come
