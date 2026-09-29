@@ -169,6 +169,8 @@ types a question mark.
 
 ## See also
 
+- [Shell](shell.md) — the rest of the zsh setup: vi mode, the navigation
+  wrappers, and the load order this page's tools sit inside
 - [Command line](cmdline.md) — the zsh/vim command line itself
 - [Completion](completion.md) — the *editor* side: blink.cmp, snippets. This
   page is the shell's, where `Tab` is fzf-tab; the two share a word and nothing

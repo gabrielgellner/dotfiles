@@ -207,6 +207,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   reaches
 - [Completion](completion.md) — `blink.cmp` and LuaSnip, and why the popup is
   never asked for
+- [Shell](shell.md) — zsh in vi mode: the two files, the tools that replace the
+  defaults, and why the load order is the design
 - [Shell history and completion](shell-history.md) — atuin's SQLite history and
   zsh, outside nvim
 - [Floats](floats.md) — plv, lazygit and Claude in a window over your work, and
