@@ -87,6 +87,16 @@ content is tracked here.
 - Per-project notebooks (a directory with its own `.zk/`) belong to whatever
   repo they sit in.
 
+That notes repo **cannot** have the `protect-main` ruleset this one has, and
+the reason is the plan rather than an oversight: rulesets and classic branch
+protection are both 403 on a **private** repo on the free plan — "Upgrade to
+GitHub Pro or make this repository public" (measured, both endpoints). The
+protection here works because this repo is public. `~/notes` carries a tracked
+`.githooks/pre-push` instead, refusing non-fast-forward pushes and deletions of
+main, with `just hooks` to arm a clone and `just sync` warning when it is not.
+It stops the mistake rather than the intent: `--no-verify` goes straight past
+it, and a fresh clone is unguarded until `just hooks` runs.
+
 `journal/.gitkeep` in that repo is load-bearing. git does not track an empty
 directory and **zk does not create a missing one** — `zk new` into an absent
 path fails with "directory not found", measured — so the `daily` alias would

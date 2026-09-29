@@ -133,6 +133,7 @@ Run from `~/notes`, and it is the whole round trip:
 ```
 just sync      # commit anything new, pull --rebase, push, reindex
 just status    # what is here, and what is not yet anywhere else
+just hooks     # point this clone at the tracked pre-push guard — once per clone
 ```
 
 It commits before pulling, because the alternative needs a stash and a stash
@@ -148,6 +149,25 @@ script should guess at.
 
 **There is no automation behind any of this.** Notes reach the other machine
 when you run `just sync`, and not before.
+
+### Why main is guarded by a hook and not a rule
+
+The dotfiles repo has a `protect-main` ruleset, so a force-push to it is
+refused by GitHub itself. This repo cannot have one: **rulesets and classic
+branch protection are both 403 on a private repo on the free plan** — "Upgrade
+to GitHub Pro or make this repository public", and making a notebook public is
+not a trade worth making. The dotfiles ruleset works precisely because that
+repo is public.
+
+`.githooks/pre-push` is the stand-in. It refuses a non-fast-forward push or a
+deletion of main, and it is weaker than a rule in three specific ways, all of
+which are written in the hook itself: it binds only a clone whose
+`core.hooksPath` points at it, a fresh clone is unprotected until `just hooks`,
+and `--no-verify` walks straight past it. It stops the mistake, not the intent.
+
+`just sync` warns when the guard is inactive rather than refusing to run — a
+sync that will not run is worse than an unguarded one, because the notes still
+need to leave the machine.
 
 ## Getting a notebook onto another machine
 
