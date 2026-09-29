@@ -190,6 +190,8 @@ fail on a fresh clone.
 
 ## See also
 
+- [Markdown](markdown.md) — checkboxes, the outline picker and rendering, in
+  the buffers these notes live in
 - [Pickers](pickers.md) — the key frame `<leader>ns`, `<leader>zo` and
   `<leader>zf` all share
 - [Keymap conventions](keymaps.md) — why `<leader>z` has 5 mappings in a Lua
