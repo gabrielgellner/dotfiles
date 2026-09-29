@@ -97,7 +97,7 @@ out to be present on macOS too.
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 5 settings, a theme include, and a font-size include; rest is commented |
 | `dot_config/kitty/font.conf.tmpl`  | `~/.config/kitty/font.conf` | Font size per machine — see the caveat below                  |
-| `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, `c a` to archive, vim counts — see below    |
+| `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, vim counts, marks, keymap audit — see below |
 | `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; Linux only                              |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
@@ -389,6 +389,35 @@ the extension you type. Measured on 26.9.1: `sub.zip` from a hovered directory,
 the archive afterwards. Every key in that file is under `prepend_keymap`, which
 merges — a bare `keys = [...]` replaces yazi's whole default set for that
 section, which is the usual way a keymap file silently loses navigation.
+
+`keymap.toml` is a **template** now, and `gt` is why. yazi's "go to trash bin"
+resolves to `trash:///@//` and fails there with "Operation not permitted" — macOS
+TCC, not yazi, since a terminal without Full Disk Access cannot read `~/.Trash`
+at all and plain `ls ~/.Trash` gives the same error. That is also the answer to
+why `d` looks broken: `d` **trashes and works** (measured under `$HOME` and
+under `/private/tmp`, no error either time, and the confirm takes `y` and
+`<Enter>` alike) — what is missing is any way to see the result. On macOS `gt`
+is handed to Finder instead, which holds the entitlement the terminal does not,
+so the trash is visible without granting the terminal anything. Linux keeps
+yazi's own `gt`, where the trash is an ordinary readable directory.
+
+`d`/`D` is left as yazi ships it: trash on the unshifted key, permanent delete
+on the capital. It is the one case pair here that survives keymaps.md's rule,
+and the ordering is already right — the reflexive key is the recoverable one.
+
+The rest of that audit went the other way. `y`/`Y` was copy/cancel and `x`/`X`
+cut/cancel — the "on/off partner" the rule names, twice over, with two keys
+bound to one action — and `j`/`J`, `k`/`K` moved the cursor and scrolled the
+*preview pane*, a different pane rather than a wider scope. Cancel-yank is on
+`u` now, preview scrolling on `<C-e>`/`<C-y>`, and whoosh's bookmarks on vim's
+`m`/`'` with management under `b`, which pushed linemode from `m` to `i`.
+
+Taking a preset *away* is the part with a trap. `prepend_keymap` only adds, so a
+default needs `noop`, a virtual action yazi added for exactly this (CHANGELOG
+#1882). The trap is that an **unknown command is silently ignored too** — a
+bogus string in `run` errors neither at startup nor on press — so a key going
+quiet is not evidence that `noop` did it. Both halves were measured: with `Y` on
+noop a yank survives the keypress and still pastes, and with `u` it does not.
 
 Extraction needed no configuration at all: `Enter` on an archive already
 extracts it, and it does not clobber — a second extract of `sub.zip` beside an
