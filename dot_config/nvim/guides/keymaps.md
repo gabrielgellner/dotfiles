@@ -213,6 +213,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   the one key that takes it back from them
 - [Notes](notes.md) — three tiers sorted by friction: the scratch log, the
   global journal, and zk — plus what is synced and what is not
+- [Just recipes](just.md) — the two justfiles: getting config onto a machine,
+  and getting notes off one
 - [Music](music.md) — gmuse in a tmux popup, reachable from any session
 - [VisiData](visidata.md) — making a sheet fit: column width, hiding, row
   height, and the Columns sheet

@@ -150,6 +150,9 @@ script should guess at.
 **There is no automation behind any of this.** Notes reach the other machine
 when you run `just sync`, and not before.
 
+[Just recipes](just.md) has the rest — what each step does in order, and what
+to do when a conflict stops the rebase.
+
 ### Why main is guarded by a hook and not a rule
 
 The dotfiles repo has a `protect-main` ruleset, so a force-push to it is
