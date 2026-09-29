@@ -97,7 +97,7 @@ out to be present on macOS too.
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 5 settings, a theme include, and a font-size include; rest is commented |
 | `dot_config/kitty/font.conf.tmpl`  | `~/.config/kitty/font.conf` | Font size per machine — see the caveat below                  |
-| `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: flavor and plugin pins, theme, `c a` to archive          |
+| `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, `c a` to archive, vim counts — see below    |
 | `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; Linux only                              |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
@@ -337,25 +337,58 @@ was vim-tmux-navigator, and its tmux half went unused because work here is
 divided into windows (`prefix + 1/2/3`), never panes. `.tmux/plugins` stays in
 `.chezmoiignore` as a guard.
 
-yazi sits between the two. `dot_config/yazi/package.toml` **is** tracked: it
-names the flavor and the plugin and the commits they are pinned to, so
-`ya pkg install` reproduces both trees, which is the relationship
+yazi sits between the two, and now does both at once.
+`dot_config/yazi/package.toml` **is** tracked: it names the flavor and
+`KKV9/compress` and the commits they are pinned to, so `ya pkg install`
+reproduces those trees, which is the relationship
 `lazy-lock.json` has with lazy.nvim. `theme.toml` is tracked alongside it and is
 what actually *selects* that flavor — the pin does nothing on its own. The
 fetched content under `.config/yazi/flavors` and `.config/yazi/plugins` is
 ignored. To move a pin, `ya pkg upgrade` and then
 `chezmoi re-add ~/.config/yazi/package.toml`, the same two steps as
-`:Lazy update` followed by committing the lockfile.
+`:Lazy update` followed by committing the lockfile. Beware that `ya pkg upgrade`
+takes *everything* it manages: run to check something unrelated, it moved the
+flavor from `20b47bf` to `1183892` on its own.
 
-The plugin is `KKV9/compress`, and `keymap.toml` binds it to `c a` — yazi's `c`
-is the copy-something prefix (c, C, d, D, f, n, all "copy the path or the
-name", read off the which-key popup rather than assumed), so `a` was free under
-it. It prompts for the output name and takes the format from the extension you
-type. Measured on 26.9.1: `sub.zip` from a hovered directory, `both.7z` and
-`all.tar.zst` from a two-file selection, each verified by listing the archive
-afterwards. Every key in that file is under `prepend_keymap`, which merges — a
-bare `keys = [...]` replaces yazi's whole default set for that section, which
-is the usual way a keymap file silently loses navigation.
+`relative-motions` is the exception, and the one place here where a dependency
+is **vendored rather than pinned**. It gives yazi vim counts — `3j`, `12k`,
+`10gg`, and `d`/`v`/`y`/`x` after a count — with `init.lua` holding its options
+and `keymap.toml` binding the digits. Upstream
+(`dedukun/relative-motions.yazi`) is dead: `a603d9e`, 2025-07-09, is its HEAD
+and nothing has landed since, so a pin buys nothing. Meanwhile yazi 26 **removed
+`ya.mgr_emit`**, which the plugin is built on — nil, not deprecated-but-working,
+and a plugin calling it dies with no notification and nothing under
+`YAZI_LOG=debug`. So the copy under
+`dot_config/yazi/plugins/relative-motions.yazi/` is tracked, MIT LICENSE beside
+it, carrying one mechanical patch (`ya.mgr_emit(` -> `ya.emit(`, 26 sites); its
+header has the measurements and how to re-diff against upstream.
+
+Two things that shape any future plugin work here. **A `ya pkg` entry and a
+tracked copy are alternatives, not partners** — dropping the `[[plugin.deps]]`
+block is what stops `ya pkg upgrade` reaching the vendored tree, and it was
+checked by running one and finding the checksum unmoved. And **chezmoi ignores
+hierarchically**: a negation on the leaf alone fails with "parent directory not
+in source state", so `.chezmoiignore` names the directory and its parent too.
+With those three lines `chezmoi add` takes relative-motions and still refuses
+compress.yazi — measured both ways.
+
+The other lesson is about where a fix can live. **`init.lua` and plugins are
+separate Lua environments**: a global assigned in `init.lua` reads back as `nil`
+inside a plugin, measured with a probe. So a shim in config cannot repair a
+plugin's use of a removed API — patching the plugin's own source is the only
+route, which is what forced the vendoring rather than a one-liner.
+
+`keymap.toml` binds compress to `c a` — yazi's `c` is the copy-something prefix
+(c, C, d, D, f, n, all "copy the path or the name", read off the which-key
+popup rather than assumed), so `a` was free under it. The digits relative-motions
+takes were free in the same way: measured against a stock config on 26.9.1, all
+ten leave the pane unchanged and none is a silent prefix, so nothing of yazi's
+own is displaced. compress prompts for the output name and takes the format from
+the extension you type. Measured on 26.9.1: `sub.zip` from a hovered directory,
+`both.7z` and `all.tar.zst` from a two-file selection, each verified by listing
+the archive afterwards. Every key in that file is under `prepend_keymap`, which
+merges — a bare `keys = [...]` replaces yazi's whole default set for that
+section, which is the usual way a keymap file silently loses navigation.
 
 Extraction needed no configuration at all: `Enter` on an archive already
 extracts it, and it does not clobber — a second extract of `sub.zip` beside an

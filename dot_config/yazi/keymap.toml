@@ -13,3 +13,57 @@
 on = ["c", "a"]
 run = "plugin compress"
 desc = "Archive the selection"
+
+# Vim counts, from relative-motions.yazi; init.lua holds its options and the
+# reasoning. Only 1-9 are bound: the plugin grabs the keyboard after the first
+# digit and reads the rest itself, so `0` is reachable as a later digit (`10j`)
+# without being a binding of its own — and a bare `0` stays free.
+#
+# Nothing of yazi's own is displaced. Measured on 26.9.1 against a stock config
+# (`YAZI_CONFIG_HOME` pointed at an empty directory): all ten digits leave the
+# pane unchanged, and none is a silent prefix — after pressing 0-9 in sequence,
+# a single `j` still moved exactly one row.
+[[mgr.prepend_keymap]]
+on = ["1"]
+run = "plugin relative-motions 1"
+desc = "Move in relative steps"
+
+[[mgr.prepend_keymap]]
+on = ["2"]
+run = "plugin relative-motions 2"
+desc = "Move in relative steps"
+
+[[mgr.prepend_keymap]]
+on = ["3"]
+run = "plugin relative-motions 3"
+desc = "Move in relative steps"
+
+[[mgr.prepend_keymap]]
+on = ["4"]
+run = "plugin relative-motions 4"
+desc = "Move in relative steps"
+
+[[mgr.prepend_keymap]]
+on = ["5"]
+run = "plugin relative-motions 5"
+desc = "Move in relative steps"
+
+[[mgr.prepend_keymap]]
+on = ["6"]
+run = "plugin relative-motions 6"
+desc = "Move in relative steps"
+
+[[mgr.prepend_keymap]]
+on = ["7"]
+run = "plugin relative-motions 7"
+desc = "Move in relative steps"
+
+[[mgr.prepend_keymap]]
+on = ["8"]
+run = "plugin relative-motions 8"
+desc = "Move in relative steps"
+
+[[mgr.prepend_keymap]]
+on = ["9"]
+run = "plugin relative-motions 9"
+desc = "Move in relative steps"

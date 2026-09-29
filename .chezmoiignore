@@ -60,6 +60,19 @@ bootstrap.sh
 .config/yazi/plugins/**
 
 {{/*
+  relative-motions is the exception: vendored rather than fetched, because
+  upstream is dead (a603d9e, 2025-07-09, its HEAD) and yazi 26 removed the
+  `ya.mgr_emit` the plugin is built on, so the copy here carries a patch. A
+  negation on the leaf alone is not enough — chezmoi ignores hierarchically and
+  refuses with "parent directory not in source state" — so the directory and
+  its parent are named too. Measured: with these three lines `chezmoi add` takes
+  relative-motions and still refuses compress.yazi.
+*/ -}}
+!.config/yazi/plugins
+!.config/yazi/plugins/relative-motions.yazi
+!.config/yazi/plugins/relative-motions.yazi/**
+
+{{/*
   Karabiner-Elements is macOS-only. The profile it holds is the whole reason
   ctrl is reachable from both hands here — caps_lock and right_command both
   become control, and right_option becomes command so that hand keeps one too.
