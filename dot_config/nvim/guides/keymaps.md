@@ -205,6 +205,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   get text back out of one
 - [Search and replace](replace.md) — four tools, sorted by how far the change
   reaches
+- [LSP](lsp.md) — servers, diagnostics, formatting and linting, and where the
+  overlaps between them are cut
 - [Completion](completion.md) — `blink.cmp` and LuaSnip, and why the popup is
   never asked for
 - [Shell](shell.md) — zsh in vi mode: the two files, the tools that replace the
