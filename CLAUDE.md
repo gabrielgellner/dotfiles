@@ -66,6 +66,33 @@ The same repo serves a macOS laptop and a Linux machine. Two mechanisms:
   `~/.config/chezmoi/chezmoi.toml`. For distinctions `.chezmoi.os` cannot
   express. Guard uses of it: `{{ if eq (.role | default "personal") "work" }}`.
 
+Notes are not in this repo, and that is a **safety** boundary rather than a
+tidiness one: `origin` is public. There are three tiers, and none of their
+content is tracked here.
+
+- `~/scratch` — the scratch notebooks behind `<leader>.` (project) and
+  `<leader>ng` (the global journal). `.chezmoiignore` carries `scratch/*` with
+  a single `!scratch/.prettierrc` exception, so `chezmoi add ~/scratch/...`
+  cannot pull a note in by accident. Untracked by git as well, deliberately:
+  its `.meta` sidecars record an absolute `cwd`
+  (`/Users/gabrielgellner/dev/...`), which would not resolve on the Linux
+  machine anyway.
+- `~/notes` — the zk notebook, `$ZK_NOTEBOOK_DIR` in `dot_zshrc`. Since
+  2026-09-29 it is **its own private repository**,
+  github.com/gabrielgellner/notes, created private and verified so. Only
+  `.zk/notebook.db` is gitignored there: a SQLite index `zk index` rebuilds,
+  which `plugins/zk.lua` runs on every note opened. `.zk/config.toml` and
+  `.zk/templates/` are tracked, because without them a clone is a pile of
+  markdown rather than the same notebook.
+- Per-project notebooks (a directory with its own `.zk/`) belong to whatever
+  repo they sit in.
+
+`journal/.gitkeep` in that repo is load-bearing. git does not track an empty
+directory and **zk does not create a missing one** — `zk new` into an absent
+path fails with "directory not found", measured — so the `daily` alias would
+fail on a fresh clone without it. A `.gitkeep` rather than a README because
+anything ending `.md` inside a notebook is a note, and zk would index it.
+
 Machine-local secrets stay out of the repo entirely — `dot_gitconfig` includes
 `~/.gitconfig.local`, which is not tracked. The global ignore file
 (`dot_config/git/ignore`) *is* tracked, since its rules should hold on both
