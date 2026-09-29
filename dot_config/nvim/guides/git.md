@@ -10,7 +10,9 @@ in tracked files; codediff's are global.
 
 ## Reviewing a branch before you merge it
 
-This is the merge-request flow. `<leader>gm` is the key.
+This is the pull-request flow, done before you open one. `<leader>gm` is the
+key. (This card said "merge request" throughout when `origin` was GitLab; the
+remote moved to GitHub on 2026-09-23 and the wording followed.)
 
 ```
 <leader>gm     the branch's changes against its base
@@ -23,7 +25,7 @@ That distinction is the whole point: `..` would show you other people's work
 too.
 
 The view opens **inline** — one window, deletions as virtual lines above the
-additions — which is the unified layout GitLab shows a merge request in. Press
+additions — the unified layout a forge shows a pull request in. Press
 `t` for side-by-side when a change reads better that way.
 
 | Inside the view           | Does                                        |
@@ -57,7 +59,7 @@ same range **commit by commit** instead, so you can follow the author's steps.
 
 | Key          | Does                                                |
 | ------------ | --------------------------------------------------- |
-| `<leader>gm` | review branch vs base — the MR view                 |
+| `<leader>gm` | review branch vs base — the pull-request view       |
 | `<leader>gM` | the same range, commit by commit                    |
 | `<leader>gu` | review **unpushed** work — what the next push sends |
 | `<leader>gU` | the same range, commit by commit                    |
@@ -84,6 +86,29 @@ Two quiet answers are correct rather than broken:
 - **"No changes to show"** — you are in sync with the remote, nothing to push.
 - **a warning naming `git push -u origin HEAD`** — the branch has no upstream
   at all, so there is no "what will push" to compute. Use `<leader>gm` there.
+
+## Staging, from inside the review
+
+The review is not read-only. In a **working-tree** review — `<leader>gv`, or
+`:CodeDiff` — three buffer-local keys act on the hunk under the cursor:
+
+| Key          | Does                        |
+| ------------ | --------------------------- |
+| `<leader>hs` | stage the hunk              |
+| `<leader>hu` | unstage the hunk            |
+| `<leader>hr` | discard the hunk            |
+
+So the whole read-and-stage pass happens in one window: `]c` to the next hunk,
+`<leader>hs` if it belongs in the commit, `]c` again. That is the same job
+`<leader>gs` does from inside a file, done while reading the change as a whole
+rather than one buffer at a time.
+
+**They exist only where staging means something.** A history view — `<leader>gh`,
+`<leader>gH`, `<leader>gM` — has none of the three, because there is no index to
+stage into; measured, three mappings in a working-tree review and zero in a
+history one. That is why `<leader>h` is a which-key group with nothing under it
+most of the time: the popup shows it only once codediff has opened a buffer that
+has them.
 
 ## Working the code, not just reading it
 
