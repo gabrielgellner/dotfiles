@@ -214,8 +214,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
 - [Music](music.md) — gmuse in a tmux popup, reachable from any session
 - [VisiData](visidata.md) — making a sheet fit: column width, hiding, row
   height, and the Columns sheet
-- [Yazi](yazi.md) — the file manager, and the `q`/`Q` choice that decides
-  whether your shell follows it out
+- [Yazi](yazi.md) — the file manager: the `q`/`Q` choice that decides whether
+  your shell follows it out, plus the config's own counts, marks and archives
 - Keymap conventions — this one
 
 `<leader>?` opens the picker over all of them, and `<C-g>` there switches it

@@ -50,6 +50,7 @@ your selection and tabs intact, and `fg` returns to it. Better than `q` then
 | `gg` `G`        | top / bottom                            |
 | `<C-u>` `<C-d>` | half page                               |
 | `<C-b>` `<C-f>` | full page                               |
+| `<C-e>` `<C-y>` | scroll the **preview** pane             |
 | `.`             | toggle hidden files                     |
 | `z`             | jump to a file/directory via **fzf**    |
 | `Z`             | jump to a directory via **zoxide**      |
@@ -61,9 +62,23 @@ Out at the prompt `z` *is* zoxide; step into yazi and the same key is fzf. It
 is the one binding here worth knowing before you need it, because both do
 something plausible and neither errors.
 
-There is no count prefix — `11j` does not move eleven rows, because `1`–`9`
-switch tabs. `/` is the answer instead: a listing is a column of names, and you
-always know what a file starts with even when you do not know it is eleven down.
+**Counts work, and this card used to say they did not.** `3j`, `12k`, `10gg`
+and `2h` all do what vim would do, from `relative-motions`, and the numbers down
+the left of the listing are the hybrid nvim shows — absolute on the row you are
+on, relative everywhere else. Read the number off the row you want and type it.
+
+The old claim came with a reason attached — that `1`–`9` switch tabs — and the
+reason was wrong too. On a stock 26.9.1, measured against an empty config, all
+ten digits leave the pane unchanged and none of them is even a silent prefix.
+They were simply unbound, which is what made them free to take. Tab switching is
+`[` and `]` — see **Tabs** below.
+
+`/` is still the better answer when you do not know how far down something is: a
+listing is a column of names, and you always know what a file starts with.
+
+Only `1`–`9` are bound. The plugin takes the keyboard after the first digit and
+reads the rest itself, so `10j` works without `0` being a binding, and a bare
+`0` stays free.
 
 ## Finding — four things, easily confused
 
@@ -99,9 +114,16 @@ search and nothing else, which is the unambiguous way out.
 | --------- | ------------------------------------------------- |
 | `y` `x`   | yank as copy / as cut                             |
 | `p` `P`   | paste / paste overwriting                         |
-| `Y` `X`   | cancel the pending yank                           |
+| `u`       | cancel the pending yank                           |
 | `-` `_`   | symlink the absolute / relative path of the yank  |
 | `<C-->`   | hardlink the yank                                 |
+
+**`u`, not `Y` or `X`.** Yazi ships cancel-yank on both capitals, which breaks
+the rule in [keymap conventions](keymaps.md) twice over: a capital is meant to
+be the *wider* version of its lowercase key, and `Y` against `y` is an on/off
+partner instead — two keys, one action, neither of them a scope. Cancelling a
+yank is undoing it, so it went to `u`, and `Y` and `X` are disabled rather than
+left to mean something else.
 
 Two rules make the difference between this being pleasant and being fiddly:
 
@@ -119,12 +141,15 @@ switch tabs and paste, because the clipboard crossed with you.
 | ------- | ------------------------------------------- |
 | `tt`    | create a tab in the current directory       |
 | `tr`    | rename the current tab                      |
-| `1`–`9` | switch by index                             |
 | `[` `]` | previous / next tab                         |
 | `{` `}` | swap this tab with the previous / next      |
 | `<C-c>` | close the tab, or quit if it is the last    |
 
 **It is `tt`, not `t`** — `t` alone is a prefix, which is also why `tr` exists.
+
+**There is no switch-by-index.** This card used to list `1`–`9` for it; yazi has
+never bound them, and they are motion counts here now. `[` and `]` are the whole
+of tab switching, and with at most a handful of tabs open that is enough.
 
 Two tabs is the tool for shuffling files between distant directories: source in
 one, destination in the other, mark and `y` in the first, `2` and `p` in the
@@ -137,7 +162,7 @@ its own directory, history and cursor.
 | --- | --------------------------------- |
 | `d` | trash selected files (asks first) |
 | `D` | permanently delete                |
-| `gt` | go to the trash bin              |
+| `gt` | open the Trash (Finder, on macOS) |
 | `w` | show the task manager             |
 
 Deletes, copies and moves all run as background tasks, and **the count in the
@@ -146,14 +171,102 @@ inspects (which is where an error's actual text is), `x` cancels the highlighted
 one, and `w` or `<Esc>` closes. There is no bulk clear: the list is in-memory
 per process, so quitting yazi wipes it, which is the fastest fix for a screenful.
 
-**On macOS the trash is write-only from here, measured.** `d` hands the file to
-the system Trash and it does vanish from the listing — but `gt` opens the
-`trash://` scheme and comes back `Error: Operation not permitted (os error 1)`,
-and `ls ~/.Trash` in the shell fails the same way. That is macOS TCC, not yazi:
+**`d` works. It is the *evidence* that is missing on macOS**, and that is worth
+saying plainly because the key looks broken otherwise. `d` hands the file to the
+system Trash and it does leave the listing — measured under `$HOME` and under
+`/private/tmp`, no error either time, and the confirm takes `y` and `<Enter>`
+alike. What you cannot do is look at the result: yazi's own `gt` went to the
+`trash://` scheme and came back `Error: Operation not permitted (os error 1)`,
+and `ls ~/.Trash` in the shell fails the same way. That is macOS TCC, not yazi —
 the terminal has no Full Disk Access, so nothing launched from it can read the
-Trash. Finder can — `osascript -e 'tell application "Finder" to count items in
-trash'` answered while `ls` was refused. So `d` is safe to use and `gt` is not
-the way back; the Finder is.
+Trash.
+
+So `gt` is remapped here rather than left to fail. On macOS it runs
+`open ~/.Trash` and Finder shows it, because Finder holds the entitlement the
+terminal does not — the window comes up titled "Trash" while the same shell
+still cannot list the directory. [keymap conventions](keymaps.md) says to hide a
+key that can only error; handing it to something that works is better than
+hiding it. On Linux the preset is kept, where the trash is an ordinary readable
+directory.
+
+Granting the terminal Full Disk Access would also fix it, and is not worth it:
+the grant goes to the *terminal*, so every script, package postinstall and agent
+run inside it inherits read access to Mail, Messages, browser data and Time
+Machine — a wide, permanent capability traded for looking in the bin.
+
+**`d` is trash and `D` is permanent, and they are deliberately not swapped.**
+It is the one case pair yazi ships that survives the rule — "permanently" reads
+as the wider version — and the ordering is already the right way round: the
+reflexive, unshifted key is the recoverable one.
+
+## Bookmarks, on vim's marks
+
+| Key    | Does                                        |
+| ------ | ------------------------------------------- |
+| `m`    | mark **here** — prompts for a name, then a key |
+| `'`    | jump to a mark                              |
+| `bb`   | jump, picking from a list with **fzf**      |
+| `bm`   | mark the **hovered** directory instead      |
+| `bt`   | mark here, but only for this session        |
+| `br`   | rename a mark                               |
+| `bd` `bD` | delete one / delete all                  |
+
+`m` and `'` are vim's `m{key}` and `'{key}`, which is the whole reason the keys
+were chosen. The flow is one step longer than vim's: `m` asks for a name first
+(prefilled with the directory's own) and then for the key, because a mark here
+carries a label you will read back in the `bb` list.
+
+`'` opens a menu rather than swallowing the next key blindly, and it carries
+four things besides your marks: `<Space>` for fzf, `<Tab>` for this tab's
+directory history, `<Backspace>` to go back one directory, and `-` for the git
+root of wherever you are.
+
+The management half sits under `b` to keep it away from the hot path. `bb` is
+the doubled-key ordinary case, `bd`/`bD` is a genuine scope pair — and none of
+it hangs off `d`, deliberately: `d` is a complete action, so making it a prefix
+would put a timeout race on a key whose loser destroys files. See
+[keymap conventions](keymaps.md).
+
+**Marks are not a directory-only affair by accident.** `m` bookmarks the
+current directory; whoosh's other form bookmarks whatever is *hovered* and warns
+"Selected item is not a directory" on a file, which is why that one is on `bm`
+and not on the key you reach for.
+
+Marks live in `~/.local/state/yazi/bookmarks`, not under `~/.config`, so they
+are machine-local state and never show up in `chezmoi diff`.
+
+## Archives
+
+| Key   | Does                          |
+| ----- | ----------------------------- |
+| `ca`  | archive the selection         |
+| `<Enter>` | extract, on an archive    |
+
+`c` is yazi's copy-something prefix, so `a` was free under it. It asks for the
+output name and takes the format from the extension you type — `.zip`, `.7z`,
+`.tar.zst` and so on — and it works on a hovered directory or on a multi-file
+selection alike.
+
+Extraction needed no binding at all: `<Enter>` on an archive already extracts,
+and it does not clobber — extracting `sub.zip` beside an existing `sub/` gives
+`sub_1/`. Both halves go through `7zz`, which nothing declares as a dependency;
+`bootstrap.sh` installs `sevenzip` explicitly for it.
+
+## What each row shows
+
+| Key  | Row shows                  |
+| ---- | -------------------------- |
+| `is` | size                       |
+| `ip` | permissions                |
+| `im` | mtime                      |
+| `ib` | btime                      |
+| `io` | owner                      |
+| `in` | nothing — back to plain    |
+
+**This is yazi's `m` prefix, moved to `i`.** The mark key wanted `m`, and a
+prefix that only changes what each row *displays* is worth less than vim's mark
+key to anyone arriving from nvim. The actions are untouched; only the prefix
+changed. Read `i` as the information a row carries.
 
 ## Copying paths
 
@@ -234,9 +347,31 @@ The task manager has its own help under the same key, listing a different
 keymap; if `~` shows something unexpected, look at the title, which names the
 layer (`mgr.help`, `tasks.help`).
 
-There is no `keymap.toml` here — everything above is yazi's default. Only
-`package.toml` and `theme.toml` are tracked, pinning the catppuccin frappe
-flavor; `ya pkg install` reproduces it. If a keymap ever gets added, note that
-the config was renamed: `[mgr]`, not `[manager]`, and `run =`, not `exec =`.
-Blog posts and dotfiles repos are still full of the old spelling, and it fails
-without saying so.
+**`~` is the list to trust, because this config is no longer stock.** That
+sentence used to read the other way round — there was no `keymap.toml` and
+everything on this card was a default. Four files are tracked now:
+
+| File           | Holds                                                     |
+| -------------- | --------------------------------------------------------- |
+| `keymap.toml`  | everything on this card that is not a yazi default          |
+| `init.lua`     | plugin setup — counts, marks, and where marks are stored    |
+| `package.toml` | the pins `ya pkg install` reproduces: compress, the flavor  |
+| `theme.toml`   | selects catppuccin frappe; the pin alone does not           |
+
+`keymap.toml` is a **template**, because `gt` differs by machine — Finder on
+macOS, yazi's own trash bin on Linux. It is the only file here that is one.
+
+Two things about editing it. Every entry is under `prepend_keymap`, which
+*merges*; a bare `keys = [...]` in the same section replaces yazi's whole
+default set for it, which is the usual way a keymap file silently loses
+navigation. And taking a default *away* needs `run = "noop"`, a virtual action
+yazi has for exactly that — with the trap that an unknown command is silently
+ignored too, so a key going quiet is not evidence your spelling was right.
+
+`relative-motions` is **vendored** rather than pinned: upstream is dead and
+yazi 26 removed the API it was built on, so the repo carries a patched copy
+under `plugins/`. `ya pkg` does not manage it; `chezmoi apply` places it.
+
+The config was also renamed at some point: `[mgr]`, not `[manager]`, and
+`run =`, not `exec =`. Blog posts and dotfiles repos are still full of the old
+spelling, and it fails without saying so.
