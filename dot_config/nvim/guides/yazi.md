@@ -148,8 +148,25 @@ switch tabs and paste, because the clipboard crossed with you.
 **It is `tt`, not `t`** — `t` alone is a prefix, which is also why `tr` exists.
 
 **There is no switch-by-index.** This card used to list `1`–`9` for it; yazi has
-never bound them, and they are motion counts here now. `[` and `]` are the whole
-of tab switching, and with at most a handful of tabs open that is enough.
+never bound them, and they are motion counts here now. A count does not combine
+with the brackets either — `2]` moves nothing, the count is simply swallowed.
+
+**A count does work on `H` and `L`, and changes what they mean.** Those keys are
+directory history on their own, and tab movement with a number in front:
+
+| Key         | Does                                      |
+| ----------- | ----------------------------------------- |
+| `H` `L`     | back / forward through this tab's history |
+| `2H` `2L`   | jump two **tabs** left / right            |
+
+Measured both ways: `2L` from the first of three tabs landed on the third, `2H`
+took it back, while bare `L` stayed put and walked the history instead. It comes
+from `relative-motions`, which claims the tab commands after a count.
+
+**Which makes `2w` a trap worth knowing.** Bare `w` is the task manager; with a
+count it is `tab_close` by index, so a stale count turns a glance at the tasks
+into a closed tab — no prompt, no message. Measured: `2w` took three tabs to two
+and said nothing.
 
 Two tabs is the tool for shuffling files between distant directories: source in
 one, destination in the other, mark and `y` in the first, `2` and `p` in the
