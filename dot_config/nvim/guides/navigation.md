@@ -377,6 +377,8 @@ return. Or split with `<leader>w-` and scroll the two independently.
 
 ## See also
 
+- [Treesitter](treesitter.md) — the parser layer these motions sit on, and
+  what to do when highlighting or folds look wrong
 - [Pickers](pickers.md) — what the keys do once one of these `<leader>f` lists
   is open
 - [Search and replace](replace.md) — where `<leader>fg` leads: quickfix,

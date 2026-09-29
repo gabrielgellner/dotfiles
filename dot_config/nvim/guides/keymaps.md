@@ -207,6 +207,10 @@ ones these rules shaped; the rest document tools that came with their own keys.
   reaches
 - [LSP](lsp.md) — servers, diagnostics, formatting and linting, and where the
   overlaps between them are cut
+- [Treesitter](treesitter.md) — the parser layer under highlighting, indent and
+  folds, and why only the parsers go stale
+- [Debugging](debugging.md) — nvim-dap without a UI: breakpoints, the REPL, and
+  the two adapters
 - [Completion](completion.md) — `blink.cmp` and LuaSnip, and why the popup is
   never asked for
 - [Shell](shell.md) — zsh in vi mode: the two files, the tools that replace the
