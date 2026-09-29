@@ -219,6 +219,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   zsh, outside nvim
 - [Floats](floats.md) — plv, lazygit and Claude in a window over your work, and
   the one key that takes it back from them
+- [Claude Code](claude.md) — the keys, and the hook loop that puts its state in
+  the tmux bar
 - [Notes](notes.md) — three tiers sorted by friction: the scratch log, the
   global journal, and zk — plus what is synced and what is not
 - [Just recipes](just.md) — the two justfiles: getting config onto a machine,

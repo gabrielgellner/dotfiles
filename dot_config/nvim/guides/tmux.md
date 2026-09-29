@@ -154,5 +154,6 @@ that the attach silently does not take.
 
 ## See also
 
+- [Claude Code](claude.md) — what writes the `⣿ ⣤ ⣀` counters
 - [Music](music.md) — the gmuse popup this shares its shape with
 - [Floats](floats.md) — the nvim-side equivalent of a popup over your work

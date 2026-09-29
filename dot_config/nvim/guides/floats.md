@@ -91,3 +91,10 @@ Claude is the exception: `Esc` is handed over to it entirely rather than being
 used to leave insert mode, because single-Esc is interrupt and double-Esc is
 rewind and neither has a substitute on its side. That is why `<C-x>` exists as
 the way out, and why `term_normal = false` is set for that float.
+
+## See also
+
+- [Claude Code](claude.md) — its keys, and the hooks that report its state
+  elsewhere
+- [Music](music.md) — the gmuse popup, which is a tmux float rather than an
+  nvim one

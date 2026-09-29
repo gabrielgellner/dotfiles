@@ -541,8 +541,10 @@ candidate event to a logger in a throwaway detached session:
   silent. `PostToolUse` does **not** fire when a tool errors — measured on a
   `git status` that exited 128 — so `PreToolUse` is the only per-tool event to
   rely on.
-- **`working` has four writers**, three of them tool events, which is what
-  re-arms the latch mid-turn. They fire on every tool call, so the script is on
+- **`working` has three writers**, two of them tool events, which is what
+  re-arms the latch mid-turn. (This said four and three; counted from
+  `dot_claude/settings.json`, it is `UserPromptSubmit`, `PreToolUse` and
+  `PostToolUse` — the tracked and live copies agree.) They fire on every tool call, so the script is on
   a hot path: one `tmux display-message` and one small write. The write is
   deliberately unconditional rather than skipped when the file already says
   `working`, because the mtime is then the last tool call — a heartbeat, and
