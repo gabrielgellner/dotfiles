@@ -397,8 +397,15 @@ and nothing has landed since, so a pin buys nothing. Meanwhile yazi 26 **removed
 and a plugin calling it dies with no notification and nothing under
 `YAZI_LOG=debug`. So the copy under
 `dot_config/yazi/plugins/relative-motions.yazi/` is tracked, MIT LICENSE beside
-it, carrying one mechanical patch (`ya.mgr_emit(` -> `ya.emit(`, 26 sites); its
-header has the measurements and how to re-diff against upstream.
+it, carrying two patches; its header has the measurements and how to re-diff
+against upstream. The first is mechanical (`ya.mgr_emit(` -> `ya.emit(`, 26
+sites). The second drops the **tab commands** from the plugin's candidate list:
+a count hands the keyboard to the plugin, so yazi's own binding never sees the
+key, and upstream claimed `t L H w W < > ~` — each colliding with what its key
+does bare. `2w` was `tab_close` by index while bare `w` is the task manager, so
+a stale count closed a tab with no prompt and no message (measured, three tabs
+to two). `{count}gt` is kept and is now the only counted tab command; it
+survives the cut because its `t` is read from DIRECTION_KEYS after a `g`.
 
 Two things that shape any future plugin work here. **A `ya pkg` entry and a
 tracked copy are alternatives, not partners** — dropping the `[[plugin.deps]]`

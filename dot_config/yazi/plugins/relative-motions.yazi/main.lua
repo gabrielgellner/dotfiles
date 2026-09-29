@@ -6,7 +6,12 @@
 -- names only compress and the flavor, and .chezmoiignore carries the three
 -- negations that let this one path out of the ignored plugins tree.
 --
--- LOCAL CHANGE, and the only one: `ya.mgr_emit(` -> `ya.emit(`, 26 call sites,
+-- LOCAL CHANGES, two of them. The second is marked in place below: the tab
+-- commands are removed from MOTIONS_AND_OP_KEYS, because each collided with
+-- what its key does bare and `2w` closed a tab silently. `{count}gt` is kept
+-- and is the one counted tab command.
+--
+-- The first: `ya.mgr_emit(` -> `ya.emit(`, 26 call sites,
 -- mechanical. yazi 26 removed `ya.mgr_emit` outright — it is nil, not
 -- deprecated-but-working, measured with a probe plugin on 26.9.1 that reported
 -- `type(ya.mgr_emit)` as "nil" beside `ya.emit` as "function". A plugin calling
@@ -29,9 +34,22 @@ local MOTIONS_AND_OP_KEYS = {
 	{ on = "5" }, { on = "6" }, { on = "7" }, { on = "8" }, { on = "9" },
 	-- commands
 	{ on = "d" }, { on = "v" }, { on = "y" }, { on = "x" },
-	-- tab commands
-	{ on = "t" }, { on = "L" }, { on = "H" }, { on = "w" },
-	{ on = "W" }, { on = "<" }, { on = ">" }, { on = "~" },
+	-- LOCAL CHANGE: the tab commands are removed from this list. Upstream had
+	-- { on = "t" }, { on = "L" }, { on = "H" }, { on = "w" },
+	-- { on = "W" }, { on = "<" }, { on = ">" }, { on = "~" },
+	-- and every one of them collided with what the same key does bare, silently,
+	-- because a count hands the keyboard to this plugin and yazi's own binding
+	-- never sees the keystroke. `w` was the dangerous one: bare it is the task
+	-- manager, after a count it was tab_close by index, so a stale count closed a
+	-- tab with no prompt and no message. `H`/`L` are directory history bare and
+	-- were tab movement counted; `~` is help bare and was tab_swap counted.
+	--
+	-- Tab jumping is kept, and is now the only counted tab command: `{count}gt`,
+	-- 1-based, exactly vim's. It survives because `t` is read from DIRECTION_KEYS
+	-- after a `g` rather than from this list — see get_cmd.
+	--
+	-- The is_tab_command branch in entry() is therefore unreachable and is left
+	-- in place unedited, to keep the diff against upstream to this one hunk.
 	-- movement
 	{ on = "g" }, { on = "j" }, { on = "k" }, { on = "h" }, { on = "l" }, { on = "<Down>" }, { on = "<Up>" }, { on = "<Left>" }, { on = "<Right>" }
 }
