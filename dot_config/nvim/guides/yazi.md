@@ -304,16 +304,37 @@ changed. Read `i` as the information a row carries.
 
 ## Copying paths
 
-| Key  | Copies                     |
-| ---- | -------------------------- |
-| `cc` | file path                  |
-| `cf` | filename                   |
-| `cn` | filename without extension |
-| `cd` | directory path             |
-| `cC` `cD` | the URL forms of the two |
+| Key  | Copies                                            |
+| ---- | ------------------------------------------------- |
+| `cc` | full path of **whatever is under the cursor**     |
+| `cf` | its filename                                      |
+| `cn` | its filename without the extension                |
+| `cd` | the directory you are **in** — not the hovered one |
+| `cC` `cD` | the URL forms of `cc` and `cd`               |
 
 The reason to know these is the handoff: `cc` here, then paste into a command,
 is usually faster than typing a path you are already looking at.
+
+**`cd` is the trap, and it is yazi's wording that sets it.** The help palette
+calls `cc` "Copy file path" and `cd` "Copy directory path", which reads as
+though `cd` were the one to use on a folder. It is not: `cd` copies the
+directory you are *in*, so hovering a folder and pressing `cd` gives you its
+**parent** every time.
+
+`cc` is the one that means "under the cursor", and it does not care what it is
+pointed at. Measured in `.../files` with 20 entries:
+
+| Hovered        | `cc` gives            | `cd` gives   |
+| -------------- | --------------------- | ------------ |
+| `file-01.txt`  | `.../files/file-01.txt` | `.../files` |
+| `subdir/`      | `.../files/subdir`    | `.../files`  |
+
+`cc` also follows the **selection** when there is one, which is what makes it
+worth reaching for on more than one file: mark three with `<Space>` and `cc`
+puts all three paths on the clipboard, one per line, ignoring whatever the
+cursor happens to be sitting on. With nothing marked it falls back to the
+hovered item. Measured both ways — three marked gave three paths while the
+cursor was on a fourth file.
 
 ## From inside nvim
 
