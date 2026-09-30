@@ -94,11 +94,24 @@ one to reach for by default: it narrows what is already in front of you rather
 than building a virtual directory, so leaving it costs nothing and you never
 lose your place.
 
-Getting back out of `s` or `S` is where it bites. `<Esc>` cancels in priority
-order — visual mode, then selection, then filter, then find, then search — so
-if you selected something inside the results, the first press only clears the
-selection and you need a second. `<C-s>` is bound by default to cancel the
-search and nothing else, which is the unambiguous way out.
+Getting back out is where it bites, because `<Esc>` cancels **one thing at a
+time** and which thing depends on what you are in. Measured, with a selection
+live in both cases:
+
+| Active                | one `<Esc>` clears | the second clears |
+| --------------------- | ------------------ | ----------------- |
+| `f` filter + selection | the **filter**     | the selection     |
+| `s` search + selection | the **selection**  | the search        |
+
+So the two are the other way round from each other, and the card said otherwise
+until it was checked: leaving a filter drops you back to the full listing with
+your marks intact, while leaving a search keeps the result set and throws the
+marks away. The status header is what to read — it carries `(filter: …)` or
+`(search: …)` and a trailing count for the selection, so you can see which of
+the two the next `<Esc>` is going to take.
+
+`<C-s>` is bound by default to cancel the search and nothing else, which is the
+unambiguous way out of `s` or `S` whatever else is live.
 
 ## Selecting, and moving files
 
