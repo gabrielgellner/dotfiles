@@ -236,6 +236,28 @@ brew_install just
 brew_install git-cliff
 brew_install tree-sitter
 
+# racket, the REPL behind both conjure clients in plugins/scheme.lua — `.rkt`
+# by its default and `.scm` because that file routes it there too. It was
+# missing here while being installed on this machine by hand, so a fresh
+# machine got the plugins and nothing for `\cs` to start; conjure would log
+# "No REPL running" and say no more than that.
+#
+# `ensure_command`, and this is precisely the second-copy trap that function
+# exists for. Racket is installable two ways: the **cask** `racket` is the full
+# distribution (what is installed here, symlinked out of
+# /Applications/Racket*/bin), and the **formula** is `minimal-racket`, which
+# merely answers to the old name `racket`. So `brew_install racket` would have
+# gone looking for a formula, found minimal-racket under its old name, and put
+# a second, smaller racket alongside the full one. Asking for the *command*
+# skips whatever is already there and installs the formula only on a machine
+# with none — which is also the portable half, since linuxbrew rejects --cask.
+#
+# minimal-racket is enough for conjure, which only needs a `racket` that starts
+# a REPL. SICP's own `#lang sicp` is a package (`raco pkg install sicp`) and is
+# deliberately not installed here — that belongs to the project, not the
+# machine.
+ensure_command racket minimal-racket
+
 # LSP servers that plugins/lsp.lua actually enables. basedpyright below is not
 # one of them — it is kept deliberately for CI and `just` checks, where broader
 # coverage matters than the editor needs (see the comment in lsp.lua).
@@ -445,7 +467,7 @@ missing=()
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
          yazi broot btop vd starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
-         git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc \
+         git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket \
          yamlfmt yamllint lua-language-server bash-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done

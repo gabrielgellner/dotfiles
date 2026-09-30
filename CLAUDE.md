@@ -743,7 +743,12 @@ naming what failed, rather than aborting at the first one and leaving the rest
 uninstalled. Core:
 `tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `broot`,
 `btop`, `visidata` (`vd`), `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`,
-`zk`, `just`, `git-cliff`, `tree-sitter`, `uv` (Python).
+`zk`, `just`, `git-cliff`, `tree-sitter`, `uv` (Python), `racket` (the REPL
+behind both conjure clients — added 2026-09-29, having been installed by hand
+here while absent from this list; `ensure_command racket minimal-racket`, not
+`brew_install`, because the **cask** `racket` is the full distribution and the
+**formula** is `minimal-racket` answering to the old name, so asking for the
+formula would have put a second, smaller racket beside the full one).
 `mermaid-cli` (`mmdc`) is there for the markdown diagrams above; it pulls in
 `node`, and leans on a Google Chrome that nothing here installs.
 
