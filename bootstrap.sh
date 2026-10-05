@@ -542,7 +542,7 @@ done
 # absent: a fresh Linux machine gets a window manager config whose terminal,
 # launcher and browser may none of them exist.
 if ! $IS_MACOS; then
-    for c in i3 kitty rofi google-chrome xset; do
+    for c in i3 xterm rofi google-chrome xset; do
         command -v "$c" &>/dev/null || missing+=("i3-dep:$c")
     done
 fi

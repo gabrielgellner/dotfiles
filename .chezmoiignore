@@ -30,10 +30,13 @@ bootstrap.sh
   `exec i3`, read by /etc/xrdp/startwm.sh at login. It was the one part of that
   setup living nowhere but the machine's disk. Inert on macOS, which has no X
   session to start.
+
+  .config/xterm is the terminal i3 launches there; macOS uses kitty.
 */ -}}
 {{ if ne .chezmoi.os "linux" -}}
 .config/i3/**
 .config/i3status/**
+.config/xterm/**
 .xsession
 {{ end -}}
 

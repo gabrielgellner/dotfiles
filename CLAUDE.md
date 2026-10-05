@@ -134,6 +134,7 @@ out to be present on macOS too.
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 5 settings, a theme include, and a font-size include; rest is commented |
 | `dot_config/kitty/font.conf.tmpl`  | `~/.config/kitty/font.conf` | Font size per machine — see the caveat below                  |
+| `dot_config/xterm/XTerm`           | `~/.config/xterm/XTerm`   | The Linux machine's terminal; Linux only — see below          |
 | `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, vim counts, marks, keymap audit — see below |
 | `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; Linux only                              |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
@@ -167,7 +168,26 @@ produces at 1920x1080 is tabulated in the file, measured by reading `stty size`
 out of a full-screen kitty on a throwaway `Xvnc :99` — which also showed that
 13.5 is a no-op, quantising to the same cell as 14.0.
 
-`~/.config/karabiner/karabiner.json` has the same shape of problem: Karabiner
+**The Linux machine runs xterm, not kitty**, and that is a measured speed
+decision. With no GPU, kitty's OpenGL runs on llvmpipe and redraws its whole
+window every frame, and xorgxrdp then has to scan all of it: a spinner changing
+one cell ten times a second damaged the full 1920x1054 window each time —
+238.8 Mpx in 10s, kitty at 64% of a core — where xterm damaged 2.4 Mpx in 10x17
+rects at 0.4%. Measured with the X DAMAGE extension on a throwaway
+`Xvnc :99 -depth 24 -dpi 96`; urxvt reached 22 Mpx, and st and xfce4-terminal
+both repaint the full window as kitty does. What it costs is kitty graphics
+(snacks.image, yazi previews) and FiraCode's ligatures. Nerd Font glyphs,
+Frappé, italics and truecolour all render — the last only because
+`.tmux.conf` marks `xterm-256color` as RGB.
+
+Its resources are `dot_config/xterm/XTerm`, found through
+`XUSERFILESEARCHPATH`, which i3's `$term` sets — there rather than in
+`.xsession`, so an i3 restart is enough to pick it up. Not `.Xresources` and xrdb:
+the VM has an untracked `~/.Xdefaults` (xscreensaver settings), and X only reads
+that file while no `RESOURCE_MANAGER` property is set, so loading anything with
+xrdb would silently drop it.
+
+`~/.config/karabiner/karabiner.json` has settings.json's shape of problem: Karabiner
 rewrites it whenever a setting changes in its GUI, so re-add before applying
 after touching the app. It holds three simple modifications — `caps_lock` and
 `right_command` both to control, `right_option` to command — which is what

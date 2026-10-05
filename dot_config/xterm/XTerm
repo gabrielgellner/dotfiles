@@ -1,0 +1,59 @@
+! xterm, the Linux machine's terminal. Found through XUSERFILESEARCHPATH, which
+! the i3 config's $term points at this directory (%N is the class name, XTerm),
+! so the VM's own ~/.Xdefaults — xscreensaver settings, not tracked — is still
+! read alongside it rather than displaced the way an xrdb load would displace it.
+!
+! xterm rather than kitty because of how each one repaints over xrdp. With no
+! GPU, kitty's OpenGL runs on llvmpipe and every frame redraws the whole window:
+! a spinner changing one cell 10x/s damaged the full 1920x1054 window each time
+! (238.8 Mpx in 10s, kitty at 64% of a core). xterm draws only the cells that
+! changed — 2.4 Mpx for the same 10s, 10x17 rects, 0.4% cpu. Measured with the
+! X DAMAGE extension on a throwaway `Xvnc :99 -depth 24 -dpi 96`. urxvt came
+! close (22 Mpx); st and xfce4-terminal both repaint the full window too.
+!
+! Truecolour needs `xterm-256color:RGB` in .tmux.conf as well: without it tmux
+! quantises to the 256 cube (#e78284 came back as #d78787), with it the pixel is
+! exact. Keys checked by reading raw bytes: Alt-x is ESC x, C-/ is 0x1f, C-Space
+! NUL, BS 0x7f, S-Tab ESC[Z.
+
+XTerm*termName:           xterm-256color
+XTerm*locale:             true
+XTerm*renderFont:         true
+XTerm*faceName:           FiraCode Nerd Font Mono
+! 12 at 96 dpi is the same 10x20 cell, 192x54 grid, as kitty's font.conf.
+XTerm*faceSize:           12
+XTerm*metaSendsEscape:    true
+XTerm*eightBitInput:      false
+! tmux holds the scrollback.
+XTerm*saveLines:          1000
+XTerm*visualBell:         false
+XTerm*bellIsUrgent:       false
+! Bold is a weight, not a brighter colour.
+XTerm*boldColors:         false
+XTerm*colorBDMode:        false
+XTerm*selectToClipboard:  true
+
+! Catppuccin Frappé, the same values as dot_config/kitty/catppuccin-frappe.conf,
+! so ANSI 0-15 are what dot_visidatarc and bin/dev assume they are.
+XTerm*foreground:         #c6d0f5
+XTerm*background:         #303446
+XTerm*cursorColor:        #f2d5cf
+XTerm*highlightColorMode: true
+XTerm*highlightColor:     #f2d5cf
+XTerm*highlightTextColor: #303446
+XTerm*color0:             #51576d
+XTerm*color1:             #e78284
+XTerm*color2:             #a6d189
+XTerm*color3:             #e5c890
+XTerm*color4:             #8caaee
+XTerm*color5:             #f4b8e4
+XTerm*color6:             #81c8be
+XTerm*color7:             #b5bfe2
+XTerm*color8:             #626880
+XTerm*color9:             #e78284
+XTerm*color10:            #a6d189
+XTerm*color11:            #e5c890
+XTerm*color12:            #8caaee
+XTerm*color13:            #f4b8e4
+XTerm*color14:            #81c8be
+XTerm*color15:            #a5adce

@@ -35,7 +35,10 @@ client.placeholder      $base        $base        $text    $base       $base
 client.background       $base
 
 # ── Apps ─────────────────────────────────────────────────────────────────────
-set $term kitty
+# xterm, not kitty, on this machine: see dot_config/xterm/XTerm for why. Its
+# resources are passed here rather than exported from .xsession so that an i3
+# restart picks them up — .xsession only runs when a new X session starts.
+set $term XUSERFILESEARCHPATH="$HOME/.config/xterm/%N" xterm
 set $launcher rofi -show drun -theme glue_pro_blue
 set $browser google-chrome
 
@@ -129,7 +132,7 @@ bindsym $mod+Shift+e exec --no-startup-id "i3-nagbar -t warning -m 'Exit i3?' -B
 
 # ── Autostart ────────────────────────────────────────────────────────────────
 # Open terminal+tmux on workspace 1 at session start
-exec --no-startup-id $term --command "tmux new-session -A -s main"
+exec --no-startup-id $term -e tmux new-session -A -s main
 # Disable XFCE notification daemon etc. — we're not in XFCE anymore
 exec --no-startup-id xset s off -dpms
 
