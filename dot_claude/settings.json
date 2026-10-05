@@ -3,6 +3,7 @@
     "defaultMode": "auto"
   },
   "model": "opus[1m]",
+  "prefersReducedMotion": true,
   "hooks": {
     "UserPromptSubmit": [
       {
