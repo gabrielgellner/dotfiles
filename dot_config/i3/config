@@ -131,8 +131,14 @@ bindsym $mod+Shift+r restart
 bindsym $mod+Shift+e exec --no-startup-id "i3-nagbar -t warning -m 'Exit i3?' -B 'Yes' 'i3-msg exit'"
 
 # ── Autostart ────────────────────────────────────────────────────────────────
-# Open terminal+tmux on workspace 1 at session start
-exec --no-startup-id $term -e tmux new-session -A -s main
+# Open terminal+tmux on workspace 1 at session start.
+#
+# Through an interactive zsh, not `-e tmux` directly: the tmux server keeps the
+# environment of whatever starts it, and i3's is xrdp's bare system PATH — brew
+# is only added by .zshrc. Started bare, the server's popups and run-shell had
+# neither ~/bin nor fzf, so `prefix C-j` ran `dev`, got "not found", and the
+# -E popup closed before it drew. Panes looked fine because they run zsh.
+exec --no-startup-id $term -e zsh -ic 'tmux new-session -A -s main'
 # Disable XFCE notification daemon etc. — we're not in XFCE anymore
 exec --no-startup-id xset s off -dpms
 
