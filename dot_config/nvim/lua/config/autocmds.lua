@@ -35,6 +35,18 @@ vim.filetype.add({
 vim.filetype.add({ extension = { scrawl = "scrawl" } })
 vim.treesitter.language.register("markdown", "scrawl")
 
+-- ── .drab ─────────────────────────────────────────────────────────────────────
+-- The rule language from the same side project, and a parser of its own rather
+-- than a borrowed one: it is Datalog with reactions and nothing else reads like
+-- it. The grammar lives with the language it describes, in that repo's
+-- `editors/tree-sitter-drab`, and `just grammar-install` builds it to
+-- `~/.config/nvim/parser/drab.so` with its queries beside it.
+--
+-- Nothing to register: a parser named for the filetype is found by name, and
+-- `parser/` here is on the runtimepath and is not where `:TSUpdate` writes —
+-- so a hand-kept grammar survives a plugin update.
+vim.filetype.add({ extension = { drab = "drab" } })
+
 -- --- Detect filetype even if unset ----------------------------------------------
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   group = augroup("filetype_detect"),
