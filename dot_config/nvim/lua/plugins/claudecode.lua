@@ -378,6 +378,24 @@ return {
     -- tries to keep. `l` as in last; it sits beside ar, which picks a session.
     { "<leader>al", "<cmd>ClaudeCode --continue<cr>", desc = "Continue last session" },
     { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select model" },
+    -- Start Claude with the Claude in Chrome browser MCP. `w` as in web.
+    --
+    -- The plugin keeps one terminal, and cmd_args only reach `claude` when
+    -- simple_toggle has to *create* it — with a session already running,
+    -- `ClaudeCode --chrome` just shows that session, without Chrome. Say so,
+    -- rather than toggle and leave it looking as if the flag took. `/chrome`
+    -- inside a running session turns the integration on there instead.
+    {
+      "<leader>aw",
+      function()
+        if require("claudecode.terminal").get_active_terminal_bufnr() then
+          vim.notify("Claude is already running; use /chrome inside it to enable Chrome", vim.log.levels.WARN)
+          return
+        end
+        vim.cmd("ClaudeCode --chrome")
+      end,
+      desc = "Start Claude with Chrome",
+    },
     -- Context
     {
       "<leader>ab",

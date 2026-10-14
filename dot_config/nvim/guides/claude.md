@@ -25,6 +25,7 @@ scrollback — are on [Floats](floats.md). The bar glyphs are on
 | `<leader>ar`   | resume a session                 |
 | `<leader>al`   | continue the last session        |
 | `<leader>am`   | select model                     |
+| `<leader>aw`   | start with Chrome (`--chrome`)   |
 | `<leader>aa`   | accept the proposed diff         |
 | `<leader>ax`   | reject it                        |
 | `<leader>a?`   | server status                    |
