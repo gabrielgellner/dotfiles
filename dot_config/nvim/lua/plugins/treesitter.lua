@@ -28,6 +28,7 @@ return {
         "rust",
         "scheme",
         "racket",
+        "xml",
       },
     },
     config = function(_, opts)
@@ -87,9 +88,39 @@ return {
       -- The same hole is described a few lines down for folds, which were moved
       -- out to config/options.lua because of it. Highlighting cannot move
       -- there — it is per buffer, not an option — so it catches up instead.
+      --
+      -- Folds have a hole of their own here, on big files only. This buffer's
+      -- first draw evaluated 'foldexpr' before this ran, and Neovim's
+      -- treesitter foldexpr starts its first parse with no completion callback
+      -- (runtime/lua/vim/treesitter/_fold.lua, 0.12.5). A small file parses
+      -- synchronously, so the levels are there on that first read; a big one
+      -- yields, the levels arrive afterwards, and nothing makes the window read
+      -- them again. Measured on a 1.6MB, 38k-line XML file: foldlevel 0
+      -- everywhere and zM doing nothing for as long as the cursor stood still,
+      -- while the same file opened with `:e` later in the session folded at
+      -- once. So wait for the parse and re-read with zx, which is safe for the
+      -- reason config/folds.lua gives: 'foldlevel' is 99.
+      ---@param buf integer
+      local function refresh_folds(buf)
+        local ok, parser = pcall(vim.treesitter.get_parser, buf)
+        if not ok or not parser then
+          return
+        end
+        parser:parse(nil, function()
+          vim.schedule(function()
+            for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+              vim.api.nvim_win_call(win, function()
+                vim.cmd("silent! normal! zx")
+              end)
+            end
+          end)
+        end)
+      end
+
       for _, buf in ipairs(vim.api.nvim_list_bufs()) do
         if vim.api.nvim_buf_is_loaded(buf) then
           attach(buf)
+          refresh_folds(buf)
         end
       end
 

@@ -370,7 +370,15 @@ return {
     -- ── indent guides (using mini.indentscope instead) ────────────────────────
     indent = { enabled = false },
     -- ── large file handling ───────────────────────────────────────────────────
-    bigfile = { enabled = true },
+    -- 4MB rather than the default 1.5MB. Past the threshold bigfile swaps the
+    -- filetype for `bigfile` and sets foldmethod=manual, so treesitter has no
+    -- parser to find and there are no folds — and structured data is exactly
+    -- what grows past 1.5MB while still wanting both. pricedmx's 1.6MB, 38k-line
+    -- SDMX XML was the case: with the limit raised it parses in 275ms once,
+    -- and 200-line jumps redraw in about 4ms each. The line_length check (an
+    -- average over 1000) is untouched, and that is the one that catches the
+    -- minified files this module really exists for.
+    bigfile = { enabled = true, size = 4 * 1024 * 1024 },
     -- ── smooth scrolling ─────────────────────────────────────────────────────
     -- Disabled: animated scroll fights this VM's redraw lag; prefer vim's
     -- instant jump.
