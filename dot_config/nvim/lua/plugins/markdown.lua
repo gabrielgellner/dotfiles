@@ -40,8 +40,14 @@ return {
 
   -- ── Browser preview (no npm/build deps) ──────────────────────────────────
   {
-    "selimacerbas/markdown-preview.nvim",
-    dependencies = { "selimacerbas/live-server.nvim" },
+    -- Both repos were renamed in their 2.0.0 (markdown-preview.nvim ->
+    -- mdkite.nvim, live-server.nvim -> kitehost.nvim). The former names keep
+    -- working through 2.x behind a once-a-session deprecation warning and go
+    -- in 3.0.0, so the spec, module and commands here use the new ones.
+    -- kitehost would install without the dependencies line (mdkite's own
+    -- lazy.lua names it); it stays so the server is visible in this file.
+    "selimacerbas/mdkite.nvim",
+    dependencies = { "selimacerbas/kitehost.nvim" },
     ft = { "markdown" },
     config = function()
       -- Both of these are the plugin's own defaults, restated because they are
@@ -49,28 +55,27 @@ return {
       -- across buffers, and <leader>mp meaning "show me this in a browser"
       -- rather than "start a server I then have to open myself".
       --
-      -- `port` is *not* set. It looked like it was auto-assigning one, but
-      -- takeover mode never consults it — init.lua returns a hardcoded 8421
-      -- before reading config.port, so `port = 0` said nothing true. (Measured:
-      -- the running server listens on 8421, plus a separate websocket port.)
-      -- It would start mattering under instance_mode = "multi", which is the
-      -- per-instance mode this config deliberately does not use.
+      -- `port` is *not* set. Its default, 0, means 8421 under takeover and an
+      -- OS-assigned port under multi. Before 2.0.0 takeover returned 8421
+      -- without consulting config.port at all, which is why `port = 0` was
+      -- once dropped from here as saying nothing; mdkite now honours a
+      -- non-zero port in either mode, so set one only to move off 8421.
       --
       -- debounce_ms is not set either; 300 was the default it was already
       -- getting.
-      require("markdown_preview").setup({
+      require("mdkite").setup({
         instance_mode = "takeover",
         open_browser = true,
       })
     end,
     keys = {
-      { "<leader>mp", "<cmd>MarkdownPreview<CR>", ft = "markdown", desc = "Preview start" },
-      { "<leader>mP", "<cmd>MarkdownPreviewStop<CR>", ft = "markdown", desc = "Preview stop" },
+      { "<leader>mp", "<cmd>MdKite start<CR>", ft = "markdown", desc = "Preview start" },
+      { "<leader>mP", "<cmd>MdKite stop<CR>", ft = "markdown", desc = "Preview stop" },
       -- Refresh sits on mf, not mR. <leader>mr is render-markdown's toggle — a
       -- different plugin doing a different thing — so mr/mR looked like a pair
       -- and wasn't. mf keeps refresh beside the preview commands it belongs to
       -- without borrowing a letter that is already spoken for.
-      { "<leader>mf", "<cmd>MarkdownPreviewRefresh<CR>", ft = "markdown", desc = "Preview refresh" },
+      { "<leader>mf", "<cmd>MdKite refresh<CR>", ft = "markdown", desc = "Preview refresh" },
     },
   },
 }
