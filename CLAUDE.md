@@ -692,6 +692,18 @@ back. The exception is `vim.fn.input()` under noice — invisible to
 `capture-pane` but still receiving keys, so a blank capture there is not
 evidence of a broken prompt.
 
+**`v:errmsg` after opening a markdown buffer reads `E31: No such mapping`, and
+that is expected.** lazy.nvim deletes a filetype-scoped key before setting it
+(`lazy/core/handler/keys.lua`, `_del`), inside a `pcall` — but a caught Vim
+error still lands in `v:errmsg`. The first markdown buffer has nothing to
+delete, so zk's `<leader>zb` and `<leader>zl` (normal and visual) each fail
+the delete and are then mapped correctly, buffer-locally (measured
+2026-10-17: traced through `nvim_buf_del_keymap`, then read back with
+`maparg`). With no file open `v:errmsg` stays empty. Nothing reaches the
+screen or `:messages`. So a startup probe should baseline `v:errmsg` before
+opening the buffer, or discount this one message, rather than read it as a
+regression; it has been mistaken for one once.
+
 **Images are testable detached only because `dot_zshenv` forces the answer.**
 snacks detects kitty by writing `\033[>q` through tmux passthrough and waiting
 for the reply, and tmux drops passthrough output from a pane nobody is looking
