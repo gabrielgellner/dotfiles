@@ -49,3 +49,20 @@ require("whoosh"):setup({
 	bookmarks_path = (os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state"))
 		.. "/yazi/bookmarks",
 })
+
+-- Selection count, beside the mode in the status bar. yazi's copy commands
+-- (`cc`, `cd`, `cf`, ...) act on the *selection* when there is one, and a
+-- selection survives `cd`, so a stray Space in another directory turns `cc` on
+-- the hovered file into a copy of something off-screen. That happened: `cc` on
+-- an artist folder copied `/Volumes/Macintosh HD`, selected earlier in
+-- /Volumes. The preset does count it — Header:count, at the far right of the
+-- header — but that is the one place on screen nobody looks. Same style as the
+-- preset's (th.mgr.count_selected), so it reads as the same thing; order 1500
+-- puts it between mode (1000) and length (2000). Esc clears the selection.
+Status:children_add(function(self)
+	local n = #self._tab.selected
+	if n == 0 then
+		return ""
+	end
+	return ui.Span(" " .. n .. " selected "):style(th.mgr.count_selected)
+end, 1500, Status.LEFT)
