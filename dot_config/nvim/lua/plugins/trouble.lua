@@ -34,11 +34,17 @@ return {
     -- source todo-comments registers with trouble goes through its own
     -- Search.search, which begins `pcall(require, "plenary.job")` and, when
     -- that fails, calls Util.error and returns *without invoking the
-    -- callback*. plenary is not installed here and is in no spec, so trouble
-    -- got no items and drew "No results for todo" over a buffer with two.
-    -- :TodoQuickFix and :TodoLocList are dead for the same reason.
+    -- callback*. plenary was not installed then, so trouble got no items and
+    -- drew "No results for todo" over a buffer with two. :TodoQuickFix and
+    -- :TodoLocList were dead for the same reason.
     --
-    -- Not fixed by adding plenary, for two reasons. plenary is end of life:
+    -- plenary is installed now, as a dependency of yazi.lua and octo.lua, and
+    -- all three work — measured 2026-10-23, and broken again with
+    -- `plenary.job` blocked (details in plugins/todo.lua). That is a side
+    -- effect of two unrelated plugins, not a decision, and the key stays
+    -- unbound for the reasons below.
+    --
+    -- Not restored on purpose, for two reasons. plenary is end of life:
     -- its README says the repository is no longer actively maintained and will
     -- be archived, with critical bugs addressed only until 2026-06-30, a date
     -- already past. (The GitHub API still reports archived: false and a recent
