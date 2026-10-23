@@ -50,21 +50,35 @@ return {
     -- 120 is deliberate and matches `textwidth` for markdown in
     -- config/autocmds.lua, so `gq` and format-on-save produce the same wrap
     -- everywhere — including projects that ship no .prettierrc.
+    --
+    -- Prettier 3 also skips every path in .gitignore, and silently: an ignored
+    -- file comes back from stdin unchanged, so :w just does nothing. That hid
+    -- pf2e-prep's gitignored campaign/adventure_path/av_full/ chapters. When the
+    -- project has a .prettierignore, pass it as --ignore-path, which replaces
+    -- the .gitignore lookup. It is found upward from the file, not the cwd,
+    -- for the same reason the guides below are matched on path.
     formatters = {
       prettier_markdown = {
         command = "prettier",
-        args = {
-          "--stdin-filepath",
-          "$FILENAME",
-          "--parser",
-          "markdown",
-          "--prose-wrap",
-          "always",
-          "--print-width",
-          "120",
-          "--config-precedence",
-          "file-override",
-        },
+        args = function(_, ctx)
+          local args = {
+            "--stdin-filepath",
+            ctx.filename,
+            "--parser",
+            "markdown",
+            "--prose-wrap",
+            "always",
+            "--print-width",
+            "120",
+            "--config-precedence",
+            "file-override",
+          }
+          local ignore = vim.fs.find(".prettierignore", { upward = true, path = ctx.dirname })[1]
+          if ignore then
+            vim.list_extend(args, { "--ignore-path", ignore })
+          end
+          return args
+        end,
         stdin = true,
       },
     },
