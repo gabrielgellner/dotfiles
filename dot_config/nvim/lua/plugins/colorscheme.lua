@@ -25,7 +25,16 @@ return {
     --
     -- Dropping all four changes nothing: nvim_get_hl(0, {}) is identical
     -- before and after, all 1089 groups.
+    --
+    -- The exception is a plugin added *after* the cache was compiled.
+    -- catppuccin recompiles only when the hash of these opts changes
+    -- (init.lua:176) — the detected list is not part of it — so a new plugin's
+    -- integration is never compiled in. octo arrived that way and drew in its
+    -- own GitHub hex (OctoGreen #238636) until named here; naming it changes
+    -- the hash, which recompiles on every machine without a :CatppuccinCompile.
+    -- Any plugin added later with a catppuccin integration needs the same.
     integrations = {
+      octo = true,
       mini = { enabled = true, indentscope_color = "lavender" },
       native_lsp = {
         enabled = true,

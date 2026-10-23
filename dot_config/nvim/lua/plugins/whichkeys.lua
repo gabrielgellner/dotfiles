@@ -52,6 +52,7 @@ return {
         { "<leader>l", group = "lsp" },
         { "<leader>m", group = "markdown" },
         { "<leader>n", group = "notes (scratch)" },
+        { "<leader>o", group = "github (octo)" },
         { "<leader>v", group = "multicursor" },
         { "<leader>q", group = "quit" },
         { "<leader>s", group = "search/replace" },

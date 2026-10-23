@@ -606,7 +606,7 @@ Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
   `scratch`, `markdown_checkbox`, `markdown_outline`, `rules_lookup`.
 - `plugins/` — one file per plugin or plugin group, lazy-loaded.
 - `guides/` — hand-written markdown reference cards, opened with `<leader>?`.
-  Fourteen of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
+  Twenty-five of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
   link between them, and `<C-g>` in the picker switches from matching titles to
   grepping their contents.
 
@@ -622,7 +622,7 @@ defect to fix: some table rows are deliberately not aligned.
 
 Plugin categories: LSP + completion (blink.cmp), DAP debugging, treesitter,
 formatting/linting, UI (noice, snacks, mini), navigation (flash, spider, oil),
-git (gitsigns, codediff), Rust, Scheme (conjure, paredit).
+git (gitsigns, codediff), GitHub (octo), Rust, Scheme (conjure, paredit).
 
 **`:Lazy restore` does not rebuild treesitter parsers; run `:TSUpdate` after
 it.** The lockfile pins nvim-treesitter, and its queries move with it because

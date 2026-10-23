@@ -198,6 +198,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   explorer, and the handoff between them
 - [Git](git.md) — gitsigns hunk by hunk while you work, codediff for reading a
   whole change
+- [GitHub](github.md) — octo: issues, pull requests and reviews as buffers,
+  and the two upstream keys taken away
 - [Surround](surround.md) — `mini.surround` on the `gs` prefix, in three verbs
 - [Command line](cmdline.md) — the `:` prompt as a small editor: completion,
   insert-from-elsewhere, and the command-line window

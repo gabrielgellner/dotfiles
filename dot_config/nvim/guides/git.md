@@ -253,6 +253,7 @@ backwards.
 
 - [Pickers](pickers.md) — the git sources are pickers like any other
 - [Navigation](navigation.md) — `<leader>fw` to chase a symbol out of a review
+- [GitHub](github.md) — octo, for when the review has to reach the pull request
 
 ---
 
