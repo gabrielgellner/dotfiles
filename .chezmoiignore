@@ -116,6 +116,7 @@ bin/mkv2mp4
 Library/LaunchAgents/local.mbsync-proton.plist
 Library/LaunchAgents/local.mail-backup.plist
 bin/mail-backup
+bin/mail-attachments
 {{ end -}}
 {{/*
   Nothing else under ~/Library is managed, and on Linux there is no ~/Library.

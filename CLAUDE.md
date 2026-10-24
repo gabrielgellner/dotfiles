@@ -146,6 +146,7 @@ out to be present on macOS too.
 | `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir NeoMutt reads — same section |
 | `dot_config/notmuch/default/config.tmpl` | `~/.config/notmuch/default/config` | notmuch: search index over that maildir — same section |
 | `bin/executable_mail-backup`       | `~/bin/mail-backup`       | encrypted restic backup of the maildir to the NAS — same section |
+| `bin/executable_mail-attachments`  | `~/bin/mail-attachments`  | copies attachments worth keeping to the NAS, by hand — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -576,6 +577,20 @@ the first run (24s, through the agent): 701 MiB of mail became 513M on the NAS,
 `restic check` clean, a restored folder byte-identical, and no file in the
 repository containing the string `Subject:`. notmuch's index is not backed
 up; `notmuch new` rebuilds it in seconds.
+
+**`~/bin/mail-attachments`** copies the attachments worth keeping onto the
+NAS, run by hand (never scheduled): camera photos to
+`Media/Photos/From email/<year>/`, ebooks to `Media/Books/`, documents to
+`records/documents/<category>/`, other large images, audio and leftovers to
+`records/images|audio-video|files/`. Dry run unless `--write`; it skips any
+content already under those folders, so a rerun only adds what is new
+(measured: from empty it wrote 315 files, a second run 0, and against the real
+NAS after the first export, 0). A photo is a JPEG with camera EXIF over
+100 KB — what separates pictures from the logos and pixels in HTML mail. The
+sender→category map is `~/.config/mail-attachments/categories.json`, **not
+tracked** because the domains name doctors and family; a reference copy is on
+the NAS in `records/`. Without it documents fall back to "From people" /
+"Other". It needs both NAS shares mounted, and says so if they are not.
 
 **The maildir is decrypted mail on disk**, which is why it waited for
 FileVault (`fdesetup status` said Off when this started). Spotlight had

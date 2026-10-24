@@ -226,4 +226,20 @@ does.
 The password is in the keychain as `restic-mail` **and in Bitwarden** — without
 it the backup cannot be opened, by anyone.
 
+## Saving attachments
+
+`mail-attachments` copies what is worth keeping out of the mail onto the NAS —
+photos to `Media/Photos/From email/<year>/`, ebooks to `Media/Books/`, and
+documents, images, audio and other files under `records/`. Run it whenever;
+it only ever adds what is not there yet.
+
+| To                          | Run                                       |
+| --------------------------- | ----------------------------------------- |
+| see what it would save      | `mail-attachments`                        |
+| save it                     | `mail-attachments --write`                |
+| only mail since a date      | `mail-attachments --since 2026-11-01`     |
+
+Both NAS shares need to be mounted in Finder first. Saving does not remove
+anything from the mail — Proton cannot strip an attachment from a message.
+
 See also [tmux.md](tmux.md) for getting around the sessions neomutt runs in.

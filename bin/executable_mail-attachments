@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""Copy the attachments worth keeping out of the local mail copy onto the NAS.
+
+Reads the maildir mbsync keeps (~/.local/share/mail/proton) and files each
+attachment by kind:
+
+  photos     Media/Photos/From email/<year>/   camera JPEGs (EXIF, > 100 KB)
+  ebooks     Media/Books/                      epub, mobi
+  documents  records/documents/<category>/     pdf, office files, text, csv
+  images     records/images/                   other large images
+  audio      records/audio-video/              audio and video
+  files      records/files/                    everything else (zips, slides, ...)
+
+Logos, icons and tracking images (small, no camera data), calendar invites and
+contact cards are skipped, as is anything in Trash or Spam. Names are
+"<date> <sender> - <original name>".
+
+Dry run by default: it prints what it would write. --write writes. It is safe
+to rerun: a file whose content is already anywhere under the destinations is
+skipped, and a name clash gets " (2)" rather than overwriting.
+
+Document categories come from ~/.config/mail-attachments/categories.json —
+deliberately not in the (public) dotfiles, since the sender domains name
+doctors and family. Without it every document lands in "From people" or
+"Other". A reference copy lives on the NAS at records/.
+
+Needs the NAS shares mounted in Finder: /Volumes/Backups and /Volumes/Media.
+Run by hand; it is not scheduled.
+"""
+import argparse, collections, datetime, email, email.policy, email.utils
+import glob, hashlib, json, os, re, sys
+
+MAIL = os.path.expanduser("~/.local/share/mail/proton")
+RECORDS = "/Volumes/Backups/records"
+MEDIA = "/Volumes/Media"
+CATEGORIES = os.path.expanduser("~/.config/mail-attachments/categories.json")
+SKIP_FOLDERS = {"Trash", "Spam"}
+UNSAFE = re.compile(r'[\\/:*?"<>|\x00-\x1f]')
+
+
+def safe(s, n=60):
+    return UNSAFE.sub("_", s).strip(" .")[:n] or "unnamed"
+
+
+def has_camera_exif(data, ct):
+    return ct in ("image/heic", "image/heif") or (
+        data[:2] == b"\xff\xd8" and b"Exif\x00\x00" in data[:65536])
+
+
+def kind(fn, ct, data):
+    fn = fn.lower()
+    if ct.startswith("image/") or fn.endswith((".jpg", ".jpeg", ".png", ".heic", ".gif", ".webp")):
+        if has_camera_exif(data, ct) and len(data) > 100_000:
+            return "photo"
+        return "image" if len(data) > 150_000 else None
+    if fn.endswith((".ics", ".vcf")) or ct in ("text/calendar", "text/vcard"):
+        return None
+    if fn.endswith((".epub", ".mobi")):
+        return "ebook"
+    if ct == "application/pdf" or fn.endswith((".pdf", ".doc", ".docx", ".odt", ".rtf", ".txt",
+                                              ".md", ".xls", ".xlsx", ".csv", ".ods")):
+        return "document"
+    if ct.startswith(("audio/", "video/")) or fn.endswith((".wav", ".mp3", ".aif", ".aiff", ".flac",
+                                                          ".m4a", ".mp4", ".mov", ".m4v")):
+        return "audio"
+    return "file"
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--write", action="store_true", help="write the files (default: dry run)")
+    ap.add_argument("--since", metavar="YYYY-MM-DD", help="only mail dated on or after this day")
+    ap.add_argument("--records", default=RECORDS, help=argparse.SUPPRESS)
+    ap.add_argument("--media", default=MEDIA, help=argparse.SUPPRESS)
+    a = ap.parse_args()
+
+    for d in (a.records, a.media):
+        if not os.path.isdir(d):
+            sys.exit(f"mail-attachments: {d} is not there — mount the NAS share in Finder first")
+
+    cats, people = {}, set()
+    if os.path.exists(CATEGORIES):
+        conf = json.load(open(CATEGORIES))
+        cats = {dom: cat for cat, doms in conf.get("documents", {}).items() for dom in doms}
+        people = set(conf.get("people_domains", []))
+    else:
+        print(f"note: {CATEGORIES} not found; documents go to 'From people' or 'Other'")
+
+    dest_root = {
+        "photo": f"{a.media}/Photos/From email", "ebook": f"{a.media}/Books",
+        "document": f"{a.records}/documents", "image": f"{a.records}/images",
+        "audio": f"{a.records}/audio-video", "file": f"{a.records}/files",
+    }
+    have = set()                     # content already saved anywhere under the destinations
+    for root in set(dest_root.values()):
+        for p in glob.glob(root + "/**/*", recursive=True):
+            if os.path.isfile(p):
+                with open(p, "rb") as f:
+                    have.add(hashlib.sha256(f.read()).hexdigest())
+
+    seen_mid, plan = set(), []
+    for d in sorted({os.path.dirname(os.path.dirname(p)) for p in glob.glob(MAIL + "/**/cur/*", recursive=True)}):
+        folder = os.path.relpath(d, MAIL)
+        if folder in SKIP_FOLDERS:
+            continue
+        for path in glob.glob(d + "/cur/*") + glob.glob(d + "/new/*"):
+            try:
+                with open(path, "rb") as f:
+                    msg = email.message_from_binary_file(f, policy=email.policy.default)
+            except Exception:
+                continue
+            mid = (msg.get("Message-ID") or path).strip()
+            if mid in seen_mid:
+                continue
+            seen_mid.add(mid)
+            try:
+                date = email.utils.parsedate_to_datetime(msg.get("Date")).date().isoformat()
+            except Exception:
+                date = "undated"
+            if a.since and date != "undated" and date < a.since:
+                continue
+            name, addr = email.utils.parseaddr(str(msg.get("From", "")))
+            dom = addr.lower().rsplit("@", 1)[-1]
+            who = safe(name or addr.split("@")[0], 30)
+            for part in msg.walk():
+                if part.is_multipart():
+                    continue
+                ct, fn = part.get_content_type(), part.get_filename() or ""
+                if ct in ("text/plain", "text/html") and not fn:
+                    continue
+                data = part.get_payload(decode=True) or b""
+                k = data and kind(fn, ct, data)
+                if not k:
+                    continue
+                h = hashlib.sha256(data).hexdigest()
+                if h in have:
+                    continue
+                have.add(h)
+                fname = safe(fn or "image." + ct.split("/")[-1], 80)
+                if k == "photo":
+                    dest = f"{dest_root[k]}/{date[:4]}/{date} {who} - {fname}"
+                elif k == "ebook":
+                    dest = f"{dest_root[k]}/{fname}"
+                elif k == "document":
+                    cat = "Sent by me" if folder == "Sent" else cats.get(dom) or (
+                        "From people" if dom in people else "Other")
+                    dest = f"{dest_root[k]}/{cat}/{date} {who} - {fname}"
+                else:
+                    dest = f"{dest_root[k]}/{date} {who} - {fname}"
+                plan.append((k, dest, data))
+
+    counts = collections.Counter(k for k, _, _ in plan)
+    size = sum(len(d) for _, _, d in plan) / 1e6
+    print(("Writing" if a.write else "Dry run:"), dict(counts) or "nothing new", f"— {len(plan)} files, {size:.1f} MB")
+    for k, dest, data in plan:
+        shown = dest.replace(a.records, "records").replace(a.media, "Media")
+        if not a.write:
+            print("  would write", shown)
+            continue
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        base, ext = os.path.splitext(dest)
+        i = 2
+        while os.path.exists(dest):
+            dest = f"{base} ({i}){ext}"
+            i += 1
+        with open(dest, "wb") as f:
+            f.write(data)
+        print("  wrote", shown)
+    if plan and not a.write:
+        print("run again with --write to save them")
+
+
+if __name__ == "__main__":
+    main()
