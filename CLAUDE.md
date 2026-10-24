@@ -586,7 +586,9 @@ measured (Inbox), and in Trash possibly as a real deletion, which was not tried.
 in it — between checks, or delivered by `check-mail-cmd` itself — updates the
 sidebar's unread count but not the list, until the folder is selected again
 (even `:cf` to the same folder does it). No watching on macOS, measured on
-0.22.0 against a throwaway maildir.
+0.22.0 against a throwaway maildir. `<C-r>` is bound to exactly that,
+`:cf "{{.Folder}}"` — quoted, or a label with a space breaks it. NeoMutt needs
+no such key; it re-reads the open folder on its 30s check.
 
 **NeoMutt runs beside aerc, for comparison** (2026-10-24), reading the same
 maildir — two clients on one maildir is what the format is for. Same colours,
