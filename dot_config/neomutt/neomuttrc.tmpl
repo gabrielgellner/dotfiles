@@ -82,6 +82,9 @@ set to_chars = ""
 
 # ── Keys: aerc's, where they differ from mutt's ──────────────────────────────
 bind index,pager g noop
+# Making g a prefix (for gg) took mutt's own g, group-reply, with it; gr
+# brings reply-all back under the same letter.
+bind index,pager gr group-reply
 bind index gg first-entry
 bind index G last-entry
 bind pager gg top
