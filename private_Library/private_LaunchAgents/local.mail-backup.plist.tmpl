@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Runs ~/bin/mail-backup daily at 03:30: an encrypted restic snapshot of the
+  maildir to the NAS. A run missed because the laptop was asleep happens on
+  wake (launchd fires a missed StartCalendarInterval once). Output, errors
+  included, goes to ~/Library/Logs/mail-backup.log.
+
+  Loaded by run_onchange_after_load-mail-backup-agent.sh whenever this changes.
+-->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>local.mail-backup</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>{{ .chezmoi.homeDir }}/bin/mail-backup</string>
+	</array>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>3</integer>
+		<key>Minute</key>
+		<integer>30</integer>
+	</dict>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>StandardOutPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/mail-backup.log</string>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/mail-backup.log</string>
+</dict>
+</plist>

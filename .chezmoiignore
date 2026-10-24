@@ -114,6 +114,8 @@ bin/mkv2mp4
 .config/neomutt/**
 .config/notmuch/**
 Library/LaunchAgents/local.mbsync-proton.plist
+Library/LaunchAgents/local.mail-backup.plist
+bin/mail-backup
 {{ end -}}
 {{/*
   Nothing else under ~/Library is managed, and on Linux there is no ~/Library.

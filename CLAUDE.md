@@ -145,6 +145,7 @@ out to be present on macOS too.
 | `dot_config/neomutt/`              | `~/.config/neomutt/`      | NeoMutt, the mail client; macOS only — same section            |
 | `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir NeoMutt reads — same section |
 | `dot_config/notmuch/default/config.tmpl` | `~/.config/notmuch/default/config` | notmuch: search index over that maildir — same section |
+| `bin/executable_mail-backup`       | `~/bin/mail-backup`       | encrypted restic backup of the maildir to the NAS — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -561,6 +562,20 @@ A local maildir rather than IMAP because Bridge's IMAP has no SORT extension,
 and a client that sorts server-side cannot sort it at all: aerc's `:sort`
 answered "Sorting is not available for this backend", and the inbox sat in
 Bridge's sync order.
+
+**The maildir is backed up to the NAS, encrypted** (2026-10-24):
+`~/bin/mail-backup` runs restic daily at 03:30 from launchd
+(`local.mail-backup`; a run missed asleep happens on wake), to
+`sftp:asnas:/volume1/Backups/mail-restic` — SFTP rather than the Finder SMB
+mount, which may not be mounted at 03:30. SSH to asnas works with an empty
+environment (`env -i`), i.e. without an agent, which is what launchd gives it.
+Keeps 7 daily, 8 weekly, 24 monthly. The password is the keychain item
+`restic-mail`, generated and never printed, and **must also live in Bitwarden**:
+a repository only the laptop can open does not survive the laptop. Measured on
+the first run (24s, through the agent): 701 MiB of mail became 513M on the NAS,
+`restic check` clean, a restored folder byte-identical, and no file in the
+repository containing the string `Subject:`. notmuch's index is not backed
+up; `notmuch new` rebuilds it in seconds.
 
 **The maildir is decrypted mail on disk**, which is why it waited for
 FileVault (`fdesetup status` said Off when this started). Spotlight had

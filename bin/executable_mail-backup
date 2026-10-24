@@ -1,0 +1,30 @@
+#!/bin/sh
+# Encrypted backup of the local maildir to the NAS, with restic.
+#
+# The maildir (~/.local/share/mail/proton, mirrored from Proton by mbsync) is
+# decrypted mail on disk; restic encrypts before anything leaves the laptop, so
+# the copy on asnas is ciphertext. The repository is reached over SFTP rather
+# than the Finder SMB mount, because the mount may not be there at 03:30.
+#
+# The password is in the login keychain as `restic-mail` and must ALSO be kept
+# somewhere off this machine (Bitwarden): without it the repository cannot be
+# decrypted, and a backup that only the laptop can open does not survive the
+# laptop.
+#
+# Run daily by launchd (local.mail-backup), and by hand any time. Exits with
+# the backup's status, so `launchctl print` reports a failed backup rather than
+# a successful prune. Away from home the NAS is unreachable and the run fails;
+# the next one picks up.
+set -u
+export PATH="/opt/homebrew/bin:/usr/bin:/bin"
+export RESTIC_REPOSITORY="sftp:asnas:/volume1/Backups/mail-restic"
+export RESTIC_PASSWORD_COMMAND="security find-generic-password -s restic-mail -w"
+
+echo "== $(date '+%Y-%m-%d %H:%M:%S') backup"
+restic backup --quiet --tag mail "$HOME/.local/share/mail/proton"
+rc=$?
+# Seven dailies, eight weeklies, two years of monthlies. Pruning only rewrites
+# what the forget released, which for mail that mostly grows is little.
+restic forget --quiet --tag mail --keep-daily 7 --keep-weekly 8 --keep-monthly 24 --prune
+echo "== $(date '+%Y-%m-%d %H:%M:%S') done, backup rc=$rc"
+exit $rc

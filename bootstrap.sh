@@ -197,6 +197,7 @@ if $IS_MACOS; then
     brew_install himalaya
     brew_install isync
     brew_install notmuch
+    brew_install restic
     brew_install w3m
 fi
 
@@ -496,7 +497,7 @@ $IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
 # Mail, gated the same way as its install above. Bridge is an app, not a
 # command, so it is asked of brew.
 if $IS_MACOS; then
-    for c in neomutt himalaya mbsync notmuch w3m; do
+    for c in neomutt himalaya mbsync notmuch restic w3m; do
         command -v "$c" &>/dev/null || missing+=("$c")
     done
     brew list --cask proton-mail-bridge &>/dev/null || missing+=("cask:proton-mail-bridge")

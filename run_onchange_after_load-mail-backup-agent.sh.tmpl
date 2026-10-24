@@ -1,0 +1,11 @@
+{{ if and (eq .chezmoi.os "darwin") (index . "proton_email") -}}
+#!/bin/sh
+# (Re)loads the mail-backup launchd agent; reruns when the plist changes:
+# {{ include "private_Library/private_LaunchAgents/local.mail-backup.plist.tmpl" | sha256sum }}
+# Renders empty where mail is not set up, and chezmoi skips an empty script.
+set -eu
+label=local.mail-backup
+domain="gui/$(id -u)"
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$HOME/Library/LaunchAgents/$label.plist"
+{{ end -}}

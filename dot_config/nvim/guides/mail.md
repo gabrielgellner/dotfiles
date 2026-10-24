@@ -183,4 +183,28 @@ run of "far side refuses to store message" means a delete crossed an empty of
 Trash; the recovery is written up in the dotfiles' `CLAUDE.md`. Do not run
 `mbsync` by hand while the agent is loaded — two at once collide.
 
+## Backup
+
+The local copy is backed up to the NAS every night at 03:30 — encrypted on the
+laptop with restic before it leaves, so `asnas` only ever holds ciphertext. A
+run missed while the laptop sleeps happens when it wakes; one missed away from
+home fails and the next night's catches up.
+
+The repository is `sftp:asnas:/volume1/Backups/mail-restic`, and `-r …` in the
+table stands for `-r` followed by that address.
+
+| To                    | Run                                         |
+| --------------------- | ------------------------------------------- |
+| back up now           | `mail-backup`                               |
+| see how the last went | `tail ~/Library/Logs/mail-backup.log`       |
+| list snapshots        | `restic -r … snapshots`                     |
+| restore into a folder | `restic -r … restore latest --target ~/out` |
+
+restic asks for the password unless `RESTIC_PASSWORD_COMMAND` is set to
+`security find-generic-password -s restic-mail -w`, which is what the script
+does.
+
+The password is in the keychain as `restic-mail` **and in Bitwarden** — without
+it the backup cannot be opened, by anyone.
+
 See also [tmux.md](tmux.md) for getting around the sessions neomutt runs in.
