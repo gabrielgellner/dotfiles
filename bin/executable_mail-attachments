@@ -27,6 +27,9 @@ doctors and family. Without it every document lands in "From people" or
 Needs the NAS shares mounted in Finder: /Volumes/Backups and /Volumes/Media.
 Run by hand; it is not scheduled.
 
+  --rescan      rebuild the record of what is saved by reading the NAS
+                (slow over SMB); otherwise ~/.local/state/mail-attachments/
+                is trusted, and kept up to date as files are written
   --mail DIR    read another maildir tree, e.g. the Gmail archive
                 (~/.local/share/mail/gmail-archive); default is the Proton copy
   --only KINDS  limit to some kinds: photo,ebook,document,image,audio,file
@@ -38,6 +41,8 @@ MAIL = os.path.expanduser("~/.local/share/mail/proton")
 RECORDS = "/Volumes/Backups/records"
 MEDIA = "/Volumes/Media"
 CATEGORIES = os.path.expanduser("~/.config/mail-attachments/categories.json")
+STATE = os.path.join(os.environ.get("XDG_STATE_HOME", os.path.expanduser("~/.local/state")),
+                     "mail-attachments", "saved.sha256")
 SKIP_FOLDERS = {"Trash", "Spam"}
 UNSAFE = re.compile(r'[\\/:*?"<>|\x00-\x1f]')
 
@@ -72,11 +77,38 @@ def kind(fn, ct, data):
     return "file"
 
 
+def say(*args):
+    # Output is a report, not the job: if whoever reads it goes away (piped
+    # into head, say), keep writing files and stop printing. A BrokenPipeError
+    # here once stopped a --write run part-way through.
+    global say
+    try:
+        print(*args, flush=True)
+    except BrokenPipeError:
+        sys.stdout = open(os.devnull, "w")
+        say = lambda *a: None
+
+
+def category_for(dom, cats):
+    # Exact domain, then each parent (rams.colostate.edu -> colostate.edu),
+    # then suffix entries, written with a leading dot (".edu", ".ac.uk").
+    parts = dom.split(".")
+    for i in range(len(parts) - 1):
+        hit = cats.get(".".join(parts[i:]))
+        if hit:
+            return hit
+    for key, cat in cats.items():
+        if key.startswith(".") and dom.endswith(key):
+            return cat
+    return None
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--write", action="store_true", help="write the files (default: dry run)")
     ap.add_argument("--since", metavar="YYYY-MM-DD", help="only mail dated on or after this day")
     ap.add_argument("--mail", default=MAIL, help="maildir tree to read (default: the Proton copy)")
+    ap.add_argument("--rescan", action="store_true", help="rebuild the saved-files record from the NAS")
     ap.add_argument("--only", metavar="KINDS", help="comma-separated: photo,ebook,document,image,audio,file")
     ap.add_argument("--records", default=RECORDS, help=argparse.SUPPRESS)
     ap.add_argument("--media", default=MEDIA, help=argparse.SUPPRESS)
@@ -86,11 +118,13 @@ def main():
         if not os.path.isdir(d):
             sys.exit(f"mail-attachments: {d} is not there — mount the NAS share in Finder first")
 
-    cats, people = {}, set()
+    cats, people, labelcats, selves = {}, set(), {}, set()
     if os.path.exists(CATEGORIES):
         conf = json.load(open(CATEGORIES))
         cats = {dom: cat for cat, doms in conf.get("documents", {}).items() for dom in doms}
         people = set(conf.get("people_domains", []))
+        labelcats = conf.get("labels", {})            # Gmail label -> category
+        selves = {a.lower() for a in conf.get("self_addresses", [])}
     else:
         print(f"note: {CATEGORIES} not found; documents go to 'From people' or 'Other'")
 
@@ -99,12 +133,24 @@ def main():
         "document": f"{a.records}/documents", "image": f"{a.records}/images",
         "audio": f"{a.records}/audio-video", "file": f"{a.records}/files",
     }
-    have = set()                     # content already saved anywhere under the destinations
-    for root in set(dest_root.values()):
-        for p in glob.glob(root + "/**/*", recursive=True):
-            if os.path.isfile(p):
-                with open(p, "rb") as f:
-                    have.add(hashlib.sha256(f.read()).hexdigest())
+    # What is already saved, by content. Reading every destination file back
+    # over SMB took most of a run once Media/Books and the photos were there,
+    # so the hashes live in a local record instead, appended to as files are
+    # written; --rescan (or a missing record) rebuilds it from the NAS.
+    have = set()
+    if a.rescan or not os.path.exists(STATE):
+        say("reading the destinations to rebuild the saved-files record (slow over SMB)…")
+        for root in set(dest_root.values()):
+            for p in glob.glob(root + "/**/*", recursive=True):
+                if os.path.isfile(p):
+                    with open(p, "rb") as f:
+                        have.add(hashlib.sha256(f.read()).hexdigest())
+        os.makedirs(os.path.dirname(STATE), exist_ok=True)
+        with open(STATE, "w") as f:
+            f.write("".join(h + "\n" for h in sorted(have)))
+    else:
+        with open(STATE) as f:
+            have = {l.strip() for l in f if l.strip()}
 
     seen_mid, plan = set(), []
     only = set(a.only.split(",")) if a.only else None
@@ -156,20 +202,27 @@ def main():
                 elif k == "ebook":
                     dest = f"{dest_root[k]}/{fname}"
                 elif k == "document":
-                    cat = "Sent by me" if folder == "Sent" else cats.get(dom) or (
-                        "From people" if dom in people else "Other")
+                    glabels = {l.strip() for l in str(msg.get("X-Gmail-Labels", "")).split(",")}
+                    bylabel = next((c for l, c in labelcats.items() if l in glabels), None)
+                    if bylabel:                                   # a labelled contract stays one
+                        cat = bylabel
+                    elif folder == "Sent" or addr.lower() in selves:
+                        cat = "Sent by me"
+                    else:
+                        cat = category_for(dom, cats) or (
+                            "From people" if dom in people else "Other")
                     dest = f"{dest_root[k]}/{cat}/{date} {who} - {fname}"
                 else:
                     dest = f"{dest_root[k]}/{date} {who} - {fname}"
-                plan.append((k, dest, data))
+                plan.append((k, dest, data, h))
 
-    counts = collections.Counter(k for k, _, _ in plan)
-    size = sum(len(d) for _, _, d in plan) / 1e6
-    print(("Writing" if a.write else "Dry run:"), dict(counts) or "nothing new", f"— {len(plan)} files, {size:.1f} MB")
-    for k, dest, data in plan:
+    counts = collections.Counter(k for k, _, _, _ in plan)
+    size = sum(len(d) for _, _, d, _ in plan) / 1e6
+    say(("Writing" if a.write else "Dry run:"), dict(counts) or "nothing new", f"— {len(plan)} files, {size:.1f} MB")
+    for k, dest, data, h in plan:
         shown = dest.replace(a.records, "records").replace(a.media, "Media")
         if not a.write:
-            print("  would write", shown)
+            say("  would write", shown)
             continue
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         base, ext = os.path.splitext(dest)
@@ -179,9 +232,11 @@ def main():
             i += 1
         with open(dest, "wb") as f:
             f.write(data)
-        print("  wrote", shown)
+        with open(STATE, "a") as f:                       # record it as saved
+            f.write(h + "\n")
+        say("  wrote", shown)
     if plan and not a.write:
-        print("run again with --write to save them")
+        say("run again with --write to save them")
 
 
 if __name__ == "__main__":

@@ -246,6 +246,7 @@ it only ever adds what is not there yet.
 | only mail since a date      | `mail-attachments --since 2026-11-01`     |
 | only photos                 | `mail-attachments --only photo`           |
 | the Gmail archive instead   | `--mail ~/.local/share/mail/gmail-archive` |
+| after moving files on NAS   | `mail-attachments --rescan`               |
 
 Both NAS shares need to be mounted in Finder first. Saving does not remove
 anything from the mail — Proton cannot strip an attachment from a message.

@@ -556,7 +556,20 @@ the NAS in `records/`. Without it documents fall back to "From people" /
 `--only photo` (or `ebook`, `document`, …) limits the kinds: that pass added
 728 photos from 2009-2024, 799 in all. HEIC is a photo by name as well as by
 content type, and a `.HEIC` that is really a JPEG — 7 of the archive's 8,
-iPhones converting on send — is saved as `.jpg`.
+iPhones converting on send — is saved as `.jpg`. The archive's documents went
+in at 2,881 (3,085 in all): the category map grew a "Research & Academia"
+entry matched by parent domain and by suffix (`.edu`, `.ac.uk`, …), a
+`labels` map read from `X-Gmail-Labels` (Contracts), and `self_addresses`
+for "Sent by me"; a label wins over "Sent by me".
+
+Two run-time lessons, both now in the script. **Output is not the job**: a
+`--write` piped into `head -1` died of BrokenPipeError part-way through, so
+printing now stops on a closed pipe while writing carries on. **Don't re-read
+the NAS to dedupe**: hashing every destination file over SMB (Media/Books, the
+photos) dominated each run, so the hashes live in
+`~/.local/state/mail-attachments/saved.sha256`, appended as files are written;
+`--rescan` rebuilds it (292s once). A Proton dry run went from minutes to 8s;
+a Gmail one is 105s, now almost all of it parsing 7.8G of mail.
 
 **The maildir is decrypted mail on disk**, which is why it waited for
 FileVault (`fdesetup status` said Off when this started). Spotlight had
