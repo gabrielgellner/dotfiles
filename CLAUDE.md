@@ -657,6 +657,10 @@ like an orphan, before it went.
   the first, `J` walked the other two, then on to the next row. They had been
   bound to next/previous *folder* in the pager too, which took that away;
   folder hopping is the index's alone now.
+- **`q` in the index asks before quitting** (`quit = ask-no`): the prompt's
+  default is to stay, so a reflexive `q` then Enter does nothing. It covers
+  `x` (exit without saving) too, and the pager's `q` still just goes back —
+  all four measured in a throwaway session.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - `sidebar_delim_chars` is `/` alone: the default `/.` cut the label

@@ -63,6 +63,10 @@ set timeout = 30
 set mail_check_stats = yes
 # Deletes and moves happen on sync ($, leaving the folder, quitting); do them
 # without asking, and without the save-to-folder confirmation.
+# q in the index quits NeoMutt, the same key that only goes back from the
+# pager. ask-no makes it a question whose default is "stay": q then Enter (or
+# anything but y) keeps you in. It covers x, exit-without-saving, as well.
+set quit = ask-no
 set delete = yes
 set confirm_append = no
 set mark_old = no

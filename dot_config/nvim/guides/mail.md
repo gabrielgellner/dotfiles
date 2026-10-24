@@ -20,7 +20,9 @@ nothing reaches Proton until it is back.
 ## The two screens
 
 The **index** is the message list you start in; `Enter` opens a message in the
-**pager**. **`q` in the index quits neomutt** — in the pager it only goes back.
+**pager**. `q` in the pager goes back to the index; `q` in the index **asks**
+"Quit NeoMutt?", and the default is no — `Enter` stays, `y` quits. `x` (quit
+without applying deletes) asks the same way.
 
 ## Moving in the index
 
