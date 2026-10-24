@@ -143,6 +143,7 @@ out to be present on macOS too.
 | `dot_config/mermaid/puppeteer.json` | `~/.config/mermaid/puppeteer.json` | Browser mmdc renders mermaid with — see the caveat below |
 | `dot_config/aerc/`                 | `~/.config/aerc/`         | aerc mail client, via Proton Mail Bridge; macOS only — see Mail below |
 | `dot_config/himalaya/`             | `~/.config/himalaya/`     | himalaya, scripted mail access for the shell and Claude — same section |
+| `dot_config/neomutt/`              | `~/.config/neomutt/`      | NeoMutt, set up beside aerc to compare — same section          |
 | `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir aerc reads — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
@@ -586,6 +587,27 @@ in it — between checks, or delivered by `check-mail-cmd` itself — updates th
 sidebar's unread count but not the list, until the folder is selected again
 (even `:cf` to the same folder does it). No watching on macOS, measured on
 0.22.0 against a throwaway maildir.
+
+**NeoMutt runs beside aerc, for comparison** (2026-10-24), reading the same
+maildir — two clients on one maildir is what the format is for. Same colours,
+same Proton-safe keys, so the comparison is of the programs. Measured on a
+throwaway maildir with the same folder names:
+
+- `$trash` makes `d` a move to Trash, and `folder-hook Labels/ 'unset trash'`
+  makes a delete inside a label folder a plain delete — i.e. taking the label
+  off. Archive (`a`, a save) moved the message to Archive with no copy in Trash.
+- **It does refresh the open folder**, which aerc does not: a message dropped
+  into the open Inbox appeared on its own within the 30s `mail_check`/`timeout`.
+  `timeout` defaults to 600, which would make that ten minutes.
+- **Colours are terminal numbers, not hex.** `#rrggbb` needs a direct-colour
+  TERM (xterm-direct); under tmux every hex line failed with "color not
+  supported by term". So the visidata approach: ANSI 0-15 are exact Frappé via
+  kitty, and only mauve (183) and overlay1 (103) come from the 256 cube.
+- `sidebar_delim_chars` is `/` alone: the default `/.` cut the label
+  `gmail.com 04-11-2024 08:21` down to `com 04-11-2024 08:21`.
+
+Sending from NeoMutt is configured (Bridge SMTP, `ssl_force_tls` off for the
+loopback) but has not been tried.
 
 Two aerc traps found on the way, both in binds.conf's header: a user
 binds.conf **replaces** the defaults (a file of only the changes left `j` dead),

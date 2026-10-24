@@ -118,6 +118,7 @@ bin/mkv2mp4
 .config/aerc/**
 .config/himalaya/**
 .config/isyncrc
+.config/neomutt/**
 Library/Preferences/aerc
 Library/LaunchAgents/local.mbsync-proton.plist
 {{ end -}}

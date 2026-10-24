@@ -1,0 +1,130 @@
+# NeoMutt, alongside aerc for comparison. Both read the same local maildir,
+# which mbsync mirrors from Proton Mail Bridge (~/.config/isyncrc) — a maildir
+# is safe to share between two clients. Sending goes to Bridge's SMTP, as
+# aerc's does. Colours and keys follow aerc's, so the comparison is of the
+# programs rather than of two different setups.
+
+# ── Mailboxes ────────────────────────────────────────────────────────────────
+set mbox_type = Maildir
+set folder = "~/.local/share/mail/proton"
+set spool_file = "+INBOX"
+set postponed = "+Drafts"
+set header_cache = "~/.cache/neomutt-headers"
+
+# Proton semantics, measured with mbsync (see CLAUDE.md, Mail): a plain delete
+# in Inbox or Archive leaves the message in no folder at all, while a delete
+# inside Labels/<x> just takes that label off. $trash turns a delete into a
+# move to Trash, which is the right thing everywhere except a label folder.
+folder-hook . 'set trash = "+Trash"'
+folder-hook Labels/ 'unset trash'
+
+# Bridge files every sent message in Sent itself (measured), so no local copy.
+set copy = no
+set record = ""
+
+named-mailboxes "󰚇 Inbox" "+INBOX" "󰷉 Drafts" "+Drafts" "󰒊 Sent" "+Sent" \
+                "󰀼 Archive" "+Archive" "󰀩 Spam" "+Spam" "󰩺 Trash" "+Trash"
+# Labels are read off the disk at startup, so a new one appears on the next
+# launch. Quoted and escaped because the names have spaces, an ampersand and,
+# in one Gmail-import leftover, a literal backslash.
+mailboxes `cd ~/.local/share/mail/proton && find Labels -type d -name cur | sed 's|/cur$||' | sort -f | sed 's/[\\"]/\\&/g; s/.*/"+&"/' | tr '\n' ' '`
+
+# ── Sending ──────────────────────────────────────────────────────────────────
+set real_name = "Gabriel Gellner"
+set from = "{{ .proton_email }}"
+set smtp_url = "smtp://{{ .proton_email | urlquery }}@127.0.0.1:1025/"
+set smtp_pass = `security find-generic-password -s proton-bridge -w`
+# Loopback to Bridge, whose STARTTLS cert is self-signed; see aerc's
+# accounts.conf. ssl_force_tls defaults to yes and would refuse it.
+set ssl_starttls = no
+set ssl_force_tls = no
+
+# ── Behaviour ────────────────────────────────────────────────────────────────
+# Newest thread activity first, and oldest-first inside a thread.
+set use_threads = threads
+set sort = reverse-last-date
+set sort_aux = date
+# Poll every 30s, idle or not — timeout defaults to 600, so an idle NeoMutt
+# would otherwise notice mail every ten minutes. (No inotify in this build.)
+set mail_check = 30
+set timeout = 30
+set mail_check_stats = yes
+# Deletes and moves happen on sync ($, leaving the folder, quitting); do them
+# without asking, and without the save-to-folder confirmation.
+set delete = yes
+set confirm_append = no
+set mark_old = no
+set edit_headers = yes
+
+set mailcap_path = "~/.config/neomutt/mailcap"
+auto_view text/html
+alternative_order text/plain text/enriched text/html
+
+# ── Layout ───────────────────────────────────────────────────────────────────
+set sidebar_visible = yes
+set sidebar_width = 26
+set sidebar_short_path = yes
+set sidebar_folder_indent = yes
+set sidebar_indent_string = "  "
+# Only / separates folders. The default "/." also splits on dots, and turned
+# the label "gmail.com 04-11-2024 08:21" into "com 04-11-2024 08:21".
+set sidebar_delim_chars = "/"
+set sidebar_format = "%D%* %?N?%N?"
+set index_format = "%Z  %-22.22F  %s%*  %{%b %d}"
+# Same glyphs aerc uses: tagged, flagged, deleted, deleted-attachment,
+# replied, old, new, old-thread, new-thread, then two fillers.
+set flag_chars = "󰸞󰈻󰆴󰆴󰑚󰇰󰇮󰇰󰇮- "
+# %Z also marks who a message was addressed to (+ for "to you alone"), which on
+# a personal mailbox is nearly every row. Empty drops that column.
+set to_chars = ""
+
+# ── Keys: aerc's, where they differ from mutt's ──────────────────────────────
+bind index,pager g noop
+bind index gg first-entry
+bind index G last-entry
+bind pager gg top
+bind pager G bottom
+bind index,pager \Cd half-down
+bind index,pager \Cu half-up
+bind pager j next-line
+bind pager k previous-line
+macro index,pager J "<sidebar-next><sidebar-open>" "next folder"
+macro index,pager K "<sidebar-prev><sidebar-open>" "previous folder"
+macro index,pager a "<save-message>+Archive<enter>" "archive"
+
+# ── Colours: Catppuccin Frappé, matching aerc's stylesets/frappe ──────────────
+# Terminal colour numbers, not hex. NeoMutt takes "#rrggbb" only when TERM
+# advertises direct colour (xterm-direct), which tmux's does not: every hex
+# line failed with "color not supported by term". The same way out as
+# ~/.visidatarc: ANSI 0-15 already *are* Frappé, because kitty paints them from
+# catppuccin-frappe.conf — color4 is exactly blue #8caaee, color8 surface2,
+# color0 surface1, color15 subtext0. Only what has no ANSI slot is approximated
+# from the 256 cube: 183 for mauve #ca9ee6 (visidata's choice too) and 103 for
+# overlay1 #838ba7.
+color normal          default   default
+color indicator       default   color0
+color status          color15   color0
+color tree            color8    default
+color index_author    color4    default '.*'
+color index_date      color103  default
+color index_flags     color183  default '.*'
+color index           bold default default '~N'
+color index_flags     color3    default '~F'
+color index           bold color5 default '~T'
+color index           color1    default '~D'
+color sidebar_divider color8    default
+color sidebar_new     bold color4 default
+color sidebar_indicator bold default color0
+color sidebar_highlight default color0
+color hdrdefault      color15   default
+color header          bold color4 default "^(From|To|Cc|Subject|Date):"
+color quoted          color15   default
+color quoted1         color8    default
+color signature       color8    default
+color attachment      color183  default
+color tilde           color8    default
+color markers         color8    default
+color search          color0    color3
+color error           color1    default
+# This build has no `url` object; links are coloured as a body pattern.
+color body            underline color4 default "(https?|ftp)://[^ >\"]+"
