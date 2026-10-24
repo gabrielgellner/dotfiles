@@ -567,6 +567,10 @@ Measured while building it, each one a trap the docs did not mention:
   over IMAP only INBOX gets a role, hence the `mailbox.alias.*` lines.
 - **`himalaya message read` does not mark a message seen** unless given
   `--seen`, so reading is genuinely read-only.
+- **Bridge files sent mail in Sent itself.** A test sent to self with
+  himalaya's `--no-save` showed up once in Sent, once in Inbox, and once in
+  All Mail (one message carrying both labels). So aerc has no `copy-to` and
+  himalaya no `message.send.save-copy`; either would make a duplicate.
 
 Proton labels are IMAP folders under `Labels/` (read off `mailbox list`).
 Per Proton's documentation, not yet tried here: custom folders appear under

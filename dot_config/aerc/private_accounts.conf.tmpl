@@ -16,3 +16,6 @@ outgoing          = smtp+insecure://{{ .proton_email | urlquery }}@127.0.0.1:102
 outgoing-cred-cmd = security find-generic-password -s proton-bridge -w
 from              = Gabriel Gellner <{{ .proton_email }}>
 folders-sort      = INBOX,Drafts,Sent,Starred,Archive,Spam,Trash
+# No copy-to, deliberately: Bridge files every message sent through it in Sent
+# on its own. A mail sent with himalaya's --no-save still landed there once
+# (measured 2026-10-24), so copy-to = Sent would make two.
