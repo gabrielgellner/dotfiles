@@ -650,6 +650,13 @@ like an orphan, before it went.
 - **Rows are numbered (`%C`) and typing a number jumps there** — no binding
   needed: the first digit opens "Jump to message:", Enter goes. Measured on a
   20-message maildir (5, 12, 20, 1). There is no relative numbering.
+- **Threads open collapsed** (`folder-hook . 'push <collapse-all>'`), the row
+  showing the hidden count (`%M`) and drawn bold blue when the thread holds
+  anything unread (`~v~(~U)`). In the pager `J`/`K` are mutt's next/previous
+  message again — measured on a three-message collapsed thread: `Enter` opened
+  the first, `J` walked the other two, then on to the next row. They had been
+  bound to next/previous *folder* in the pager too, which took that away;
+  folder hopping is the index's alone now.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - `sidebar_delim_chars` is `/` alone: the default `/.` cut the label

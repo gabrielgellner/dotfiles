@@ -66,6 +66,9 @@ set mail_check_stats = yes
 set delete = yes
 set confirm_append = no
 set mark_old = no
+# Threads open collapsed, one row each; the row shows how many it hides, and
+# a collapsed thread with anything unread in it is drawn bold blue (below).
+folder-hook . 'push <collapse-all>'
 set edit_headers = yes
 
 set mailcap_path = "~/.config/neomutt/mailcap"
@@ -84,7 +87,7 @@ set sidebar_delim_chars = "/"
 set sidebar_format = "%D%* %?N?%N?"
 # %C is each row's position in the list, so a message can be reached by typing
 # the number you can see. (There is no relative numbering in NeoMutt.)
-set index_format = "%4C %Z  %-22.22F  %s%*  %{%b %d}"
+set index_format = "%4C %Z  %-22.22F  %?M?(%M) ?%s%*  %{%b %d}"
 # Nerd Font glyphs: tagged, flagged, deleted, deleted-attachment,
 # replied, old, new, old-thread, new-thread, then two fillers.
 set flag_chars = "󰸞󰈻󰆴󰆴󰑚󰇰󰇮󰇰󰇮- "
@@ -105,8 +108,8 @@ bind index,pager \Cd half-down
 bind index,pager \Cu half-up
 bind pager j next-line
 bind pager k previous-line
-macro index,pager J "<sidebar-next><sidebar-open>" "next folder"
-macro index,pager K "<sidebar-prev><sidebar-open>" "previous folder"
+macro index J "<sidebar-next><sidebar-open>" "next folder"
+macro index K "<sidebar-prev><sidebar-open>" "previous folder"
 macro index,pager a "<save-message>+Archive<enter>" "archive"
 
 # ── Colours: Catppuccin Frappé ───────────────────────────────────────────────
@@ -127,6 +130,7 @@ color index_author    color4    default '.*'
 color index_date      color103  default
 color index_flags     color183  default '.*'
 color index           bold default default '~N'
+color index           bold color4 default '~v~(~U)'
 color index_flags     color3    default '~F'
 color index           bold color5 default '~T'
 color index           color1    default '~D'
