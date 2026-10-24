@@ -606,6 +606,14 @@ throwaway maildir with the same folder names:
 - `sidebar_delim_chars` is `/` alone: the default `/.` cut the label
   `gmail.com 04-11-2024 08:21` down to `com 04-11-2024 08:21`.
 
+**Threads stop at the folder edge** in both clients, because they are built from
+In-Reply-To/References among the messages in the folder being viewed. A reply
+to your own reply names a parent that lives in Sent, so it has no match in
+Inbox: aerc showed it as a thread of its own, while NeoMutt joined it by subject
+(the `*` in `└*>` marks such a guessed link). aerc now has
+`threading-by-subject = true`, the same fallback. Threads that span folders —
+your replies inline, as in Proton's web app — would need notmuch.
+
 Sending from NeoMutt is configured (Bridge SMTP, `ssl_force_tls` off for the
 loopback) but has not been tried.
 
