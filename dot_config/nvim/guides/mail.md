@@ -72,15 +72,19 @@ Labels show in the sidebar as folders under `Labels/`, and opening one lists
 every message with that label. A message with three labels is three files on
 disk, but it is still one message on Proton — the sync keeps them consistent.
 
-**Labelling an email is a copy, not `t`.** neomutt's `t` only *selects* (see
-Tagging below); a label is given by copying into the label's folder:
+**Labels have their own two keys, `+` and `-`**, and both work from any
+folder. (`t` is not labelling — it only *selects*; see Tagging below.)
 
-| To                                | Keys                                     |
-| --------------------------------- | ---------------------------------------- |
-| add a label, keep it in the Inbox | `C`, `+Labels/Rec<Tab>`, `Enter`         |
-| label it **and** clear the Inbox  | the same, then `a`                       |
-| the same for several at once      | `t` each, then `;C` … `Enter`, then `;a` |
-| take a label off                  | `d` inside that label's folder, then `$` |
+| To                                | Keys                                         |
+| --------------------------------- | -------------------------------------------- |
+| add a label, keep it in the Inbox | `+`, `Rec<Tab>`, `Enter`                     |
+| label it **and** clear the Inbox  | the same, then `a`                           |
+| several at once                   | `t` each, then `;+` … `Enter`, then `;a`     |
+| take a label off                  | `-`, then the number of the label            |
+
+`+` opens the copy prompt with `+Labels/` already typed; `Tab` completes the
+name. `-` lists the labels this message carries and removes the one you pick
+(through `~/bin/mail-unlabel`); `Enter` alone removes nothing.
 
 Never *move* (`s`) a message into a label folder. A move is a copy plus a
 delete, and both halves were measured: the copy adds the label, and the delete
@@ -97,10 +101,10 @@ the Inbox, labelled, until you archive it.
 | ----------------- | ------------------------------------------------------ |
 | `a`               | **archive** — move to Archive                          |
 | `d`               | **delete** — move to Trash                             |
-| `d` in `Labels/x` | **take that label off**; the message stays where it is |
+| `d` in `Labels/x` | **delete** too — the whole message goes to Trash        |
 | `d` in Trash      | delete **for good** (Proton too, after the next sync)  |
 | `u`               | undo a delete, before it is applied                    |
-| `C`               | copy: `C +Labels/Receipts` **adds a label**            |
+| `+` / `-`         | **add / remove a label** (see Folders and labels)       |
 | `s`               | move to any folder (`a` is `s +Archive`)               |
 | `F`               | star / unstar                                          |
 | `N`               | mark read / unread                                     |
@@ -122,7 +126,7 @@ For labels, see "Labelling an email" above.
 | `T`            | tag everything matching a pattern: `T ~f porkbun` |
 | `Esc t`        | tag the whole thread                              |
 | `Ctrl-t`       | untag by pattern — `Ctrl-t ~A` untags everything  |
-| `;` then a key | do it to every tagged message: `;a`, `;d`, `;C`   |
+| `;` then a key | do it to every tagged message: `;a`, `;d`, `;+`   |
 
 ## Finding things
 

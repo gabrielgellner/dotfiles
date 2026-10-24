@@ -147,6 +147,7 @@ out to be present on macOS too.
 | `dot_config/notmuch/default/config.tmpl` | `~/.config/notmuch/default/config` | notmuch: search index over that maildir — same section |
 | `bin/executable_mail-backup`       | `~/bin/mail-backup`       | encrypted restic backup of the maildir to the NAS — same section |
 | `bin/executable_mail-attachments`  | `~/bin/mail-attachments`  | copies attachments worth keeping to the NAS, by hand — same section |
+| `bin/executable_mail-unlabel`      | `~/bin/mail-unlabel`      | NeoMutt's `-`: takes one label off a message — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -615,12 +616,19 @@ messages before Expunge was switched on, and neomuttrc is built around it:
 | move between folders (Archive, Trash) | a move, single copy |
 | copy into `Labels/x` | label added, message stays put |
 | delete inside `Labels/x` | that label removed |
+| move a label copy to Trash (`d` in `Labels/x`) | the message trashed, single copy |
 | delete in Inbox or Archive | **in no folder at all** — only All Mail shows it |
 
-So in NeoMutt `$trash` makes `d` a move to Trash, and
-`folder-hook Labels/ 'unset trash'` makes a delete inside a label folder a
-plain delete — taking the label off. Archive (`a`, a save to `+Archive`) left
-no copy in Trash. Deletes and moves are marked first and carried out on `$`,
+So in NeoMutt `$trash` is set in every folder: `d` is a move to Trash
+everywhere, label folders included. Labels have their own keys — `+` opens the
+copy prompt at `+Labels/`, and `-` pipes the message to `~/bin/mail-unlabel`,
+which finds its copies under `Labels/` by Message-ID, asks which label to
+remove and deletes that one copy. (`d` inside a label folder used to *remove
+the label*, through a folder-hook unsetting `$trash`; one key meaning two
+things was the problem.) Measured on a throwaway Proton message in the Inbox
+and labelled Cooking: `d` + `$` inside Cooking left it in Trash only — out of
+the Inbox and the label, All Mail unchanged — and the next sync dropped the
+local Inbox copy. Archive (`a`, a save to `+Archive`) left no copy in Trash. Deletes and moves are marked first and carried out on `$`,
 a folder change or quit. A message orphaned the last way is recovered by
 copying it out of All Mail (`himalaya message copy --from "All Mail" --to
 Trash <id>` did it). `Remove None` keeps a vanished local folder from being

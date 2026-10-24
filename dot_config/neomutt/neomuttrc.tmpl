@@ -11,11 +11,12 @@ set postponed = "+Drafts"
 set header_cache = "~/.cache/neomutt-headers"
 
 # Proton semantics, measured with mbsync (see CLAUDE.md, Mail): a plain delete
-# in Inbox or Archive leaves the message in no folder at all, while a delete
-# inside Labels/<x> just takes that label off. $trash turns a delete into a
-# move to Trash, which is the right thing everywhere except a label folder.
-folder-hook . 'set trash = "+Trash"'
-folder-hook Labels/ 'unset trash'
+# in Inbox or Archive leaves the message in no folder at all. $trash turns a
+# delete into a move to Trash, and it is set everywhere, label folders
+# included, so d means one thing wherever you are. Labels have their own keys,
+# + and - (below), rather than d meaning "take the label off" inside a label
+# folder, which it used to.
+set trash = "+Trash"
 
 # Bridge files every sent message in Sent itself (measured), so no local copy.
 set copy = no
@@ -115,6 +116,11 @@ bind pager k previous-line
 macro index J "<sidebar-next><sidebar-open>" "next folder"
 macro index K "<sidebar-prev><sidebar-open>" "previous folder"
 macro index,pager a "<save-message>+Archive<enter>" "archive"
+# Labels: + adds one (Tab completes after the prefix), - removes one by
+# handing the message to ~/bin/mail-unlabel, which finds its copies under
+# Labels/ and asks which to take off. Both work from any folder.
+macro index,pager + "<copy-message>+Labels/" "add a label"
+macro index,pager - "<pipe-message>~/bin/mail-unlabel<enter>" "remove a label"
 
 # ── Colours: Catppuccin Frappé ───────────────────────────────────────────────
 # Terminal colour numbers, not hex. NeoMutt takes "#rrggbb" only when TERM

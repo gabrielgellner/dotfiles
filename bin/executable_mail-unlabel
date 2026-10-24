@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Take a label off the message on stdin — NeoMutt's `-` key pipes it here.
+
+A Proton label is a folder under Labels/ in the maildir mbsync keeps, holding
+one copy of each labelled message; deleting that copy and syncing takes the
+label off and leaves the message where it is (measured). This finds the
+message's copies by Message-ID across every label folder, lists the labels,
+asks which to remove, and deletes that one copy. The launchd sync carries it
+to Proton within two minutes.
+
+It asks on the terminal (/dev/tty), since stdin is the message. MAIL_ROOT
+overrides the maildir, for testing.
+"""
+import email.parser, glob, os, sys
+
+root = os.environ.get("MAIL_ROOT", os.path.expanduser("~/.local/share/mail/proton"))
+msg = email.parser.BytesHeaderParser().parse(sys.stdin.buffer)
+mid = (msg.get("Message-ID") or "").strip()
+subject = (msg.get("Subject") or "(no subject)").strip()
+tty_in, tty = open("/dev/tty"), open("/dev/tty", "w")   # one r+ handle is "not seekable"
+
+def say(s=""):
+    tty.write(s + "\n"); tty.flush()
+
+def done():
+    tty.write("press Enter to go back "); tty.flush(); tty_in.readline(); sys.exit(0)
+
+if not mid:
+    say("mail-unlabel: this message has no Message-ID, so its label copies cannot be found"); done()
+
+copies = []
+for p in glob.glob(f"{root}/Labels/*/cur/*") + glob.glob(f"{root}/Labels/*/new/*"):
+    with open(p, "rb") as f:
+        if (email.parser.BytesHeaderParser().parse(f).get("Message-ID") or "").strip() == mid:
+            copies.append((os.path.basename(os.path.dirname(os.path.dirname(p))), p))
+copies.sort()
+
+say(f"\n  {subject[:70]}\n")
+if not copies:
+    say("  no labels on this message"); done()
+for i, (label, _) in enumerate(copies, 1):
+    say(f"  {i}  {label}")
+tty.write(f"\nremove which label? [1-{len(copies)}, Enter for none] "); tty.flush()
+ans = tty_in.readline().strip()
+if not ans.isdigit() or not 1 <= int(ans) <= len(copies):
+    say("nothing removed"); done()
+label, path = copies[int(ans) - 1]
+os.remove(path)
+say(f"removed {label} — Proton follows on the next sync"); done()
