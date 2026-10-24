@@ -139,7 +139,6 @@ out to be present on macOS too.
 | `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; Linux only                              |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
-| `dot_visidatarc`                   | `~/.visidatarc`           | VisiData — a Catppuccin Frappé theme; see the caveat below    |
 | `dot_config/mermaid/puppeteer.json` | `~/.config/mermaid/puppeteer.json` | Browser mmdc renders mermaid with — see the caveat below |
 | `dot_config/himalaya/`             | `~/.config/himalaya/`     | himalaya, scripted mail access for the shell and Claude — see Mail below |
 | `dot_config/neomutt/`              | `~/.config/neomutt/`      | NeoMutt, the mail client; macOS only — same section            |
@@ -327,60 +326,6 @@ Driving btop to check any of this is easy:
 `-c <file>` and `--themes-dir <dir>` take throwaway copies, so an A/B is two
 `tmux new-session -d` calls and a `capture-pane` diff, and `ctrl+r` reloads the
 config from disk without restarting.
-
-`~/.visidatarc` is the only file here that is *code* rather than settings:
-visidata `exec`s it as Python at startup (`settings.py:loadConfigFile`). It is
-tracked at that path and not under `.config` on purpose. VisiData does look for
-an XDG config first — `user_config_dir('visidata')/config.py`, used only if it
-exists — but that comes from its vendored appdirs, which answers
-`~/.config/visidata` on Linux and `~/Library/Preferences/visidata` on macOS
-(measured by calling it). `~/.visidatarc` is the fallback on both, so one
-tracked file serves both machines where a `config.py` would need a template and
-a second target path.
-
-Only one writer, unlike karabiner and btop above: nothing in visidata rewrites
-this file behind your back. The single write path is `setPersistentOptions`,
-which *appends* `options.x=...` lines and only after a y/n prompt naming the
-file — it exists for API keys, not for theming. So `chezmoi re-add` is not part
-of the workflow here.
-
-What it holds is a Catppuccin Frappé theme, registered in `vd.themes` and
-selected with `options.theme` rather than written as loose
-`options.color_x = ...` assignments. VisiData 3.4 has a theme registry
-(`theme.py`) and going through it buys two things bare assignments do not:
-`theme-input` in the View menu switches between this and the four packaged
-themes at runtime, and `theme-default` puts everything back, because
-`set_theme()` unsets every `color_`/`disp_`/`note_` option before applying a
-dict.
-
-The colours are terminal colour *numbers*, and that is a hard limit, not a
-preference: `color.py:_get_colornum` resolves a colour name to `int(name)` or a
-curses `COLOR_` constant and nothing else, so hex is not expressible. Two
-things follow, and they are what the file is built on.
-
-ANSI 0-15 are *already* Frappé, because kitty paints them from
-`dot_config/kitty/catppuccin-frappe.conf`. `red` is exactly `#e78284`, `black`
-is surface1, `8` is surface2, `white` is subtext1, `15` is subtext0 — naming
-those is exact, and it follows the terminal if the flavour ever changes. The
-same goes for leaving a colour unset: the terminal's background *is* base and
-its foreground *is* text, so `color_default = ''` beats any approximation of
-`#303446`. Only the colours with no ANSI slot — peach, mauve, maroon, and a
-dark base to write *on* an accent — are xterm-256 approximations, and each is
-written as `'<256> <ansi-fallback>'`, the fallback form visidata documents in
-`help_color`.
-
-Setting an option visidata does not know is not an error — `options.set` warns
-`setting unknown option` and carries on — so the theme dict is restricted to
-keys that exist at startup. That rules out the `color_git_*` options (defined
-only when `apps/vgit` is imported) and the `color_diff*` ones
-(`experimental/diff_sheet`). Checked by loading the config headless and
-asserting `vd.statusHistory` came back empty.
-
-Driving visidata is the same detached-tmux method as everything else here, with
-one addition worth knowing: `capture-pane -e` keeps the SGR escapes, so the
-check is on the actual attributes rather than on how a screenshot looks —
-`^[[38;5;216m` on a selected row is peach, `^[[100m` under the cursor cell is
-surface2. `VD_CONFIG=<file>` points a throwaway run at an untracked copy.
 
 `~/bin/codelldb` is a wrapper, not a symlink, and that is load-bearing.
 CodeLLDB finds `liblldb` relative to its own argv[0], so a link in `~/bin` sends
@@ -688,7 +633,7 @@ like an orphan, before it went.
   defaults to 600, which would make that ten minutes.
 - **Colours are terminal numbers, not hex.** `#rrggbb` needs a direct-colour
   TERM (xterm-direct); under tmux every hex line failed with "color not
-  supported by term". So the visidata approach: ANSI 0-15 are exact Frappé via
+  supported by term". So ANSI colour numbers instead: 0-15 are exact Frappé via
   kitty, and only mauve (183) and overlay1 (103) come from the 256 cube.
 - **Rows are numbered (`%C`) and typing a number jumps there** — no binding
   needed: the first digit opens "Jump to message:", Enter goes. Measured on a
@@ -864,7 +809,7 @@ Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
   `scratch`, `markdown_checkbox`, `markdown_outline`, `rules_lookup`.
 - `plugins/` — one file per plugin or plugin group, lazy-loaded.
 - `guides/` — hand-written markdown reference cards, opened with `<leader>?`.
-  Twenty-six of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
+  Twenty-five of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
   link between them, and `<C-g>` in the picker switches from matching titles to
   grepping their contents.
 
@@ -944,6 +889,9 @@ hard way:
   the *current* session before any session name was tried — and test keystrokes
   went into the user's own nvim (2026-10-24). Confirm with
   `tmux display-message -p -t '=name:' '#S'` before sending anything.
+- **Check colours from the escapes, not the look.** `capture-pane -e` keeps
+  the SGR sequences, so `^[[38;5;183m` on a row is mauve and `^[[1m` is bold —
+  a check on the attribute itself rather than a screenshot.
 - **Suspect the probe before the config.** Every one of those was the harness.
   A window-picking loop landed in a snacks notification window; a `list-keys`
   check loaded the user's own config and reported it as a tmux default.
@@ -1037,7 +985,7 @@ that *fails* is the error it reports: the run continues, and ends non-zero
 naming what failed, rather than aborting at the first one and leaving the rest
 uninstalled. Core:
 `tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `broot`,
-`btop`, `visidata` (`vd`), `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`,
+`btop`, `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`,
 `zk`, `just`, `git-cliff`, `tree-sitter`, `uv` (Python), `racket` (the REPL
 behind both conjure clients — added 2026-09-29, having been installed by hand
 here while absent from this list; `ensure_command racket minimal-racket`, not

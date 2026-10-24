@@ -34,7 +34,7 @@ XTerm*colorBDMode:        false
 XTerm*selectToClipboard:  true
 
 ! Catppuccin Frappé, the same values as dot_config/kitty/catppuccin-frappe.conf,
-! so ANSI 0-15 are what dot_visidatarc and bin/dev assume they are.
+! so ANSI 0-15 are what bin/dev and neomutt's colours assume they are.
 XTerm*foreground:         #c6d0f5
 XTerm*background:         #303446
 XTerm*cursorColor:        #f2d5cf

@@ -125,11 +125,11 @@ macro index,pager - "<pipe-message>~/bin/mail-unlabel<enter>" "remove a label"
 # ── Colours: Catppuccin Frappé ───────────────────────────────────────────────
 # Terminal colour numbers, not hex. NeoMutt takes "#rrggbb" only when TERM
 # advertises direct colour (xterm-direct), which tmux's does not: every hex
-# line failed with "color not supported by term". The same way out as
-# ~/.visidatarc: ANSI 0-15 already *are* Frappé, because kitty paints them from
+# line failed with "color not supported by term". The way out: ANSI 0-15
+# already *are* Frappé, because kitty paints them from
 # catppuccin-frappe.conf — color4 is exactly blue #8caaee, color8 surface2,
 # color0 surface1, color15 subtext0. Only what has no ANSI slot is approximated
-# from the 256 cube: 183 for mauve #ca9ee6 (visidata's choice too) and 103 for
+# from the 256 cube: 183 for mauve #ca9ee6 and 103 for
 # overlay1 #838ba7.
 color normal          default   default
 color indicator       default   color0

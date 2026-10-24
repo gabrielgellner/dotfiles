@@ -173,9 +173,6 @@ brew_install broot
 # system monitor
 brew_install btop
 
-# data wrangling — the formula is `visidata`, the binary is `vd`
-brew_install visidata
-
 # ffmpeg is only here for bin/mkv2mp4, which .chezmoiignore applies on macOS
 # alone — the Linux machine is for work and has no use for it. Both sides of
 # that decision have to agree, so the verification below is gated the same way.
@@ -485,7 +482,7 @@ missing=()
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi broot btop vd starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
+         yazi broot btop starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
          git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket \
          yamlfmt yamllint lua-language-server bash-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")
