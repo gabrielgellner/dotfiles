@@ -1,0 +1,51 @@
+# mbsync (isync) — mirrors Proton Mail, through Proton Mail Bridge, into a
+# local maildir that aerc reads. aerc cannot sort over Bridge's IMAP (no SORT
+# extension: ":sort" answers "Sorting is not available for this backend"), and
+# a local copy also makes it fast and readable offline. himalaya still talks to
+# Bridge directly; its changes reach aerc on the next sync.
+#
+# Same endpoint, login and keychain entry as ~/.config/aerc/accounts.conf.
+# The mail lands decrypted on disk, which is why this waited for FileVault.
+
+IMAPAccount proton
+Host 127.0.0.1
+Port 1143
+User {{ .proton_email }}
+PassCmd "security find-generic-password -s proton-bridge -w"
+# Loopback only; see accounts.conf for why not STARTTLS. With TLSType None the
+# default `*` admits no mechanism at all, so they are named.
+TLSType None
+AuthMechs PLAIN LOGIN
+
+IMAPStore proton-remote
+Account proton
+
+# Hidden under ~/.local/share, which Spotlight does not index.
+MaildirStore proton-local
+Path ~/.local/share/mail/proton/
+Inbox ~/.local/share/mail/proton/INBOX
+SubFolders Verbatim
+# UIDs in a per-folder database instead of a ,U= infix in each file name.
+# aerc moves a file between folders under the same name (measured: archive
+# kept it byte for byte), which the default scheme requires the MUA not to do.
+# Only takes effect on a folder's first sync.
+AltMap yes
+
+Channel proton
+Far :proton-remote:
+Near :proton-local:
+# All Mail holds a copy of everything and Starred is the F flag again; both
+# would only duplicate. Labels sync: a message with three labels is three files.
+Patterns * !"All Mail" !Starred
+# Folders appear here when created on Proton, never the other way round.
+Create Near
+# A vanished local folder is an error, not an instruction to delete it there.
+Remove None
+# Full two-way sync. Measured on throwaway messages before switching on, and
+# safe only because aerc's d is :move Trash (see binds.conf): Bridge maps
+# a move between folders to a move, a copy into Labels/x to adding the label,
+# and a delete inside Labels/x to removing it — but a delete in Inbox or Archive
+# leaves the message in no folder at all, visible only in All Mail.
+Sync All
+Expunge Both
+CopyArrivalDate yes

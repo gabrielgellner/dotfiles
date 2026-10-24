@@ -117,6 +117,7 @@ bin/mkv2mp4
 {{ if or (ne .chezmoi.os "darwin") (not (index . "proton_email")) -}}
 .config/aerc/**
 .config/himalaya/**
+.config/isyncrc
 Library/Preferences/aerc
 {{ end -}}
 {{/*

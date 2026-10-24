@@ -1,6 +1,10 @@
 # Proton Mail through Proton Mail Bridge, which serves IMAP on 1143 and SMTP on
 # 1025 on localhost, and does the encryption to Proton itself.
 #
+# Reading is from the local maildir mbsync keeps (~/.config/isyncrc), not from
+# Bridge directly: over Bridge's IMAP aerc cannot sort. Sending still goes to
+# Bridge, which also files the copy in Sent; mbsync brings it back down.
+#
 # `+insecure` means no STARTTLS on that loopback hop. Bridge's STARTTLS uses a
 # self-signed certificate, and plain text over loopback avoids exporting and
 # pinning it; the verifying `imap://` was not tried.
@@ -10,12 +14,14 @@
 # private_ because aerc refuses an accounts.conf anyone else can read.
 
 [Proton]
-source            = imap+insecure://{{ .proton_email | urlquery }}@127.0.0.1:1143
-source-cred-cmd   = security find-generic-password -s proton-bridge -w
+source            = maildir://{{ .chezmoi.homeDir }}/.local/share/mail/proton
+# Runs at startup and then on the interval; `:check-mail` forces one.
+check-mail-cmd    = mbsync proton
+check-mail        = 2m
 outgoing          = smtp+insecure://{{ .proton_email | urlquery }}@127.0.0.1:1025
 outgoing-cred-cmd = security find-generic-password -s proton-bridge -w
 from              = Gabriel Gellner <{{ .proton_email }}>
-folders-sort      = INBOX,Drafts,Sent,Starred,Archive,Spam,Trash
+folders-sort      = INBOX,Drafts,Sent,Archive,Spam,Trash
 # No copy-to, deliberately: Bridge files every message sent through it in Sent
 # on its own. A mail sent with himalaya's --no-save still landed there once
 # (measured 2026-10-24), so copy-to = Sent would make two.

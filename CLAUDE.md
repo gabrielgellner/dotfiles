@@ -143,6 +143,7 @@ out to be present on macOS too.
 | `dot_config/mermaid/puppeteer.json` | `~/.config/mermaid/puppeteer.json` | Browser mmdc renders mermaid with — see the caveat below |
 | `dot_config/aerc/`                 | `~/.config/aerc/`         | aerc mail client, via Proton Mail Bridge; macOS only — see Mail below |
 | `dot_config/himalaya/`             | `~/.config/himalaya/`     | himalaya, scripted mail access for the shell and Claude — same section |
+| `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir aerc reads — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bin/executable_codelldb`          | `~/bin/codelldb`          | CodeLLDB adapter wrapper — see the caveat below               |
@@ -537,8 +538,50 @@ Proton Mail, read in **aerc** and scripted with **himalaya**, both talking to
 IMAP itself; Bridge decrypts locally and serves it, and needs a paid plan.
 Laptop only for now, set up 2026-10-24.
 
+aerc does not read Bridge directly. **mbsync** (isync, `~/.config/isyncrc`)
+mirrors it into `~/.local/share/mail/proton`, and aerc reads that maildir and
+runs `mbsync proton` every 2m (`:check-mail` forces one). The reason is
+sorting: Bridge's IMAP has no SORT, and aerc only sorts IMAP server-side —
+`:sort` answered "Sorting is not available for this backend", and the inbox
+sat in Bridge's sync order. himalaya still goes straight to Bridge, so Claude's
+changes are live on Proton and reach aerc on the next sync. Sending is Bridge
+SMTP either way. The first sync was 2271 messages, 915M, 14s; an incremental
+one with nothing new, 0.17s.
+
+**The maildir is decrypted mail on disk**, which is why it waited for
+FileVault (`fdesetup status` said Off when this started). Spotlight had
+indexed none of it a few minutes after the first sync — no text content, zero
+`mdfind` hits — which is the point of the hidden path; not re-checked since.
+`All Mail` and `Starred` are excluded from sync (duplicates of everything, and
+of the F flag); every label is its own folder, so a message with three labels
+is three files.
+
+**What a maildir operation becomes on Proton** was measured on throwaway
+messages before Expunge was switched on, and binds.conf is built around it:
+
+| in aerc, on the maildir | on Proton after `mbsync` |
+| --- | --- |
+| move between folders (Archive, Trash) | a move, single copy |
+| copy into `Labels/x` | label added, message stays put |
+| delete inside `Labels/x` | that label removed |
+| delete in Inbox or Archive | **in no folder at all** — only All Mail shows it |
+
+So `d` is `:move Trash`, and plain delete is `D` behind a prompt. A message
+orphaned the last way is recovered by copying it out of All Mail
+(`himalaya message copy --from "All Mail" --to Trash <id>` did it).
+`Remove None` keeps a vanished local folder from being propagated as a
+deletion; a mass delete of *files* would still sync — as orphaning where
+measured (Inbox), and in Trash possibly as a real deletion, which was not tried.
+
+Two aerc traps found on the way, both in binds.conf's header: a user
+binds.conf **replaces** the defaults (a file of only the changes left `j` dead),
+so the tracked one is the full shipped file plus six lines; and on a maildir
+`:archive flat` leaves an empty `Archive` directory in aerc's working
+directory, so archiving is `:move Archive`.
+
 The address is `proton_email` in the untracked chezmoi data, asked by
-`.chezmoi.toml.tmpl`, and both account files are templates reading it. That is
+`.chezmoi.toml.tmpl`, and the aerc, himalaya and mbsync configs are templates
+reading it. That is
 for switching mail on per machine, not for privacy — the same address is
 already public as `dot_gitconfig`'s email and the author of most commits.
 `.chezmoiignore` skips the mail configs on Linux or wherever `proton_email` is
