@@ -72,6 +72,21 @@ Labels show in the sidebar as folders under `Labels/`, and opening one lists
 every message with that label. A message with three labels is three files on
 disk, but it is still one message on Proton — the sync keeps them consistent.
 
+**Labelling an email is a copy, not `t`.** neomutt's `t` only *selects* (see
+Tagging below); a label is given by copying into the label's folder:
+
+| To                                | Keys                                     |
+| --------------------------------- | ---------------------------------------- |
+| add a label, keep it in the Inbox | `C`, `+Labels/Rec<Tab>`, `Enter`         |
+| label it **and** clear the Inbox  | the same, then `a`                       |
+| the same for several at once      | `t` each, then `;C` … `Enter`, then `;a` |
+| take a label off                  | `d` inside that label's folder, then `$` |
+
+Never *move* (`s`) a message into a label folder. A move is a copy plus a
+delete, and both halves were measured: the copy adds the label, and the delete
+from Inbox or Archive leaves the message in no folder at all, findable only
+in All Mail and its labels. Label, then archive.
+
 New mail is labelled on arrival by a filter in Proton ("Auto-label by sender").
 Receipts, Community and Cooking also skip the Inbox; everything else lands in
 the Inbox, labelled, until you archive it.
@@ -96,6 +111,10 @@ red and stays until `$`, a change of folder, or quitting — then it happens
 without a question. Until then `u` takes it back.
 
 ## Tagging several at once
+
+**In mutt, "tag" means *select*, not label.** A tagged message is marked for
+the next action and nothing more — it gets no label, on Proton or anywhere.
+For labels, see "Labelling an email" above.
 
 | Key            | Does                                              |
 | -------------- | ------------------------------------------------- |
