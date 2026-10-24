@@ -841,6 +841,11 @@ hard way:
   Inferring from "did the buffer change" produced three false bug reports in one
   sitting: an insert that landed on the same column for every cursor, a
   keystroke that never arrived, and a continue that silently did nothing.
+- **Target throwaway sessions exactly: `-t '=name:'`.** A bare `-t nv`, sent
+  from inside a tmux session, was resolved as a prefix of the window `nvim` in
+  the *current* session before any session name was tried — and test keystrokes
+  went into the user's own nvim (2026-10-24). Confirm with
+  `tmux display-message -p -t '=name:' '#S'` before sending anything.
 - **Suspect the probe before the config.** Every one of those was the harness.
   A window-picking loop landed in a snacks notification window; a `list-keys`
   check loaded the user's own config and reported it as a tmux default.
