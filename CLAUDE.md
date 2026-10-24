@@ -622,6 +622,11 @@ throwaway maildir with the same folder names:
   TERM (xterm-direct); under tmux every hex line failed with "color not
   supported by term". So the visidata approach: ANSI 0-15 are exact Frappé via
   kitty, and only mauve (183) and overlay1 (103) come from the 256 cube.
+- **Rows are numbered (`%C`) and typing a number jumps there** — no binding
+  needed: the first digit opens "Jump to message:", Enter goes. Measured on a
+  20-message maildir (5, 12, 20, 1). NeoMutt has no relative numbering, and the
+  absolute number is arguably the better fit for a list that keeps changing.
+  aerc can do neither; its `1G`..`9G` stop at nine.
 - `sidebar_delim_chars` is `/` alone: the default `/.` cut the label
   `gmail.com 04-11-2024 08:21` down to `com 04-11-2024 08:21`.
 

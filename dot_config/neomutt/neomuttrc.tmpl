@@ -70,7 +70,9 @@ set sidebar_indent_string = "  "
 # the label "gmail.com 04-11-2024 08:21" into "com 04-11-2024 08:21".
 set sidebar_delim_chars = "/"
 set sidebar_format = "%D%* %?N?%N?"
-set index_format = "%Z  %-22.22F  %s%*  %{%b %d}"
+# %C is each row's position in the list, so a message can be reached by typing
+# the number you can see. (There is no relative numbering in NeoMutt.)
+set index_format = "%4C %Z  %-22.22F  %s%*  %{%b %d}"
 # Same glyphs aerc uses: tagged, flagged, deleted, deleted-attachment,
 # replied, old, new, old-thread, new-thread, then two fillers.
 set flag_chars = "󰸞󰈻󰆴󰆴󰑚󰇰󰇮󰇰󰇮- "
@@ -105,6 +107,7 @@ color normal          default   default
 color indicator       default   color0
 color status          color15   color0
 color tree            color8    default
+color index_number    color8    default
 color index_author    color4    default '.*'
 color index_date      color103  default
 color index_flags     color183  default '.*'
