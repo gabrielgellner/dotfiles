@@ -648,6 +648,11 @@ like an orphan, before it went.
   once — but refuses a local box that is not empty, so a label that held mail
   has to be removed by hand (after checking its messages exist in a real
   folder), then `--remove-near` run again to drop the sync state.
+- **Labels do not nest.** A `/` in a label name is a character, not a level:
+  the Gmail import's `[Imap]/Drafts` came through Bridge as one flat label,
+  `Labels/[Imap]\/Drafts`. A sub-topic is a second label beside the first —
+  `SDMX` (44 messages, found with a notmuch query over every folder) sits
+  beside `Work & Research`, and the filter applies both.
 - New mail is labelled by a Sieve filter in Proton ("Auto-label by sender"),
   generated from the same sender lists. It is not tracked here — its domain
   lists name doctors and family — and its reference copy is on the NAS
