@@ -1,0 +1,32 @@
+# notmuch — a search index over the maildir mbsync keeps (~/.config/isyncrc),
+# for searching every folder at once and for threads that cross folders.
+# Searches are read-only; the index lives outside the maildir, so mbsync never
+# sees it. Kept current by the launchd agent, which runs `notmuch new` after
+# each sync (local.mbsync-proton).
+
+[database]
+path={{ .chezmoi.homeDir }}/.local/share/notmuch/proton
+mail_root={{ .chezmoi.homeDir }}/.local/share/mail/proton
+
+[user]
+name=Gabriel Gellner
+primary_email={{ .proton_email }}
+
+[new]
+# No tags of its own: unread, flagged and replied come from the maildir flags
+# (see [maildir]), and folders are searched as folder:, not as tags.
+tags=
+# mbsync's AltMap UID databases, one per folder; not mail.
+ignore=.isyncuidmap.db
+
+[search]
+# Deliberately empty: setup puts deleted;spam here, but Trash and Spam are
+# folders on this maildir, and the deleted tag must never be used — see below.
+exclude_tags=
+
+[maildir]
+# Tags and maildir flags mirror each other, so reading or starring something
+# through notmuch reaches Proton via mbsync. The hazard is the deleted tag: it
+# maps to the T (trashed) flag, and with mbsync's Expunge Both that is a
+# permanent delete on Proton. Never tag anything deleted; delete in NeoMutt.
+synchronize_flags=true

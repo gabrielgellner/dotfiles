@@ -28,6 +28,19 @@ named-mailboxes "󰚇 Inbox" "+INBOX" "󰷉 Drafts" "+Drafts" "󰒊 Sent" "+Sent
 # in one Gmail-import leftover, a literal backslash.
 mailboxes `cd ~/.local/share/mail/proton && find Labels -type d -name cur | sed 's|/cur$||' | sort -f | sed 's/[\\"]/\\&/g; s/.*/"+&"/' | tr '\n' ' '`
 
+# ── Search (notmuch) ──────────────────────────────────────────────────────────
+# notmuch indexes every folder of the maildir (~/.config/notmuch/default/config),
+# so a search covers all of them at once and a thread includes your replies in
+# Sent. The URL names the *database*, which lives apart from the mail: pointing
+# it at the maildir opened nothing (measured). Results are ordinary messages —
+# d in a search moved the file to Trash, the same as in a folder.
+set nm_default_url = "notmuch://{{ .chezmoi.homeDir }}/.local/share/notmuch/proton"
+set nm_query_type = threads
+virtual-mailboxes "󰃰 Last 2 weeks" "notmuch://?query=date:14d.. and not folder:Trash and not folder:Spam" \
+                  "󰈻 Starred" "notmuch://?query=tag:flagged and not folder:Trash"
+# Search everything: \ then a notmuch query (from:amy, subject:passport, …).
+bind index,pager \\ vfolder-from-query
+
 # ── Sending ──────────────────────────────────────────────────────────────────
 set real_name = "Gabriel Gellner"
 set from = "{{ .proton_email }}"

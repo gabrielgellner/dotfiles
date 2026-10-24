@@ -185,7 +185,8 @@ fi
 
 # mail: NeoMutt to read, himalaya for scripted access (and Claude), both talking
 # to Proton Mail Bridge on localhost — NeoMutt through a local maildir that
-# isync's mbsync keeps. w3m renders HTML mail (neomutt's mailcap). macOS only,
+# isync's mbsync keeps, searched across folders by notmuch (installed by name,
+# not left to be neomutt's dependency). w3m renders HTML mail. macOS only,
 # to match .chezmoiignore, which applies their configs where Bridge runs and
 # nowhere else. Bridge itself needs a one-time sign-in in its own window, and
 # its generated password goes in the keychain as `proton-bridge` — see the
@@ -195,6 +196,7 @@ if $IS_MACOS; then
     brew_install neomutt
     brew_install himalaya
     brew_install isync
+    brew_install notmuch
     brew_install w3m
 fi
 
@@ -494,7 +496,7 @@ $IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
 # Mail, gated the same way as its install above. Bridge is an app, not a
 # command, so it is asked of brew.
 if $IS_MACOS; then
-    for c in neomutt himalaya mbsync w3m; do
+    for c in neomutt himalaya mbsync notmuch w3m; do
         command -v "$c" &>/dev/null || missing+=("$c")
     done
     brew list --cask proton-mail-bridge &>/dev/null || missing+=("cask:proton-mail-bridge")

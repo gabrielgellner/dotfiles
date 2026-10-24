@@ -8,6 +8,12 @@
   never runs two instances of one job, and two mbsyncs at once collide
   ("Error: channel ... is locked").
 
+  After each sync it runs `notmuch new`, so the search index (see
+  ~/.config/notmuch/default/config) follows the maildir — including moves and
+  deletes made in NeoMutt. It runs even when mbsync fails, since local changes
+  still need indexing, but the job exits with mbsync's status, so a sync
+  failure (Bridge not running) is what `launchctl print` reports.
+
   Loaded by run_onchange_after_load-mbsync-agent.sh whenever this file changes.
   -q keeps the log to errors, which is mostly "connection refused" while Bridge
   is not running.
@@ -18,9 +24,9 @@
 	<string>local.mbsync-proton</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>{{ lookPath "mbsync" }}</string>
-		<string>-q</string>
-		<string>proton</string>
+		<string>/bin/sh</string>
+		<string>-c</string>
+		<string>{{ lookPath "mbsync" }} -q proton; rc=$?; {{ lookPath "notmuch" }} new --quiet; exit $rc</string>
 	</array>
 	<key>StartInterval</key>
 	<integer>120</integer>

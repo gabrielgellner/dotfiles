@@ -112,6 +112,7 @@ bin/mkv2mp4
 .config/himalaya/**
 .config/isyncrc
 .config/neomutt/**
+.config/notmuch/**
 Library/LaunchAgents/local.mbsync-proton.plist
 {{ end -}}
 {{/*

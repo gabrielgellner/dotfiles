@@ -144,6 +144,7 @@ out to be present on macOS too.
 | `dot_config/himalaya/`             | `~/.config/himalaya/`     | himalaya, scripted mail access for the shell and Claude — see Mail below |
 | `dot_config/neomutt/`              | `~/.config/neomutt/`      | NeoMutt, the mail client; macOS only — same section            |
 | `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir NeoMutt reads — same section |
+| `dot_config/notmuch/default/config.tmpl` | `~/.config/notmuch/default/config` | notmuch: search index over that maildir — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -642,12 +643,30 @@ which was not tried.
 - Sending is configured (Bridge SMTP, `ssl_force_tls` off for the loopback)
   but has not been tried.
 
-**Threads stop at the folder edge**, because they are built from
-In-Reply-To/References among the messages in the folder being viewed. A reply
-to your own reply names a parent in Sent, so it has no match in Inbox; NeoMutt
-joins it by subject instead (the `*` in `└*>` marks such a guessed link).
-Threads that span folders — your replies inline, as in Proton's web app —
-would need notmuch.
+**Threads stop at the folder edge** in a folder view, because they are built
+from In-Reply-To/References among the messages in that folder. A reply to your
+own reply names a parent in Sent, so it has no match in Inbox; NeoMutt joins it
+by subject instead (the `*` in `└*>` marks such a guessed link).
+
+**notmuch** (2026-10-24) indexes the whole maildir, so searches and threads
+cross folders: in a search, that same thread came back 4/4 with your reply
+from Sent in place, linked by headers. The index is
+`~/.local/share/notmuch/proton`, apart from the mail so mbsync never sees it;
+2633 files became 2023 messages (label copies counted once) in 5s, 29M. The
+launchd agent runs `notmuch new` after each sync and keeps mbsync's exit
+status. In NeoMutt, `\` searches and the sidebar has two saved searches.
+
+- **`nm_default_url` names the database**, not the maildir: pointed at the
+  maildir, a search opened "(no mailbox)".
+- **`d` in a search result moved the file to Trash**, as in a folder — no
+  deleted tag, no T flag — so results need no special guarding.
+- **Never tag `deleted`.** `synchronize_flags` maps it to the T flag, and with
+  mbsync's Expunge Both that is a permanent delete on Proton. Unread, flagged
+  and replied do mirror usefully: a message marked unread on Proton showed as
+  `tag:unread` after one agent run.
+- `new.tags` is empty and `exclude_tags` too: `unread` comes from the missing
+  S flag on its own (measured on a throwaway index — an unseen file and one in
+  `new/` both got it, a seen one did not), and Trash/Spam are folders here.
 
 **aerc was tried first and removed** (2026-10-24), after a day side by side
 with NeoMutt on the same maildir. What decided it, all measured on 0.22.0: it
