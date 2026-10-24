@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Runs `mbsync proton` every two minutes whether or not aerc is open, so the
+  maildir aerc reads (see ~/.config/isyncrc) keeps up with Proton. aerc's own
+  check-mail only kickstarts this job rather than running mbsync itself:
+  launchd never runs two instances of one job, and two mbsyncs at once collide
+  ("Error: channel ... is locked" — harmless, but shown in aerc's status bar).
+
+  Loaded by run_onchange_after_load-mbsync-agent.sh whenever this file changes.
+  -q keeps the log to errors, which is mostly "connection refused" while Bridge
+  is not running.
+-->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>local.mbsync-proton</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>{{ lookPath "mbsync" }}</string>
+		<string>-q</string>
+		<string>proton</string>
+	</array>
+	<key>StartInterval</key>
+	<integer>120</integer>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>StandardOutPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/mbsync-proton.log</string>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/mbsync-proton.log</string>
+</dict>
+</plist>

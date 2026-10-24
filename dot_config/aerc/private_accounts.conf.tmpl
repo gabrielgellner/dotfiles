@@ -15,9 +15,12 @@
 
 [Proton]
 source            = maildir://{{ .chezmoi.homeDir }}/.local/share/mail/proton
-# Runs at startup and then on the interval; `:check-mail` forces one.
-check-mail-cmd    = mbsync proton
-check-mail        = 2m
+# mbsync itself runs from a launchd agent every 2m (local.mbsync-proton), so
+# mail keeps syncing with aerc closed. This only kickstarts that job — at
+# startup, on the interval, and on `:check-mail` — because launchd runs one
+# instance at a time and two mbsyncs at once collide on its locks.
+check-mail-cmd    = launchctl kickstart gui/{{ output "id" "-u" | trim }}/local.mbsync-proton
+check-mail        = 1m
 outgoing          = smtp+insecure://{{ .proton_email | urlquery }}@127.0.0.1:1025
 outgoing-cred-cmd = security find-generic-password -s proton-bridge -w
 from              = Gabriel Gellner <{{ .proton_email }}>

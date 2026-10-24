@@ -1,0 +1,14 @@
+{{ if and (eq .chezmoi.os "darwin") (index . "proton_email") -}}
+#!/bin/sh
+# (Re)loads the mbsync launchd agent. run_onchange_ runs this again only when
+# the rendered text below changes, and the hash ties that to the plist:
+# {{ include "private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl" | sha256sum }}
+#
+# Only where mail is set up (see .chezmoiignore); everywhere else this renders
+# empty, and chezmoi skips an empty script.
+set -eu
+label=local.mbsync-proton
+domain="gui/$(id -u)"
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$HOME/Library/LaunchAgents/$label.plist"
+{{ end -}}

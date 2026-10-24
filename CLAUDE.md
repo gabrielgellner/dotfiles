@@ -144,6 +144,7 @@ out to be present on macOS too.
 | `dot_config/aerc/`                 | `~/.config/aerc/`         | aerc mail client, via Proton Mail Bridge; macOS only — see Mail below |
 | `dot_config/himalaya/`             | `~/.config/himalaya/`     | himalaya, scripted mail access for the shell and Claude — same section |
 | `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir aerc reads — same section |
+| `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bin/executable_codelldb`          | `~/bin/codelldb`          | CodeLLDB adapter wrapper — see the caveat below               |
@@ -539,8 +540,15 @@ IMAP itself; Bridge decrypts locally and serves it, and needs a paid plan.
 Laptop only for now, set up 2026-10-24.
 
 aerc does not read Bridge directly. **mbsync** (isync, `~/.config/isyncrc`)
-mirrors it into `~/.local/share/mail/proton`, and aerc reads that maildir and
-runs `mbsync proton` every 2m (`:check-mail` forces one). The reason is
+mirrors it into `~/.local/share/mail/proton`, and aerc reads that maildir.
+mbsync runs from a launchd agent every 2m, aerc open or not
+(`private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl`,
+loaded by `run_onchange_after_load-mbsync-agent.sh.tmpl` whenever the plist
+changes; errors only, to `~/Library/Logs/mbsync-proton.log`). aerc's
+`check-mail-cmd` is `launchctl kickstart` of that job rather than mbsync
+itself, because two mbsyncs at once collide — forced side by side, one of each
+pair failed with "channel ... is locked" — and launchd runs one instance at a
+time: a kickstart during a run left the run count at +1, rc 0. The reason is
 sorting: Bridge's IMAP has no SORT, and aerc only sorts IMAP server-side —
 `:sort` answered "Sorting is not available for this backend", and the inbox
 sat in Bridge's sync order. himalaya still goes straight to Bridge, so Claude's
@@ -572,6 +580,12 @@ orphaned the last way is recovered by copying it out of All Mail
 `Remove None` keeps a vanished local folder from being propagated as a
 deletion; a mass delete of *files* would still sync — as orphaning where
 measured (Inbox), and in Trash possibly as a real deletion, which was not tried.
+
+**aerc does not refresh the open folder** of a maildir. A message arriving
+in it — between checks, or delivered by `check-mail-cmd` itself — updates the
+sidebar's unread count but not the list, until the folder is selected again
+(even `:cf` to the same folder does it). No watching on macOS, measured on
+0.22.0 against a throwaway maildir.
 
 Two aerc traps found on the way, both in binds.conf's header: a user
 binds.conf **replaces** the defaults (a file of only the changes left `j` dead),

@@ -119,6 +119,7 @@ bin/mkv2mp4
 .config/himalaya/**
 .config/isyncrc
 Library/Preferences/aerc
+Library/LaunchAgents/local.mbsync-proton.plist
 {{ end -}}
 {{/*
   Nothing else under ~/Library is managed, and on Linux there is no ~/Library.
