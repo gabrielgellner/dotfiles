@@ -26,6 +26,10 @@ doctors and family. Without it every document lands in "From people" or
 
 Needs the NAS shares mounted in Finder: /Volumes/Backups and /Volumes/Media.
 Run by hand; it is not scheduled.
+
+  --mail DIR    read another maildir tree, e.g. the Gmail archive
+                (~/.local/share/mail/gmail-archive); default is the Proton copy
+  --only KINDS  limit to some kinds: photo,ebook,document,image,audio,file
 """
 import argparse, collections, datetime, email, email.policy, email.utils
 import glob, hashlib, json, os, re, sys
@@ -42,15 +46,17 @@ def safe(s, n=60):
     return UNSAFE.sub("_", s).strip(" .")[:n] or "unnamed"
 
 
-def has_camera_exif(data, ct):
-    return ct in ("image/heic", "image/heif") or (
+def has_camera_exif(data, ct, fn=""):
+    # HEIC is only ever a camera format; mail often labels it octet-stream, so
+    # the name counts too.
+    return ct in ("image/heic", "image/heif") or fn.endswith((".heic", ".heif")) or (
         data[:2] == b"\xff\xd8" and b"Exif\x00\x00" in data[:65536])
 
 
 def kind(fn, ct, data):
     fn = fn.lower()
     if ct.startswith("image/") or fn.endswith((".jpg", ".jpeg", ".png", ".heic", ".gif", ".webp")):
-        if has_camera_exif(data, ct) and len(data) > 100_000:
+        if has_camera_exif(data, ct, fn) and len(data) > 100_000:
             return "photo"
         return "image" if len(data) > 150_000 else None
     if fn.endswith((".ics", ".vcf")) or ct in ("text/calendar", "text/vcard"):
@@ -70,6 +76,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--write", action="store_true", help="write the files (default: dry run)")
     ap.add_argument("--since", metavar="YYYY-MM-DD", help="only mail dated on or after this day")
+    ap.add_argument("--mail", default=MAIL, help="maildir tree to read (default: the Proton copy)")
+    ap.add_argument("--only", metavar="KINDS", help="comma-separated: photo,ebook,document,image,audio,file")
     ap.add_argument("--records", default=RECORDS, help=argparse.SUPPRESS)
     ap.add_argument("--media", default=MEDIA, help=argparse.SUPPRESS)
     a = ap.parse_args()
@@ -99,8 +107,10 @@ def main():
                     have.add(hashlib.sha256(f.read()).hexdigest())
 
     seen_mid, plan = set(), []
-    for d in sorted({os.path.dirname(os.path.dirname(p)) for p in glob.glob(MAIL + "/**/cur/*", recursive=True)}):
-        folder = os.path.relpath(d, MAIL)
+    only = set(a.only.split(",")) if a.only else None
+    mail = os.path.expanduser(a.mail)
+    for d in sorted({os.path.dirname(os.path.dirname(p)) for p in glob.glob(mail + "/**/cur/*", recursive=True)}):
+        folder = os.path.relpath(d, mail)
         if folder in SKIP_FOLDERS:
             continue
         for path in glob.glob(d + "/cur/*") + glob.glob(d + "/new/*"):
@@ -130,13 +140,17 @@ def main():
                     continue
                 data = part.get_payload(decode=True) or b""
                 k = data and kind(fn, ct, data)
-                if not k:
+                if not k or (only and k not in only):
                     continue
                 h = hashlib.sha256(data).hexdigest()
                 if h in have:
                     continue
                 have.add(h)
                 fname = safe(fn or "image." + ct.split("/")[-1], 80)
+                # iPhones often send a HEIC photo as a JPEG but keep the .HEIC
+                # name (7 of 8 in the Gmail archive); name it for what it is.
+                if fname.lower().endswith((".heic", ".heif")) and data[:3] == b"\xff\xd8\xff":
+                    fname = os.path.splitext(fname)[0] + ".jpg"
                 if k == "photo":
                     dest = f"{dest_root[k]}/{date[:4]}/{date} {who} - {fname}"
                 elif k == "ebook":

@@ -552,6 +552,11 @@ sender→category map is `~/.config/mail-attachments/categories.json`, **not
 tracked** because the domains name doctors and family; a reference copy is on
 the NAS in `records/`. Without it documents fall back to "From people" /
 "Other". It needs both NAS shares mounted, and says so if they are not.
+`--mail ~/.local/share/mail/gmail-archive` points it at the Gmail archive and
+`--only photo` (or `ebook`, `document`, …) limits the kinds: that pass added
+728 photos from 2009-2024, 799 in all. HEIC is a photo by name as well as by
+content type, and a `.HEIC` that is really a JPEG — 7 of the archive's 8,
+iPhones converting on send — is saved as `.jpg`.
 
 **The maildir is decrypted mail on disk**, which is why it waited for
 FileVault (`fdesetup status` said Off when this started). Spotlight had
