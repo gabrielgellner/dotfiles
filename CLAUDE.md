@@ -582,6 +582,23 @@ orphaned the last way is recovered by copying it out of All Mail
 deletion; a mass delete of *files* would still sync — as orphaning where
 measured (Inbox), and in Trash possibly as a real deletion, which was not tried.
 
+**Reorganising labels**, measured during the 2026-10-24 clean-up:
+
+- Copying files into a local `Labels/<x>` folder and syncing labels the
+  existing message — 530 copies at once left All Mail unchanged (+1, a new
+  arrival), and every label's count on Proton matched what was copied.
+- `himalaya imap create "Labels/<x>"` makes a label, `&` in the name included
+  (it came back as `Labels/Finance & Tax`, not modified-UTF-7 noise). It fails
+  if the label exists.
+- `himalaya imap delete "Labels/<x>"` removes **only the label**, despite
+  himalaya's own "every message it holds go for good": a throwaway message
+  labelled into a throwaway label was still in Trash and All Mail afterwards.
+- Proton then has the folder and the local copy does not, which `Remove None`
+  reports as an error on every sync. `mbsync --remove-near proton` cleans up
+  once — but refuses a local box that is not empty, so a label that held mail
+  has to be removed by hand (after checking its messages exist in a real
+  folder), then `--remove-near` run again to drop the sync state.
+
 **aerc does not refresh the open folder** of a maildir. A message arriving
 in it — between checks, or delivered by `check-mail-cmd` itself — updates the
 sidebar's unread count but not the list, until the folder is selected again
