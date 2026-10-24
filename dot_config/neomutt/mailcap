@@ -1,3 +1,4 @@
-# HTML mail as text, through w3m.
-# -dump reads the part from stdin and fetches nothing remote.
-text/html; w3m -I %{charset} -T text/html -dump -o display_link_number=1; copiousoutput
+# HTML mail as text, through ./html-filter (lynx, then a filter for invisible
+# padding); see the comments there for why lynx and not w3m. Nothing remote is
+# fetched: lynx -dump reads the part from stdin.
+text/html; ~/.config/neomutt/html-filter %{charset}; copiousoutput

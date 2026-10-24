@@ -683,6 +683,15 @@ like an orphan, before it went.
   all four measured in a throwaway session.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
+- **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,
+  called from `mailcap`). Much HTML mail is laid out in nested tables, and w3m
+  boxes every table that declares a border: 247 of 959 HTML-only messages came
+  out boxed, the worst with ~560 box-drawing characters. lynx flattened the six
+  worst to 0-2 at about the same length; pandoc's plain output was worse than
+  w3m. w3m cannot be told not to — `display_borders` only *adds* borders. The
+  script also drops lines of zero-width preheader padding. It is a script
+  rather than a mailcap one-liner because mailcap gives `%` and `\` meanings
+  the perl filter needs.
 - `sidebar_delim_chars` is `/` alone: the default `/.` cut the label
   `gmail.com 04-11-2024 08:21` down to `com 04-11-2024 08:21`.
 - The label list is built at startup by a shell command over `Labels/`, quoted

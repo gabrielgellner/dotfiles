@@ -1,0 +1,23 @@
+#!/bin/sh
+# Renders an HTML mail part as text for NeoMutt's pager (see ./mailcap).
+#
+# lynx rather than w3m: much HTML mail is laid out in nested tables, and w3m
+# boxes every table that declares a border — 247 of 959 HTML-only messages here
+# came out boxed, the worst with ~560 box-drawing characters. lynx flattens the
+# same tables into paragraphs (0 box characters on five of the six worst, 2 on
+# the sixth) at about the same length. w3m has no switch to stop it:
+# display_borders only adds borders. pandoc's plain output was worse than either.
+#
+# The perl step drops lines made only of zero-width characters — the preheader
+# padding marketing mail uses to steer inbox previews — and squeezes blank runs.
+# Links stay numbered in the text, with the URLs listed at the end.
+#
+# $1 is the part's charset, from mailcap's %{charset}.
+lynx -stdin -dump -assume_charset="${1:-utf-8}" -display_charset=utf-8 \
+     -width="${COLUMNS:-100}" |
+perl -CS -ne '
+    my $zw = qr/[\x{034F}\x{200B}-\x{200D}\x{2060}\x{FEFF}]/;
+    next if /$zw/ && /^[\s\x{00A0}\x{034F}\x{200B}-\x{200D}\x{2060}\x{FEFF}]*$/;
+    if (/^\s*$/) { next if $blank++ } else { $blank = 0 }
+    print;
+'
