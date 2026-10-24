@@ -595,8 +595,7 @@ a folder change or quit. A message orphaned the last way is recovered by
 copying it out of All Mail (`himalaya message copy --from "All Mail" --to
 Trash <id>` did it). `Remove None` keeps a vanished local folder from being
 propagated as a deletion; a mass delete of *files* would still sync — as
-orphaning where measured (Inbox), and in Trash possibly as a real deletion,
-which was not tried.
+orphaning in Inbox, and as a permanent delete in Trash (see below).
 
 **Emptying Trash in Proton races the sync.** Emptied while deletes made in
 NeoMutt were still on their way up, the two crossed: Proton dropped messages
@@ -608,8 +607,15 @@ intended — but left alone mbsync might have re-uploaded them. Recovered by
 unloading the agent (`launchctl bootout gui/$(id -u)/local.mbsync-proton`),
 moving the stale local files aside, and `launchctl bootstrap` again; afterwards
 every folder's count matched Proton. So: `$` in NeoMutt, let a sync pass (2m),
-then empty Trash. Emptying *from* NeoMutt (deleting inside Trash) is still
-untested.
+then empty Trash.
+
+**Deleting inside Trash is a permanent delete**, so Trash can be emptied from
+NeoMutt: `c +Trash`, `D ~A`, `$`. Measured on two throwaway messages added to
+an otherwise empty Trash: `d` on one and `D ~A` on the other each unlinked the
+local file (NeoMutt does not trash from Trash), and after a sync each was gone
+from Proton's All Mail as well, which dropped by one each time. All Mail lags:
+for up to a minute the deleted message still showed there, looking exactly
+like an orphan, before it went.
 
 **Labels, measured during the 2026-10-24 clean-up:**
 
