@@ -1,6 +1,7 @@
-# himalaya — scripted access to the same Proton account aerc reads, for shell
-# use and for Claude Code. Same Bridge endpoint and keychain entry as
-# ~/.config/aerc/accounts.conf; see the comments there.
+# himalaya — scripted access to the Proton account NeoMutt reads, for shell use
+# and for Claude Code. It goes to Bridge directly rather than through the
+# maildir, so its changes are live on Proton. Same endpoint, plain-text
+# loopback and keychain entry as ~/.config/isyncrc; see the comments there.
 #
 # Written against himalaya 2.x, whose schema is not 1.x's: `imap.server` and
 # `imap.sasl.*` replaced `backend.*`. The Proton block in its README is the

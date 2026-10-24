@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Runs `mbsync proton` every two minutes whether or not aerc is open, so the
-  maildir aerc reads (see ~/.config/isyncrc) keeps up with Proton. aerc's own
-  check-mail only kickstarts this job rather than running mbsync itself:
-  launchd never runs two instances of one job, and two mbsyncs at once collide
-  ("Error: channel ... is locked" — harmless, but shown in aerc's status bar).
+  Runs `mbsync proton` every two minutes, so the maildir NeoMutt reads (see
+  ~/.config/isyncrc) keeps up with Proton whether a client is open or not.
+  NeoMutt itself never runs mbsync; it re-reads the maildir on its own check.
+  To sync now, kickstart this job rather than running mbsync by hand: launchd
+  never runs two instances of one job, and two mbsyncs at once collide
+  ("Error: channel ... is locked").
 
   Loaded by run_onchange_after_load-mbsync-agent.sh whenever this file changes.
   -q keeps the log to errors, which is mostly "connection refused" while Bridge

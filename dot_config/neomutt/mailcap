@@ -1,3 +1,3 @@
-# HTML mail as text, through w3m — the same tool aerc's html filter uses.
+# HTML mail as text, through w3m.
 # -dump reads the part from stdin and fetches nothing remote.
 text/html; w3m -I %{charset} -T text/html -dump -o display_link_number=1; copiousoutput

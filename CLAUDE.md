@@ -141,10 +141,9 @@ out to be present on macOS too.
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_visidatarc`                   | `~/.visidatarc`           | VisiData — a Catppuccin Frappé theme; see the caveat below    |
 | `dot_config/mermaid/puppeteer.json` | `~/.config/mermaid/puppeteer.json` | Browser mmdc renders mermaid with — see the caveat below |
-| `dot_config/aerc/`                 | `~/.config/aerc/`         | aerc mail client, via Proton Mail Bridge; macOS only — see Mail below |
-| `dot_config/himalaya/`             | `~/.config/himalaya/`     | himalaya, scripted mail access for the shell and Claude — same section |
-| `dot_config/neomutt/`              | `~/.config/neomutt/`      | NeoMutt, set up beside aerc to compare — same section          |
-| `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir aerc reads — same section |
+| `dot_config/himalaya/`             | `~/.config/himalaya/`     | himalaya, scripted mail access for the shell and Claude — see Mail below |
+| `dot_config/neomutt/`              | `~/.config/neomutt/`      | NeoMutt, the mail client; macOS only — same section            |
+| `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir NeoMutt reads — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -535,54 +534,70 @@ answers no terminal query from a pane nobody is watching.
 
 ## Mail
 
-Proton Mail, read in **aerc** and scripted with **himalaya**, both talking to
+Proton Mail, read in **NeoMutt** and scripted with **himalaya**, both through
 **Proton Mail Bridge** on localhost (IMAP 1143, SMTP 1025). Proton speaks no
 IMAP itself; Bridge decrypts locally and serves it, and needs a paid plan.
-Laptop only for now, set up 2026-10-24.
+Laptop only for now, set up 2026-10-24. How everything reaches Bridge —
+plain-text loopback, Bridge's own password, the `proton-bridge` keychain entry
+— is written up once, at the top of `dot_config/isyncrc.tmpl`.
 
-aerc does not read Bridge directly. **mbsync** (isync, `~/.config/isyncrc`)
-mirrors it into `~/.local/share/mail/proton`, and aerc reads that maildir.
-mbsync runs from a launchd agent every 2m, aerc open or not
+NeoMutt does not read Bridge directly. **mbsync** (isync, `~/.config/isyncrc`)
+mirrors it into `~/.local/share/mail/proton`, and NeoMutt reads that maildir,
+re-reading the open folder every 30s. mbsync runs from a launchd agent every
+2m, client open or not
 (`private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl`,
 loaded by `run_onchange_after_load-mbsync-agent.sh.tmpl` whenever the plist
-changes; errors only, to `~/Library/Logs/mbsync-proton.log`). aerc's
-`check-mail-cmd` is `launchctl kickstart` of that job rather than mbsync
-itself, because two mbsyncs at once collide — forced side by side, one of each
+changes; errors only, to `~/Library/Logs/mbsync-proton.log`). To sync now,
+`launchctl kickstart gui/$(id -u)/local.mbsync-proton` rather than running
+mbsync by hand: two mbsyncs at once collide — forced side by side, one of each
 pair failed with "channel ... is locked" — and launchd runs one instance at a
-time: a kickstart during a run left the run count at +1, rc 0. The reason is
-sorting: Bridge's IMAP has no SORT, and aerc only sorts IMAP server-side —
-`:sort` answered "Sorting is not available for this backend", and the inbox
-sat in Bridge's sync order. himalaya still goes straight to Bridge, so Claude's
-changes are live on Proton and reach aerc on the next sync. Sending is Bridge
-SMTP either way. The first sync was 2271 messages, 915M, 14s; an incremental
-one with nothing new, 0.17s.
+time (a kickstart during a run left the run count at +1, rc 0). himalaya goes
+straight to Bridge, so Claude's changes are live on Proton and reach the
+maildir on the next sync. The first sync was 2271 messages, 915M, 14s; an
+incremental one with nothing new, 0.17s.
+
+A local maildir rather than IMAP because Bridge's IMAP has no SORT extension,
+and a client that sorts server-side cannot sort it at all: aerc's `:sort`
+answered "Sorting is not available for this backend", and the inbox sat in
+Bridge's sync order.
 
 **The maildir is decrypted mail on disk**, which is why it waited for
 FileVault (`fdesetup status` said Off when this started). Spotlight had
 indexed none of it a few minutes after the first sync — no text content, zero
 `mdfind` hits — which is the point of the hidden path; not re-checked since.
 `All Mail` and `Starred` are excluded from sync (duplicates of everything, and
-of the F flag); every label is its own folder, so a message with three labels
-is three files.
+of the F flag).
+
+**Proton's model, and what the local copy does with it.** On Proton a message
+lives in exactly one folder (Inbox, Archive, Sent, Trash) and carries any
+number of labels — one message, Gmail-style, not copies. Archive is the
+container for everything filed, the counterpart of Gmail's "All Mail minus the
+Inbox". IMAP has no labels, so Bridge presents each as a folder under
+`Labels/`, and the maildir holds one file per label: a message with three
+labels is three files locally, kept consistent by the sync.
 
 **What a maildir operation becomes on Proton** was measured on throwaway
-messages before Expunge was switched on, and binds.conf is built around it:
+messages before Expunge was switched on, and neomuttrc is built around it:
 
-| in aerc, on the maildir | on Proton after `mbsync` |
+| on the maildir | on Proton after `mbsync` |
 | --- | --- |
 | move between folders (Archive, Trash) | a move, single copy |
 | copy into `Labels/x` | label added, message stays put |
 | delete inside `Labels/x` | that label removed |
 | delete in Inbox or Archive | **in no folder at all** — only All Mail shows it |
 
-So `d` is `:move Trash`, and plain delete is `D` behind a prompt. A message
-orphaned the last way is recovered by copying it out of All Mail
-(`himalaya message copy --from "All Mail" --to Trash <id>` did it).
-`Remove None` keeps a vanished local folder from being propagated as a
-deletion; a mass delete of *files* would still sync — as orphaning where
-measured (Inbox), and in Trash possibly as a real deletion, which was not tried.
+So in NeoMutt `$trash` makes `d` a move to Trash, and
+`folder-hook Labels/ 'unset trash'` makes a delete inside a label folder a
+plain delete — taking the label off. Archive (`a`, a save to `+Archive`) left
+no copy in Trash. Deletes and moves are marked first and carried out on `$`,
+a folder change or quit. A message orphaned the last way is recovered by
+copying it out of All Mail (`himalaya message copy --from "All Mail" --to
+Trash <id>` did it). `Remove None` keeps a vanished local folder from being
+propagated as a deletion; a mass delete of *files* would still sync — as
+orphaning where measured (Inbox), and in Trash possibly as a real deletion,
+which was not tried.
 
-**Reorganising labels**, measured during the 2026-10-24 clean-up:
+**Labels, measured during the 2026-10-24 clean-up:**
 
 - Copying files into a local `Labels/<x>` folder and syncing labels the
   existing message — 530 copies at once left All Mail unchanged (+1, a new
@@ -598,100 +613,77 @@ measured (Inbox), and in Trash possibly as a real deletion, which was not tried.
   once — but refuses a local box that is not empty, so a label that held mail
   has to be removed by hand (after checking its messages exist in a real
   folder), then `--remove-near` run again to drop the sync state.
+- New mail is labelled by a Sieve filter in Proton ("Auto-label by sender"),
+  generated from the same sender lists. It is not tracked here — its domain
+  lists name doctors and family — and its reference copy is on the NAS
+  (`/Volumes/Backups/records/`).
 
-**aerc does not refresh the open folder** of a maildir. A message arriving
-in it — between checks, or delivered by `check-mail-cmd` itself — updates the
-sidebar's unread count but not the list, until the folder is selected again
-(even `:cf` to the same folder does it). No watching on macOS, measured on
-0.22.0 against a throwaway maildir. `<C-r>` is bound to exactly that,
-`:cf "{{.Folder}}"` — quoted, or a label with a space breaks it. NeoMutt needs
-no such key; it re-reads the open folder on its 30s check.
+**NeoMutt, measured on throwaway maildirs:**
 
-**NeoMutt runs beside aerc, for comparison** (2026-10-24), reading the same
-maildir — two clients on one maildir is what the format is for. Same colours,
-same Proton-safe keys, so the comparison is of the programs. Measured on a
-throwaway maildir with the same folder names:
-
-- `$trash` makes `d` a move to Trash, and `folder-hook Labels/ 'unset trash'`
-  makes a delete inside a label folder a plain delete — i.e. taking the label
-  off. Archive (`a`, a save) moved the message to Archive with no copy in Trash.
-- **It does refresh the open folder**, which aerc does not: a message dropped
-  into the open Inbox appeared on its own within the 30s `mail_check`/`timeout`.
-  `timeout` defaults to 600, which would make that ten minutes.
+- **It refreshes the open folder**: a message dropped into the open Inbox
+  appeared on its own within the 30s `mail_check`/`timeout`. `timeout`
+  defaults to 600, which would make that ten minutes.
 - **Colours are terminal numbers, not hex.** `#rrggbb` needs a direct-colour
   TERM (xterm-direct); under tmux every hex line failed with "color not
   supported by term". So the visidata approach: ANSI 0-15 are exact Frappé via
   kitty, and only mauve (183) and overlay1 (103) come from the 256 cube.
 - **Rows are numbered (`%C`) and typing a number jumps there** — no binding
   needed: the first digit opens "Jump to message:", Enter goes. Measured on a
-  20-message maildir (5, 12, 20, 1). NeoMutt has no relative numbering, and the
-  absolute number is arguably the better fit for a list that keeps changing.
-  aerc can do neither; its `1G`..`9G` stop at nine.
+  20-message maildir (5, 12, 20, 1). There is no relative numbering.
+- **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
+  reply-all is `gr`.
 - `sidebar_delim_chars` is `/` alone: the default `/.` cut the label
   `gmail.com 04-11-2024 08:21` down to `com 04-11-2024 08:21`.
+- The label list is built at startup by a shell command over `Labels/`, quoted
+  and escaped (spaces, `&`, a backslash). On a maildir with no `Labels/` it
+  fails with "mailboxes: too few arguments" — harmless on the real one, which
+  always has it, but it is why a bare throwaway maildir greets you with an
+  error.
+- Sending is configured (Bridge SMTP, `ssl_force_tls` off for the loopback)
+  but has not been tried.
 
-**Threads stop at the folder edge** in both clients, because they are built from
+**Threads stop at the folder edge**, because they are built from
 In-Reply-To/References among the messages in the folder being viewed. A reply
-to your own reply names a parent that lives in Sent, so it has no match in
-Inbox: aerc showed it as a thread of its own, while NeoMutt joined it by subject
-(the `*` in `└*>` marks such a guessed link). aerc now has
-`threading-by-subject = true`, the same fallback. Threads that span folders —
-your replies inline, as in Proton's web app — would need notmuch.
+to your own reply names a parent in Sent, so it has no match in Inbox; NeoMutt
+joins it by subject instead (the `*` in `└*>` marks such a guessed link).
+Threads that span folders — your replies inline, as in Proton's web app —
+would need notmuch.
 
-Sending from NeoMutt is configured (Bridge SMTP, `ssl_force_tls` off for the
-loopback) but has not been tried.
-
-Two aerc traps found on the way, both in binds.conf's header: a user
-binds.conf **replaces** the defaults (a file of only the changes left `j` dead),
-so the tracked one is the full shipped file plus six lines; and on a maildir
-`:archive flat` leaves an empty `Archive` directory in aerc's working
-directory, so archiving is `:move Archive`.
+**aerc was tried first and removed** (2026-10-24), after a day side by side
+with NeoMutt on the same maildir. What decided it, all measured on 0.22.0: it
+does not refresh the open maildir folder (the sidebar count moves, the list
+does not); `:archive flat` leaves an empty `Archive` directory in its working
+directory; a user `binds.conf` replaces the defaults wholesale; it reads
+`~/Library/Preferences/aerc` on macOS whatever its man page says; and a user
+`aerc.conf` drops the shipped filters. Its project is younger and more
+broadly maintained (51 authors in a year to NeoMutt's 31) but much less active
+(220 commits to 1,125). NeoMutt's caveat is the reverse: ~90% of its commits
+are one maintainer's.
 
 The address is `proton_email` in the untracked chezmoi data, asked by
-`.chezmoi.toml.tmpl`, and the aerc, himalaya and mbsync configs are templates
-reading it. That is
-for switching mail on per machine, not for privacy — the same address is
-already public as `dot_gitconfig`'s email and the author of most commits.
-`.chezmoiignore` skips the mail configs on Linux or wherever `proton_email` is
-empty. The password is Bridge's
-generated one (never the Proton login), in the login keychain as service
-`proton-bridge`, read by `security find-generic-password -s proton-bridge -w`.
-Bridge's own sign-in is the one step nothing here can do.
+`.chezmoi.toml.tmpl`, and the NeoMutt, himalaya and mbsync configs are
+templates reading it. That is for switching mail on per machine, not for
+privacy — the same address is already public as `dot_gitconfig`'s email and
+the author of most commits. `.chezmoiignore` skips the mail configs on Linux
+or wherever `proton_email` is empty. Bridge's own sign-in is the one step
+nothing here can do.
 
-Measured while building it, each one a trap the docs did not mention:
+**himalaya**, measured while building it:
 
-- **aerc on macOS reads `~/Library/Preferences/aerc`**, whatever its man page
-  says about `~/.config`: with only `~/.config/aerc` present it opened the
-  new-account wizard. `private_Library/private_Preferences/symlink_aerc.tmpl`
-  links it back, so one tracked location serves both OSes, and the `private_`
-  prefixes keep chezmoi from loosening `~/Library`'s 0700. Setting
-  `XDG_CONFIG_HOME` instead would move every other tool's config on the Mac.
-- **A user `aerc.conf` does not inherit the shipped filters.** Without a
-  `[filters]` section HTML mail showed "No filter configured for this mimetype"
-  — checked on a throwaway maildir, so no real mail was marked read.
-- **`+insecure` / plain `imap://` on the loopback hop**, chosen rather than
-  measured: Bridge's STARTTLS uses a self-signed cert, and plain text over
-  loopback avoids exporting and pinning it. The verifying scheme was not tried.
-- **himalaya 2.x is a different program from 1.x**: `imap.server` and
-  `imap.sasl.*` replaced `backend.*`, and the verbs were renamed. Its README's
-  Proton block is the reference. Even one account needs `default = true`, and
-  over IMAP only INBOX gets a role, hence the `mailbox.alias.*` lines.
-- **`himalaya message read` does not mark a message seen** unless given
-  `--seen`, so reading is genuinely read-only.
+- **2.x is a different program from 1.x**: `imap.server` and `imap.sasl.*`
+  replaced `backend.*`, and the verbs were renamed. Its README's Proton block
+  is the reference. Even one account needs `default = true`, and over IMAP only
+  INBOX gets a role, hence the `mailbox.alias.*` lines.
+- **`message read` does not mark a message seen** unless given `--seen`, so
+  reading is genuinely read-only.
 - **Bridge files sent mail in Sent itself.** A test sent to self with
-  himalaya's `--no-save` showed up once in Sent, once in Inbox, and once in
-  All Mail (one message carrying both labels). So aerc has no `copy-to` and
-  himalaya no `message.send.save-copy`; either would make a duplicate.
-
-Proton labels are IMAP folders under `Labels/` (read off `mailbox list`).
-Per Proton's documentation, not yet tried here: custom folders appear under
-`Folders/` (there are none at present), copying into `Labels/x` applies the
-label, and moving out of it removes it.
-
-**What sends mail is wider than `message send`**: `compose`, `reply` and
-`forward` take `--send`, and since 2.0 so does `message add`. `imap` and `smtp`
-are raw passthroughs that can do anything, expunge included. Any permission
-rule meant to gate sending has to name all of them.
+  `--no-save` showed up once in Sent, once in Inbox, and once in All Mail. So
+  nothing here saves its own copy — no NeoMutt `$record`, no himalaya
+  `message.send.save-copy` — or every sent message would be doubled.
+- **What sends mail is wider than `message send`**: `compose`, `reply` and
+  `forward` take `--send`, and since 2.0 so does `message add`. `imap` and
+  `smtp` are raw passthroughs that can do anything, expunge included. The
+  permission rules in `dot_claude/settings.json` gate all of them.
 
 ## Claude's State in the Status Bar
 

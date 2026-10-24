@@ -18,7 +18,7 @@
 */ -}}
 {{- $role := promptStringOnce . "role" "Machine role (personal/work)" "personal" -}}
 {{- /*
-  The Proton Mail address that aerc and himalaya log in to Proton Mail Bridge
+  The Proton Mail address that NeoMutt, himalaya and mbsync log in to Bridge
   with. Not a secret — it is already public as dot_gitconfig's email and the
   author of most commits here. It is asked per machine because it doubles as
   the switch: empty means "no mail on this machine", and .chezmoiignore then

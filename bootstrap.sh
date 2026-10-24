@@ -183,17 +183,15 @@ if $IS_MACOS; then
     brew_install ffmpeg
 fi
 
-# mail: aerc to read, himalaya for scripted access (and Claude), both talking to
-# Proton Mail Bridge on localhost — aerc through a local maildir that isync's
-# mbsync keeps, since aerc cannot sort over Bridge's IMAP. w3m is aerc's `html`
-# filter. macOS only, to
-# match .chezmoiignore, which applies their configs where Bridge runs and
+# mail: NeoMutt to read, himalaya for scripted access (and Claude), both talking
+# to Proton Mail Bridge on localhost — NeoMutt through a local maildir that
+# isync's mbsync keeps. w3m renders HTML mail (neomutt's mailcap). macOS only,
+# to match .chezmoiignore, which applies their configs where Bridge runs and
 # nowhere else. Bridge itself needs a one-time sign-in in its own window, and
 # its generated password goes in the keychain as `proton-bridge` — see the
-# comments in dot_config/aerc/private_accounts.conf.tmpl.
+# comments at the top of dot_config/isyncrc.tmpl.
 if $IS_MACOS; then
     cask_install proton-mail-bridge
-    brew_install aerc
     brew_install neomutt
     brew_install himalaya
     brew_install isync
@@ -496,7 +494,7 @@ $IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
 # Mail, gated the same way as its install above. Bridge is an app, not a
 # command, so it is asked of brew.
 if $IS_MACOS; then
-    for c in aerc neomutt himalaya mbsync w3m; do
+    for c in neomutt himalaya mbsync w3m; do
         command -v "$c" &>/dev/null || missing+=("$c")
     done
     brew list --cask proton-mail-bridge &>/dev/null || missing+=("cask:proton-mail-bridge")

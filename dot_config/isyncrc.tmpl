@@ -1,10 +1,19 @@
 # mbsync (isync) — mirrors Proton Mail, through Proton Mail Bridge, into a
-# local maildir that aerc reads. aerc cannot sort over Bridge's IMAP (no SORT
-# extension: ":sort" answers "Sorting is not available for this backend"), and
-# a local copy also makes it fast and readable offline. himalaya still talks to
-# Bridge directly; its changes reach aerc on the next sync.
+# local maildir that NeoMutt reads. A local copy is fast, readable offline and
+# sortable, which Bridge's IMAP is not (it has no SORT extension). himalaya
+# still talks to Bridge directly; its changes reach the maildir on the next
+# sync, which a launchd agent runs every two minutes.
 #
-# Same endpoint, login and keychain entry as ~/.config/aerc/accounts.conf.
+# This is the reference for how everything here reaches Bridge; himalaya and
+# NeoMutt use the same endpoint, login and keychain entry:
+#   - Bridge serves IMAP on 127.0.0.1:1143 and SMTP on :1025, and does the
+#     encryption to Proton itself.
+#   - The loopback hop is plain text. Bridge's STARTTLS uses a self-signed
+#     certificate, and plain text over loopback avoids exporting and pinning
+#     it — chosen rather than measured; the verifying route was not tried.
+#   - The password is Bridge's own (it shows one per account), never the
+#     Proton login, and lives in the login keychain as service
+#     `proton-bridge`. Nothing secret is in any tracked file.
 # The mail lands decrypted on disk, which is why this waited for FileVault.
 
 IMAPAccount proton
@@ -12,8 +21,8 @@ Host 127.0.0.1
 Port 1143
 User {{ .proton_email }}
 PassCmd "security find-generic-password -s proton-bridge -w"
-# Loopback only; see accounts.conf for why not STARTTLS. With TLSType None the
-# default `*` admits no mechanism at all, so they are named.
+# Loopback only (see the top of this file). With TLSType None the default `*`
+# admits no mechanism at all, so they are named.
 TLSType None
 AuthMechs PLAIN LOGIN
 
@@ -26,9 +35,10 @@ Path ~/.local/share/mail/proton/
 Inbox ~/.local/share/mail/proton/INBOX
 SubFolders Verbatim
 # UIDs in a per-folder database instead of a ,U= infix in each file name.
-# aerc moves a file between folders under the same name (measured: archive
-# kept it byte for byte), which the default scheme requires the MUA not to do.
-# Only takes effect on a folder's first sync.
+# The default scheme relies on every client renaming a file it moves between
+# folders; aerc, tried here first, did not (archive kept the name byte for
+# byte). AltMap removes that dependence for any client. Only takes effect on a
+# folder's first sync.
 AltMap yes
 
 Channel proton
@@ -42,7 +52,7 @@ Create Near
 # A vanished local folder is an error, not an instruction to delete it there.
 Remove None
 # Full two-way sync. Measured on throwaway messages before switching on, and
-# safe only because aerc's d is :move Trash (see binds.conf): Bridge maps
+# safe only because NeoMutt's d moves to Trash ($trash in neomuttrc): Bridge maps
 # a move between folders to a move, a copy into Labels/x to adding the label,
 # and a delete inside Labels/x to removing it — but a delete in Inbox or Archive
 # leaves the message in no folder at all, visible only in All Mail.

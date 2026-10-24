@@ -100,26 +100,18 @@ bin/mkv2mp4
 {{ end -}}
 
 {{/*
-  Mail — aerc to read it, himalaya for scripted access — goes through Proton
-  Mail Bridge on localhost, so it is only useful where Bridge runs. That is the
+  Mail — NeoMutt to read it, himalaya for scripted access, mbsync and its
+  launchd agent to mirror it — goes through Proton Mail Bridge on localhost,
+  so it is only useful where Bridge runs. That is the
   laptop for now, and keyed on proton_email (see .chezmoi.toml.tmpl) as well as
   the OS so that the Linux machine can join later by answering one prompt.
   `index` rather than `.proton_email`: a config generated before the prompt
   existed has no such key.
-
-  Library/Preferences/aerc is a symlink to ~/.config/aerc. aerc takes its
-  config directory from Go's os.UserConfigDir, which is ~/Library/Preferences
-  on macOS whatever its man page says — launched with only ~/.config/aerc in
-  place it ignored it and opened the new-account wizard (measured, 0.22.0).
-  The link keeps one tracked location for both OSes, where setting
-  XDG_CONFIG_HOME globally would move every other tool's config on the Mac.
 */ -}}
 {{ if or (ne .chezmoi.os "darwin") (not (index . "proton_email")) -}}
-.config/aerc/**
 .config/himalaya/**
 .config/isyncrc
 .config/neomutt/**
-Library/Preferences/aerc
 Library/LaunchAgents/local.mbsync-proton.plist
 {{ end -}}
 {{/*
