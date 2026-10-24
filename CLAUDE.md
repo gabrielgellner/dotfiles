@@ -598,6 +598,19 @@ propagated as a deletion; a mass delete of *files* would still sync — as
 orphaning where measured (Inbox), and in Trash possibly as a real deletion,
 which was not tried.
 
+**Emptying Trash in Proton races the sync.** Emptied while deletes made in
+NeoMutt were still on their way up, the two crossed: Proton dropped messages
+mbsync was mid-way through filing in Trash, and mbsync was left with 17 local
+Trash files it kept trying to upload ("far side refuses to store message N
+from near side", and once Bridge's "failed to unlabel messages: Message does
+not exist"). Nothing was lost — every one was gone from Proton, deleted as
+intended — but left alone mbsync might have re-uploaded them. Recovered by
+unloading the agent (`launchctl bootout gui/$(id -u)/local.mbsync-proton`),
+moving the stale local files aside, and `launchctl bootstrap` again; afterwards
+every folder's count matched Proton. So: `$` in NeoMutt, let a sync pass (2m),
+then empty Trash. Emptying *from* NeoMutt (deleting inside Trash) is still
+untested.
+
 **Labels, measured during the 2026-10-24 clean-up:**
 
 - Copying files into a local `Labels/<x>` folder and syncing labels the
