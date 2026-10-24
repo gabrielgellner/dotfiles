@@ -1,0 +1,31 @@
+# himalaya — scripted access to the same Proton account aerc reads, for shell
+# use and for Claude Code. Same Bridge endpoint and keychain entry as
+# ~/.config/aerc/accounts.conf; see the comments there.
+#
+# Written against himalaya 2.x, whose schema is not 1.x's: `imap.server` and
+# `imap.sasl.*` replaced `backend.*`. The Proton block in its README is the
+# reference.
+
+[accounts.proton]
+
+# Needed even with one account: without it every command stops at
+# "No default account found" (measured, 2.2.1).
+default = true
+
+imap.server = "imap://127.0.0.1:1143"
+imap.sasl.plain.username = {{ .proton_email | quote }}
+imap.sasl.plain.password.command = "security find-generic-password -s proton-bridge -w"
+
+smtp.server = "smtp://127.0.0.1:1025"
+smtp.sasl.plain.username = {{ .proton_email | quote }}
+smtp.sasl.plain.password.command = "security find-generic-password -s proton-bridge -w"
+
+# Over IMAP himalaya can only give INBOX a role, so `-m sent` and the like need
+# naming. These are Bridge's names, read off `himalaya mailbox list`, which
+# also shows labels as `Labels/<name>`.
+mailbox.alias.sent = "Sent"
+mailbox.alias.drafts = "Drafts"
+mailbox.alias.trash = "Trash"
+mailbox.alias.archive = "Archive"
+mailbox.alias.spam = "Spam"
+mailbox.alias.all = "All Mail"

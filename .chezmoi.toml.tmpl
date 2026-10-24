@@ -17,9 +17,18 @@
       {{ if eq (.role | default "personal") "work" }}
 */ -}}
 {{- $role := promptStringOnce . "role" "Machine role (personal/work)" "personal" -}}
+{{- /*
+  The Proton Mail address that aerc and himalaya log in to Proton Mail Bridge
+  with. Not a secret — it is already public as dot_gitconfig's email and the
+  author of most commits here. It is asked per machine because it doubles as
+  the switch: empty means "no mail on this machine", and .chezmoiignore then
+  skips both configs, which is the state a machine without Bridge should be in.
+*/ -}}
+{{- $protonEmail := promptStringOnce . "proton_email" "Proton Mail address for Bridge (empty for none)" "" -}}
 
 [data]
     role = {{ $role | quote }}
+    proton_email = {{ $protonEmail | quote }}
 
 [git]
     # Deliberately off. These were enabled in 9a9f1b0 so that capturing a live

@@ -1,0 +1,18 @@
+# Proton Mail through Proton Mail Bridge, which serves IMAP on 1143 and SMTP on
+# 1025 on localhost, and does the encryption to Proton itself.
+#
+# `+insecure` means no STARTTLS on that loopback hop. Bridge's STARTTLS uses a
+# self-signed certificate, and plain text over loopback avoids exporting and
+# pinning it; the verifying `imap://` was not tried.
+#
+# The password is Bridge's own (it shows it per account), not the Proton
+# login, and comes from the login keychain — nothing secret is in this file.
+# private_ because aerc refuses an accounts.conf anyone else can read.
+
+[Proton]
+source            = imap+insecure://{{ .proton_email | urlquery }}@127.0.0.1:1143
+source-cred-cmd   = security find-generic-password -s proton-bridge -w
+outgoing          = smtp+insecure://{{ .proton_email | urlquery }}@127.0.0.1:1025
+outgoing-cred-cmd = security find-generic-password -s proton-bridge -w
+from              = Gabriel Gellner <{{ .proton_email }}>
+folders-sort      = INBOX,Drafts,Sent,Starred,Archive,Spam,Trash

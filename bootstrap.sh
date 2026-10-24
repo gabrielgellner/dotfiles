@@ -183,6 +183,19 @@ if $IS_MACOS; then
     brew_install ffmpeg
 fi
 
+# mail: aerc to read, himalaya for scripted access (and Claude), both talking to
+# Proton Mail Bridge on localhost. w3m is aerc's `html` filter. macOS only, to
+# match .chezmoiignore, which applies their configs where Bridge runs and
+# nowhere else. Bridge itself needs a one-time sign-in in its own window, and
+# its generated password goes in the keychain as `proton-bridge` — see the
+# comments in dot_config/aerc/private_accounts.conf.tmpl.
+if $IS_MACOS; then
+    cask_install proton-mail-bridge
+    brew_install aerc
+    brew_install himalaya
+    brew_install w3m
+fi
+
 # editor
 brew_install neovim
 
@@ -475,6 +488,15 @@ done
 # Gated on macOS to match the install above, which is gated because
 # .chezmoiignore applies bin/mkv2mp4 there alone.
 $IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
+
+# Mail, gated the same way as its install above. Bridge is an app, not a
+# command, so it is asked of brew.
+if $IS_MACOS; then
+    for c in aerc himalaya w3m; do
+        command -v "$c" &>/dev/null || missing+=("$c")
+    done
+    brew list --cask proton-mail-bridge &>/dev/null || missing+=("cask:proton-mail-bridge")
+fi
 
 # Ask uv rather than PATH, because the question is who *manages* these. All
 # four do put a binary in ~/.local/bin — `uv tool list` names the executables

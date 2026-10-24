@@ -141,6 +141,8 @@ out to be present on macOS too.
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_visidatarc`                   | `~/.visidatarc`           | VisiData — a Catppuccin Frappé theme; see the caveat below    |
 | `dot_config/mermaid/puppeteer.json` | `~/.config/mermaid/puppeteer.json` | Browser mmdc renders mermaid with — see the caveat below |
+| `dot_config/aerc/`                 | `~/.config/aerc/`         | aerc mail client, via Proton Mail Bridge; macOS only — see Mail below |
+| `dot_config/himalaya/`             | `~/.config/himalaya/`     | himalaya, scripted mail access for the shell and Claude — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
 | `bin/executable_codelldb`          | `~/bin/codelldb`          | CodeLLDB adapter wrapper — see the caveat below               |
@@ -527,6 +529,54 @@ What makes any of it render in a session `dev` built is `SNACKS_KITTY=1`, set
 in `dot_zshenv` — see the comment there. Without it snacks never learns it is
 in kitty, because `new-session` starts nvim in a detached session and tmux
 answers no terminal query from a pane nobody is watching.
+
+## Mail
+
+Proton Mail, read in **aerc** and scripted with **himalaya**, both talking to
+**Proton Mail Bridge** on localhost (IMAP 1143, SMTP 1025). Proton speaks no
+IMAP itself; Bridge decrypts locally and serves it, and needs a paid plan.
+Laptop only for now, set up 2026-10-24.
+
+The address is `proton_email` in the untracked chezmoi data, asked by
+`.chezmoi.toml.tmpl`, and both account files are templates reading it. That is
+for switching mail on per machine, not for privacy — the same address is
+already public as `dot_gitconfig`'s email and the author of most commits.
+`.chezmoiignore` skips the mail configs on Linux or wherever `proton_email` is
+empty. The password is Bridge's
+generated one (never the Proton login), in the login keychain as service
+`proton-bridge`, read by `security find-generic-password -s proton-bridge -w`.
+Bridge's own sign-in is the one step nothing here can do.
+
+Measured while building it, each one a trap the docs did not mention:
+
+- **aerc on macOS reads `~/Library/Preferences/aerc`**, whatever its man page
+  says about `~/.config`: with only `~/.config/aerc` present it opened the
+  new-account wizard. `private_Library/private_Preferences/symlink_aerc.tmpl`
+  links it back, so one tracked location serves both OSes, and the `private_`
+  prefixes keep chezmoi from loosening `~/Library`'s 0700. Setting
+  `XDG_CONFIG_HOME` instead would move every other tool's config on the Mac.
+- **A user `aerc.conf` does not inherit the shipped filters.** Without a
+  `[filters]` section HTML mail showed "No filter configured for this mimetype"
+  — checked on a throwaway maildir, so no real mail was marked read.
+- **`+insecure` / plain `imap://` on the loopback hop**, chosen rather than
+  measured: Bridge's STARTTLS uses a self-signed cert, and plain text over
+  loopback avoids exporting and pinning it. The verifying scheme was not tried.
+- **himalaya 2.x is a different program from 1.x**: `imap.server` and
+  `imap.sasl.*` replaced `backend.*`, and the verbs were renamed. Its README's
+  Proton block is the reference. Even one account needs `default = true`, and
+  over IMAP only INBOX gets a role, hence the `mailbox.alias.*` lines.
+- **`himalaya message read` does not mark a message seen** unless given
+  `--seen`, so reading is genuinely read-only.
+
+Proton labels are IMAP folders under `Labels/` (read off `mailbox list`).
+Per Proton's documentation, not yet tried here: custom folders appear under
+`Folders/` (there are none at present), copying into `Labels/x` applies the
+label, and moving out of it removes it.
+
+**What sends mail is wider than `message send`**: `compose`, `reply` and
+`forward` take `--send`, and since 2.0 so does `message add`. `imap` and `smtp`
+are raw passthroughs that can do anything, expunge included. Any permission
+rule meant to gate sending has to name all of them.
 
 ## Claude's State in the Status Bar
 
