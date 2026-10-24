@@ -1,12 +1,16 @@
-# notmuch — a search index over the maildir mbsync keeps (~/.config/isyncrc),
-# for searching every folder at once and for threads that cross folders.
-# Searches are read-only; the index lives outside the maildir, so mbsync never
+# notmuch — one search index over all the mail under ~/.local/share/mail:
+#   proton/         the maildir mbsync keeps from Proton (~/.config/isyncrc)
+#   gmail-archive/  the Gmail Takeout history, read-only, local only, tag:gmail
+# One index rather than two because NeoMutt opens a single notmuch database, so
+# a search there covers both. mbsync syncs only proton/ (its Path), never the
+# archive. Folder names therefore carry the prefix: folder:proton/INBOX.
+# Searches are read-only; the index lives outside the mail, so mbsync never
 # sees it. Kept current by the launchd agent, which runs `notmuch new` after
 # each sync (local.mbsync-proton).
 
 [database]
-path={{ .chezmoi.homeDir }}/.local/share/notmuch/proton
-mail_root={{ .chezmoi.homeDir }}/.local/share/mail/proton
+path={{ .chezmoi.homeDir }}/.local/share/notmuch/mail
+mail_root={{ .chezmoi.homeDir }}/.local/share/mail
 
 [user]
 name=Gabriel Gellner

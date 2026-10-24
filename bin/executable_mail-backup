@@ -1,8 +1,8 @@
 #!/bin/sh
-# Encrypted backup of the local maildir to the NAS, with restic.
+# Encrypted backup of the local mail to the NAS, with restic.
 #
-# The maildir (~/.local/share/mail/proton, mirrored from Proton by mbsync) is
-# decrypted mail on disk; restic encrypts before anything leaves the laptop, so
+# ~/.local/share/mail holds the Proton maildir mbsync mirrors (proton/) and the
+# Gmail Takeout archive (gmail-archive/), both decrypted mail on disk; restic encrypts before anything leaves the laptop, so
 # the copy on asnas is ciphertext. The repository is reached over SFTP rather
 # than the Finder SMB mount, because the mount may not be there at 03:30.
 #
@@ -21,7 +21,7 @@ export RESTIC_REPOSITORY="sftp:asnas:/volume1/Backups/mail-restic"
 export RESTIC_PASSWORD_COMMAND="security find-generic-password -s restic-mail -w"
 
 echo "== $(date '+%Y-%m-%d %H:%M:%S') backup"
-restic backup --quiet --tag mail "$HOME/.local/share/mail/proton"
+restic backup --quiet --tag mail "$HOME/.local/share/mail"
 rc=$?
 # Seven dailies, eight weeklies, two years of monthlies. Pruning only rewrites
 # what the forget released, which for mail that mostly grows is little.

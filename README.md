@@ -43,7 +43,8 @@ states inline, and sorts active sessions first when you type.
 **Mail in the terminal, without a mail server.** Proton Mail Bridge serves IMAP
 on localhost; mbsync mirrors it into a local maildir every two minutes from a
 launchd agent; NeoMutt reads that, sorted and threaded, and notmuch searches
-every folder at once so a thread includes your own replies. Proton's labels get
+every folder at once — a Gmail archive back to 2009 included — so a thread
+includes your own replies. Proton's labels get
 their own keys (`+` adds one, `-` takes one off), and the keys that archive,
 delete and label were each checked against what Proton actually does with them
 — a plain delete in the wrong folder there leaves a message in no folder at

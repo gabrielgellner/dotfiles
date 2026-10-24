@@ -510,8 +510,23 @@ and a client that sorts server-side cannot sort it at all: aerc's `:sort`
 answered "Sorting is not available for this backend", and the inbox sat in
 Bridge's sync order.
 
+**The Gmail archive** (2026-10-24) is a Google Takeout export converted to a
+maildir at `~/.local/share/mail/gmail-archive/` — 35,808 messages, 2009 to
+today, 7.8G; local only and read-only, nothing syncs it. Spam and Trash (1,116)
+were dropped, message bytes copied unchanged, file dates set to the mail's
+date, read/starred carried as flags. Gmail's labels became notmuch tags under
+their own names, plus `gmail` on every message (`tag:gmail tag:"Product
+Serial"`); Unread/Starred/Opened were not made tags, since they are flags.
+Tagging used notmuch's message identity, and 34 messages exist in both
+sources, so with `synchronize_flags` a tag change on one of those renames the
+Proton copy too — checked after tagging: no Proton file gained or lost a
+flag. The original export was deleted once the archive was converted and
+backed up; Gmail still has everything. Gmail's filters and blocked list are
+on the NAS in `records/gmail-settings/`.
+
 **The maildir is backed up to the NAS, encrypted** (2026-10-24):
-`~/bin/mail-backup` runs restic daily at 03:30 from launchd
+`~/bin/mail-backup` runs restic daily at 03:30 from launchd over all of
+`~/.local/share/mail` (Proton and the Gmail archive; 8.4 GiB as 6.4G on the NAS)
 (`local.mail-backup`; a run missed asleep happens on wake), to
 `sftp:asnas:/volume1/Backups/mail-restic` — SFTP rather than the Finder SMB
 mount, which may not be mounted at 03:30. SSH to asnas works with an empty
@@ -675,13 +690,18 @@ from In-Reply-To/References among the messages in that folder. A reply to your
 own reply names a parent in Sent, so it has no match in Inbox; NeoMutt joins it
 by subject instead (the `*` in `└*>` marks such a guessed link).
 
-**notmuch** (2026-10-24) indexes the whole maildir, so searches and threads
-cross folders: in a search, that same thread came back 4/4 with your reply
-from Sent in place, linked by headers. The index is
-`~/.local/share/notmuch/proton`, apart from the mail so mbsync never sees it;
-2633 files became 2023 messages (label copies counted once) in 5s, 29M. The
-launchd agent runs `notmuch new` after each sync and keeps mbsync's exit
-status. In NeoMutt, `\` searches and the sidebar has two saved searches.
+**notmuch** (2026-10-24) indexes all the mail under `~/.local/share/mail` —
+the Proton maildir in `proton/` and the Gmail archive in `gmail-archive/` — so
+searches and threads cross folders: in a search, that same thread came back
+4/4 with your reply from Sent in place, linked by headers. One index, not one
+per source, because NeoMutt opens a single notmuch database; folder names
+carry the prefix as a result (`folder:proton/INBOX`). The index is
+`~/.local/share/notmuch/mail`, apart from the mail so mbsync never sees it;
+37,722 files became 37,003 messages in 75s. The launchd agent runs
+`notmuch new` after each sync and keeps mbsync's exit status. In NeoMutt, `\`
+searches both, and the sidebar's two saved searches are Proton only
+(`path:proton/**`), since the archive keeps receiving Gmail's forwarded
+copies.
 
 - **`nm_default_url` names the database**, not the maildir: pointed at the
   maildir, a search opened "(no mailbox)".

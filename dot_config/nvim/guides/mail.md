@@ -146,8 +146,10 @@ searches it. Patterns combine, and `!` negates one:
 else.
 
 **`\` searches every folder at once** — Inbox, Archive, Sent and every label,
-bodies included — through notmuch, and the results come back as whole threads,
-your own replies from Sent among them:
+bodies included, **and the Gmail archive** (2009 onwards) — through notmuch,
+and the results come back as whole threads, your own replies from Sent among
+them. `tag:gmail` narrows to the archive, and its old Gmail labels are tags:
+`tag:gmail tag:"Product Serial"`.
 
 | Query                                     | Finds                   |
 | ----------------------------------------- | ----------------------- |
