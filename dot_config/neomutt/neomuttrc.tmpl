@@ -73,6 +73,10 @@ set mail_check_stats = yes
 # anything but y) keeps you in. It covers x, exit-without-saving, as well.
 set quit = ask-no
 set delete = yes
+# sleep_time pauses after messages like "Mailbox synced" — a full second by
+# default, on every $, archive or delete. Timed on a full copy of the maildir:
+# a sync took 1.09s with it and 0.04s without.
+set sleep_time = 0
 set confirm_append = no
 set mark_old = no
 # Threads open collapsed, one row each; the row shows how many it hides, and

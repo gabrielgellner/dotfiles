@@ -696,6 +696,14 @@ like an orphan, before it went.
   one Enter came back, the PDF landed in `~/.cache/mail-open`. Seeing the image
   needs a real kitty window. `wait_key = no`, or leaving an image took two
   keys; the cost is that `!` and `|` output no longer waits.
+- **Speed, measured on a full scratch copy of the maildir** (2026-10-25), from
+  keypress to screen: startup 0.23s, opening Archive (880 messages) 0.08s,
+  folder switches and `+` about 0.01s. A sync (`$` after `a` or `d`) was 1.09s
+  — all of it `sleep_time`, a one-second pause after "Mailbox synced"; at 0 it
+  is 0.04s. Lag felt earlier came on top of that from heavy disk and network
+  jobs running alongside (the Gmail conversion, indexing, backups, NAS writes).
+  When timing, read the *total* in `Msgs:29/36` — with threads collapsed the
+  first number is visible rows, and it does not move when one message goes.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,
