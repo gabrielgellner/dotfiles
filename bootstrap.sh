@@ -44,9 +44,40 @@ record_failure() {
 IS_MACOS=false
 [[ "$(uname -s)" == "Darwin" ]] && IS_MACOS=true
 
+# Omarchy is Arch, and everything this script installs is packaged for it —
+# all but two in the official repos — so there it uses pacman and never
+# installs brew at all. The test is the directory the omarchy package installs
+# into, the same one .chezmoitemplates/desktop checks, so the script and the
+# templates cannot disagree about which machine this is. Any other Linux is the
+# RDP machine and keeps linuxbrew, as before.
+IS_OMARCHY=false
+[[ -d /usr/share/omarchy ]] && IS_OMARCHY=true
+
+# Install an Arch package, unless pacman already has it. `aur:<name>` goes
+# through yay instead, which Omarchy ships; only fzf-tab needs it.
+#
+# --needed makes a repeat harmless, but the -Qq test is what keeps a re-run
+# quiet and asks for no sudo password when there is nothing to do.
+pacman_install() {
+    local pkg="${1#aur:}"
+    if pacman -Qq "$pkg" &>/dev/null; then
+        yellow "  pacman: $pkg already installed, skipping"
+    elif [[ $1 == aur:* ]]; then
+        green "  yay: installing $pkg"
+        yay -S --needed --noconfirm "$pkg" || record_failure "aur:$pkg"
+    else
+        green "  pacman: installing $pkg"
+        sudo pacman -S --needed --noconfirm "$pkg" || record_failure "pacman:$pkg"
+    fi
+}
+
+# The second argument is the Arch package when its name differs from brew's
+# formula, e.g. `brew_install sevenzip 7zip`.
 brew_install() {
     local pkg="$1"
-    if brew list --formula "$pkg" &>/dev/null; then
+    if $IS_OMARCHY; then
+        pacman_install "${2:-$1}"
+    elif brew list --formula "$pkg" &>/dev/null; then
         yellow "  brew: $pkg already installed, skipping"
     else
         green "  brew: installing $pkg"
@@ -63,11 +94,14 @@ brew_install() {
 # installable by more than one route.
 #
 # Second argument is the formula when it differs from the binary, e.g.
-# `ensure_command rg ripgrep`.
+# `ensure_command rg ripgrep`; a third is the Arch package when that differs
+# from the formula in turn.
 ensure_command() {
     local cmd="$1" formula="${2:-$1}"
     if command -v "$cmd" &>/dev/null; then
         yellow "  $cmd already present ($(command -v "$cmd")), skipping"
+    elif $IS_OMARCHY; then
+        pacman_install "${3:-$formula}"
     else
         green "  brew: installing $formula"
         brew install "$formula" || record_failure "brew:$formula"
@@ -98,7 +132,9 @@ uv_tool_install() {
 
 # ── Homebrew itself ───────────────────────────────────────────────────────────
 
-if ! command -v brew &>/dev/null; then
+if $IS_OMARCHY; then
+    yellow "Omarchy: using pacman, not installing brew"
+elif ! command -v brew &>/dev/null; then
     green "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
@@ -130,7 +166,11 @@ fi
 
 # ── Brew packages ─────────────────────────────────────────────────────────────
 
-blue "\nInstalling brew packages..."
+if $IS_OMARCHY; then
+    blue "\nInstalling packages with pacman..."
+else
+    blue "\nInstalling brew packages..."
+fi
 
 # fonts
 # kitty.conf and fontconfig/fonts.conf both name FiraCode Nerd Font, so this is
@@ -140,16 +180,23 @@ blue "\nInstalling brew packages..."
 # on linuxbrew, and with `set -euo pipefail` that aborted the entire bootstrap
 # on the Linux machine before it reached anything else.
 #
-# The Linux machine still wants the font; it just cannot come from a cask.
+# The RDP machine still wants the font; it just cannot come from a cask.
 # Install it there by hand, or through the distribution's package manager.
+# Omarchy's own font is JetBrains Mono, so FiraCode is not there either until
+# this installs it.
 if $IS_MACOS; then
     cask_install font-fira-code-nerd-font
+elif $IS_OMARCHY; then
+    pacman_install ttf-firacode-nerd
 fi
 
-# shell
+# shell. macOS ships zsh and the RDP machine already had it; Omarchy's shell
+# is bash, so zsh itself is one more package there. Making it the login shell
+# is left to you — chsh asks for a password — and the end of this run says so.
+$IS_OMARCHY && pacman_install zsh
 brew_install zsh-autosuggestions
 brew_install zsh-syntax-highlighting
-brew_install fzf-tab
+brew_install fzf-tab aur:fzf-tab-git
 
 # prompt & navigation
 brew_install starship
@@ -167,17 +214,19 @@ brew_install yazi
 # yazi` is empty, yet yazi opens an archive by extracting it with 7z and
 # compress.yazi reaches for the same binary (its fallback list is 7z, 7zz,
 # 7za, and homebrew installs only the middle one). Without it both stay silent.
-brew_install sevenzip
+# Arch's 7zip ships 7z/7za/7zr and no 7zz; yazi and compress both accept 7z.
+brew_install sevenzip 7zip
 # LS_COLORS for eza and the completion list, generated in dot_zshrc
 brew_install vivid
 
 # system monitor
 brew_install btop
 
-# ffmpeg is only here for bin/mkv2mp4, which .chezmoiignore applies on macOS
-# alone — the Linux machine is for work and has no use for it. Both sides of
-# that decision have to agree, so the verification below is gated the same way.
-if $IS_MACOS; then
+# ffmpeg is only here for bin/mkv2mp4, which .chezmoiignore applies everywhere
+# but the RDP machine — that one is for work and has no use for it. Both sides
+# of that decision have to agree, so the verification below is gated the same
+# way. Omarchy ships ffmpeg already, so there this is a quiet no-op.
+if $IS_MACOS || $IS_OMARCHY; then
     brew_install ffmpeg
 fi
 
@@ -277,7 +326,7 @@ brew_install bash-language-server
 
 # formatters
 brew_install prettier
-brew_install taplo
+brew_install taplo taplo-cli
 brew_install shfmt
 brew_install biome
 brew_install yamlfmt
@@ -304,7 +353,7 @@ ensure_command zk
 brew_install git
 brew_install just
 brew_install git-cliff
-brew_install tree-sitter
+brew_install tree-sitter tree-sitter-cli
 
 # racket, the REPL behind both conjure clients in plugins/scheme.lua — `.rkt`
 # by its default and `.scm` because that file routes it there too. It was
@@ -326,7 +375,10 @@ brew_install tree-sitter
 # a REPL. SICP's own `#lang sicp` is a package (`raco pkg install sicp`) and is
 # deliberately not installed here — that belongs to the project, not the
 # machine.
-ensure_command racket minimal-racket
+#
+# On Arch the trap does not arise: `racket` is the one package, the full
+# distribution.
+ensure_command racket minimal-racket racket
 
 # R. `ensure_command` for the racket reason — the cask `r-app` is CRAN's own
 # build, and a second R beside it would split the site-library — and for one of
@@ -342,7 +394,9 @@ ensure_command R r
 # LSP servers that plugins/lsp.lua actually enables. basedpyright below is not
 # one of them — it is kept deliberately for CI and `just` checks, where broader
 # coverage matters than the editor needs (see the comment in lsp.lua).
-ensure_command pyrefly
+# pyrefly is AUR-only on Arch, and only as a -git build, so Omarchy takes the
+# PyPI release through uv instead — see the uv tools below.
+$IS_OMARCHY || ensure_command pyrefly
 ensure_command just-lsp
 
 # ── Julia apps ────────────────────────────────────────────────────────────────
@@ -392,6 +446,7 @@ fi
 # ── uv tools (Python LSP / debug) ─────────────────────────────────────────────
 
 blue "\nInstalling uv tools..."
+$IS_OMARCHY && uv_tool_install pyrefly
 uv_tool_install basedpyright
 uv_tool_install ruff
 uv_tool_install debugpy
@@ -527,6 +582,27 @@ else
     ya pkg add yazi-rs/flavors:catppuccin-frappe || record_failure "yazi:flavor"
 fi
 
+# ── Omarchy: kitty as the default terminal ────────────────────────────────────
+# Omarchy's default is foot, which cannot draw images, and snacks.image,
+# mail-image and yazi's previews all speak the kitty graphics protocol. kitty
+# was too slow for the RDP machine because that one has no GPU (see the xterm
+# section of CLAUDE.md); a desktop with one has no such cost.
+#
+# `omarchy install terminal` rather than pacman alone, because it also rewrites
+# ~/.config/xdg-terminals.list, which is what Super+Return asks. That file is
+# Omarchy's and stays untracked: this is the one place that says "kitty". Its
+# copy of a default kitty.conf only happens when ~/.config/kitty is absent, and
+# chezmoi apply has put ours there first.
+if $IS_OMARCHY; then
+    blue "\nChecking the default terminal..."
+    if grep -qx 'kitty.desktop' "$HOME/.config/xdg-terminals.list" 2>/dev/null; then
+        yellow "kitty is already the default terminal, skipping"
+    else
+        green "Installing kitty and making it the default..."
+        omarchy install terminal kitty || record_failure "omarchy:terminal-kitty"
+    fi
+fi
+
 # ── Verify ────────────────────────────────────────────────────────────────────
 # The reason this exists: nothing else checks that bootstrap still provisions
 # what the config expects. tmux, zk, pyrefly and just-lsp had all drifted out of
@@ -545,10 +621,12 @@ for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
          typst tinymist typstyle websocat; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done
+# brew's sevenzip is 7zz, Arch's 7zip is 7z; either one serves yazi.
+command -v 7zz &>/dev/null || command -v 7z &>/dev/null || missing+=("7zz")
 
-# Gated on macOS to match the install above, which is gated because
-# .chezmoiignore applies bin/mkv2mp4 there alone.
-$IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
+# Gated to match the install above, which follows where .chezmoiignore
+# applies bin/mkv2mp4.
+{ $IS_MACOS || $IS_OMARCHY; } && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
 
 # quarto is installed on both now (cask, or the .deb), so it is checked on both.
 # A Linux machine without apt-get reports it here rather than passing silently.
@@ -596,10 +674,16 @@ fi
 
 # zsh plugins are sourced by path and have no binary; dot_zshrc sources these
 # unguarded, so a missing one breaks every new shell.
+# Same two layouts dot_zshrc chooses between.
+if $IS_OMARCHY; then
+    plugin_dir=/usr/share/zsh/plugins fzf_tab=fzf-tab-git
+else
+    plugin_dir="$(brew --prefix)/share" fzf_tab=fzf-tab
+fi
 for plug in zsh-autosuggestions/zsh-autosuggestions.zsh \
             zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
-            fzf-tab/fzf-tab.zsh; do
-    [[ -f "$(brew --prefix)/share/$plug" ]] || missing+=("plugin:${plug%%/*}")
+            "$fzf_tab/fzf-tab.zsh"; do
+    [[ -f "$plugin_dir/$plug" ]] || missing+=("plugin:${plug%%/*}")
 done
 
 # yazi's three trees, none of which has a binary to test. They arrive by two
@@ -628,9 +712,15 @@ done
 # i3 config names them and nothing else in this repo would ever notice they were
 # absent: a fresh Linux machine gets a window manager config whose terminal,
 # launcher and browser may none of them exist.
-if ! $IS_MACOS; then
+if ! $IS_MACOS && ! $IS_OMARCHY; then
     for c in i3 xterm rofi google-chrome xset; do
         command -v "$c" &>/dev/null || missing+=("i3-dep:$c")
+    done
+fi
+
+if $IS_OMARCHY; then
+    for c in zsh kitty; do
+        command -v "$c" &>/dev/null || missing+=("$c")
     done
 fi
 
@@ -642,6 +732,12 @@ else
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
+
+# Reported rather than done: chsh asks for a password, and changing the login
+# shell is not something a re-runnable installer should do behind your back.
+if $IS_OMARCHY && [[ "$(getent passwd "$USER" | cut -d: -f7)" != */zsh ]] && command -v zsh &>/dev/null; then
+    yellow "\nYour login shell is not zsh. To switch: chsh -s $(command -v zsh)"
+fi
 
 # Two different things, reported apart. `missing` is a statement about the
 # machine and can be benign — a tool this run installed may only need a new
