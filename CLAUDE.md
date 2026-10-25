@@ -55,12 +55,20 @@ disabling the ruleset in Settings → Rules first, on purpose.
 
 ## Per-Machine Configuration
 
-The same repo serves a macOS laptop and a Linux machine. Two mechanisms:
+The same repo serves three machines: a macOS laptop, the Linux work VM driven
+over RDP, and an Omarchy desktop. Three mechanisms:
 
+- **`.chezmoitemplates/desktop`** names the machine — `macos`, `omarchy` or
+  `xrdp` — and templates read it with `includeTemplate "desktop" .`.
+  `.chezmoi.os` cannot tell the two Linux machines apart, and it used to mean
+  the VM. Detected (Omarchy is `/usr/share/omarchy` existing; any other Linux
+  is the VM) rather than prompted, so no machine needs `chezmoi init` re-run.
 - **`.chezmoiignore`** is a template, so a path can be skipped per machine.
-  `.config/i3` and `.config/i3status` apply on Linux only, and
-  `bin/mkv2mp4` and `.config/karabiner` on macOS only. Paths there are
-  *target* names (`.config/i3`), not source names (`dot_config/i3`).
+  `.config/i3`, `.config/i3status`, `.config/xterm` and `.xsession` apply on
+  the VM only, `.config/hypr` and `.config/omarchy` on Omarchy only,
+  `.config/karabiner` on macOS only, and `bin/mkv2mp4` everywhere but the VM.
+  Paths there are *target* names (`.config/i3`), not source names
+  (`dot_config/i3`).
 - **`.chezmoi.toml.tmpl`** defines a `role`, asked once per machine by
   `chezmoi init` and stored in the generated (untracked)
   `~/.config/chezmoi/chezmoi.toml`. For distinctions `.chezmoi.os` cannot
@@ -116,6 +124,54 @@ remote display rather than to taste, which is why `dot_config/kitty/font.conf.tm
 exists at all. `.config/fontconfig` is tracked but *not* Linux-only; it turned
 out to be present on macOS too.
 
+### Omarchy
+
+Set up 2026-10-25 on a desktop: Omarchy 4.0.6, Hyprland 0.56 on Wayland, an
+RTX 3080 on `nvidia-open-dkms` (Omarchy's `default/hypr/nvidia.lua` sets the
+session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
+3440x1440.
+
+- **No brew.** `bootstrap.sh` installs with pacman when `/usr/share/omarchy`
+  exists — every formula has an Arch package, under its own name or one given
+  as a second argument (`sevenzip 7zip`, `taplo taplo-cli`, `tree-sitter
+  tree-sitter-cli`). The two exceptions: fzf-tab is the AUR's `fzf-tab-git`
+  through yay, and pyrefly comes from PyPI through `uv tool`, because the AUR
+  has it only as a `-git` build. `dot_zshrc` finds the plugins in
+  `/usr/share/zsh/plugins` when no brew is found, and activates mise, which is
+  how Omarchy provides claude, node and gh.
+- **zsh and kitty are not Omarchy's defaults** (bash and foot). bootstrap
+  installs zsh and says how to `chsh`; it runs `omarchy install terminal kitty`,
+  which also writes `~/.config/xdg-terminals.list` — Omarchy's file, left
+  untracked. foot cannot draw kitty graphics; the GPU means kitty's cost on
+  the VM does not apply.
+- **Files Omarchy put first.** `~/.config/nvim` is LazyVim on a fresh install,
+  and must be moved aside, with `~/.local/{share,state}/nvim`, *before* the
+  first apply: chezmoi only replaces the files it manages, and lazy.nvim would
+  go on loading LazyVim's leftover `lua/plugins/*.lua` — the
+  `tmux-navigator.lua` trap from `.chezmoiremove`. Starship, btop and kitty
+  are simply replaced. tmux needs nothing: it reads `~/.tmux.conf` before
+  Omarchy's `~/.config/tmux/tmux.conf`. git reads Omarchy's
+  `~/.config/git/config` and then `~/.gitconfig`, so this repo's wins on any
+  key both set.
+- **Tracked Omarchy files** are the override files it hands the user, never
+  `/usr/share/omarchy`. `hypr/input.lua` makes Caps Lock Control (Karabiner's
+  job on the laptop), moving Omarchy's Compose from Caps Lock to Right Alt.
+  `hypr/monitors.lua` asks for the BenQ's 99.98 Hz, which `preferred` left at
+  59.97. `omarchy refresh hyprland` resets both; re-apply after one.
+- **The theme is Frappé, desktop included.**
+  `.config/omarchy/themes/catppuccin-frappe` maps Omarchy's stock catppuccin
+  (Mocha) onto Frappé key by key, with the kitty theme's hexes; its
+  `backgrounds` is a link to the stock wallpapers. Select it once with
+  `omarchy theme set catppuccin-frappe`. It matters beyond the bar:
+  `omarchy-theme-set-tmux` writes the theme's colours into tmux's
+  `window-style` on every theme change, so another Omarchy theme repaints
+  panes away from Frappé.
+- **mermaid** names `/usr/bin/chromium`: there is no Google Chrome, and
+  `channel: chrome` fails there.
+- **Mail stays off.** Bridge is packaged (`protonmail-bridge`), but the stack
+  leans on launchd, the keychain and osascript; porting means systemd user
+  timers, `secret-tool` and `notify-send`.
+
 ## Key Files and Their Roles
 
 | File                               | Destination               | Purpose                                                       |
@@ -136,7 +192,10 @@ out to be present on macOS too.
 | `dot_config/kitty/font.conf.tmpl`  | `~/.config/kitty/font.conf` | Font size per machine — see the caveat below                  |
 | `dot_config/xterm/XTerm`           | `~/.config/xterm/XTerm`   | The Linux machine's terminal; Linux only — see below          |
 | `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, vim counts, marks, keymap audit — see below |
-| `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; Linux only                              |
+| `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; RDP VM only                             |
+| `dot_config/hypr/`                 | `~/.config/hypr/`         | Omarchy: input and monitor overrides only — see Omarchy above |
+| `dot_config/omarchy/themes/catppuccin-frappe/` | `~/.config/omarchy/themes/…` | Omarchy: the Frappé desktop theme — same section |
+| `.chezmoitemplates/desktop`        | —                         | Names the machine (macos/omarchy/xrdp) for the templates      |
 | `dot_config/gmuse/config.toml`     | `~/.config/gmuse/config.toml` | gmuse music player config — see the caveat below           |
 | `dot_config/btop/`                 | `~/.config/btop/`         | btop resource monitor — see the caveat below                  |
 | `dot_config/mermaid/puppeteer.json` | `~/.config/mermaid/puppeteer.json` | Browser mmdc renders mermaid with — see the caveat below |

@@ -70,11 +70,12 @@ guides above for reference you reread.
 does; `<leader>gm` reviews the branch against its base, `<leader>gv` the working
 tree. octo.nvim brings GitHub issues and PRs into the editor.
 
-**One tree, two machines.** `.chezmoiignore` is a template, so the i3 desktop
-and xterm apply on Linux only and the mail stack, karabiner and the media tools
-on macOS only. The Linux machine is driven over RDP, which is why it runs xterm
-rather than kitty: with no GPU, kitty redrew its whole window for a one-cell
-change, measured at a hundred times the damage.
+**One tree, three machines.** `.chezmoiignore` is a template, so the i3
+desktop and xterm apply on the RDP work VM only, the Hyprland overrides and a
+Catppuccin Frappé desktop theme on the Omarchy machine only, and the mail stack
+and karabiner on macOS only. The VM runs xterm rather than kitty: with no GPU,
+kitty redrew its whole window for a one-cell change, measured at a hundred
+times the damage. Omarchy installs everything with pacman rather than brew.
 
 ## New machine
 
@@ -84,6 +85,19 @@ chezmoi init https://github.com/gabrielgellner/dotfiles.git
 chezmoi apply
 
 cd ~/.local/share/chezmoi && ./bootstrap.sh
+```
+
+On Omarchy, chezmoi comes from pacman, and Omarchy's LazyVim has to move out of
+the way first (CLAUDE.md's Omarchy section has why):
+
+```bash
+sudo pacman -S chezmoi
+for d in ~/.config/nvim ~/.local/share/nvim ~/.local/state/nvim; do mv "$d" "$d.omarchy"; done
+chezmoi init https://github.com/gabrielgellner/dotfiles.git
+chezmoi apply
+cd ~/.local/share/chezmoi && ./bootstrap.sh
+omarchy theme set catppuccin-frappe
+chsh -s /usr/bin/zsh
 ```
 
 `bootstrap.sh` installs brew packages, uv Python tools, rustup components,
