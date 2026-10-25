@@ -160,7 +160,10 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
   `/usr/share/omarchy`. `hypr/input.lua` makes Caps Lock Control (Karabiner's
   job on the laptop), moving Omarchy's Compose from Caps Lock to Right Alt.
   `hypr/monitors.lua` asks for the BenQ's 99.98 Hz, which `preferred` left at
-  59.97. `omarchy refresh hyprland` resets both; re-apply after one.
+  59.97. `hypr/looknfeel.lua` holds a lone tiled window to 4:3, centred,
+  through Hyprland's `layout.single_window_aspect_ratio` — the ultrawide's
+  answer to a terminal stretched over 3440 px. `omarchy refresh hyprland`
+  resets all three; re-apply after one.
 - **The theme is Frappé, desktop included.**
   `.config/omarchy/themes/catppuccin-frappe` maps Omarchy's stock catppuccin
   (Mocha) onto Frappé key by key, with the kitty theme's hexes; its
