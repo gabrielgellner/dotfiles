@@ -2,3 +2,8 @@
 # padding); see the comments there for why lynx and not w3m. Nothing remote is
 # fetched: lynx -dump reads the part from stdin.
 text/html; ~/.config/neomutt/html-filter %{charset}; copiousoutput
+
+# Images inline in kitty (Enter in the attachment list); PDFs in Preview. Any
+# attachment can also go to its macOS app with `o` there — see neomuttrc.
+image/*; ~/bin/mail-image %s; needsterminal
+application/pdf; ~/bin/mail-open %s

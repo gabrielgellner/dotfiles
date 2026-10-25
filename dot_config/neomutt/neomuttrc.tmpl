@@ -125,6 +125,13 @@ macro index,pager a "<save-message>+Archive<enter>" "archive"
 # Labels/ and asks which to take off. Both work from any folder.
 macro index,pager + "<copy-message>+Labels/" "add a label"
 macro index,pager - "<pipe-message>~/bin/mail-unlabel<enter>" "remove a label"
+# In the attachment list (v): o opens the attachment in its macOS app, whatever
+# it is (Enter already shows images inline and opens PDFs; see mailcap).
+macro attach o "<pipe-entry>~/bin/mail-open<enter>" "open in its app"
+# No "Press any key" after external commands: the tools that need a pause take
+# their own (mail-image, mail-unlabel), so with it on an image took two keys to
+# leave. The cost: output from ! and | vanishes at once — add `; read` to see it.
+set wait_key = no
 
 # ── Colours: Catppuccin Frappé ───────────────────────────────────────────────
 # Terminal colour numbers, not hex. NeoMutt takes "#rrggbb" only when TERM

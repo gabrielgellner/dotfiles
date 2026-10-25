@@ -1,0 +1,27 @@
+#!/bin/sh
+# Opens a mail attachment in its macOS app (Preview for images and PDFs).
+#
+#   mail-open FILE   — from NeoMutt's mailcap (Enter on a PDF)
+#   mail-open < data — from the attachment list's `o` key, which pipes it
+#
+# The file is copied first: NeoMutt deletes its temporary copy as soon as this
+# returns, and `open` returns at once, so the app would find nothing. Copies
+# live in ~/.cache/mail-open and are cleared after a day. Piped data has no
+# name, so the extension comes from `file`, which is what `open` goes by.
+# MAIL_OPEN_DRYRUN=1 prints instead of opening, for testing.
+set -eu
+dir="${XDG_CACHE_HOME:-$HOME/.cache}/mail-open"
+mkdir -p "$dir"
+find "$dir" -type f -mtime +1 -delete 2>/dev/null || true
+if [ $# -gt 0 ]; then
+    dest="$dir/$(basename "$1")"
+    cp "$1" "$dest"
+else
+    tmp="$dir/attachment-$$"
+    cat > "$tmp"
+    ext=$(file -b --extension "$tmp" | cut -d/ -f1)
+    case "$ext" in ""|"???") ext=$(file -b --mime-type "$tmp" | sed 's|.*/||') ;; esac
+    dest="$tmp.$ext"
+    mv "$tmp" "$dest"
+fi
+if [ -n "${MAIL_OPEN_DRYRUN:-}" ]; then echo "would open: $dest"; else open "$dest"; fi

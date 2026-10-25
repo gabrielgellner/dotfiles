@@ -74,6 +74,13 @@ def kind(fn, ct, data):
     if ct.startswith(("audio/", "video/")) or fn.endswith((".wav", ".mp3", ".aif", ".aiff", ".flac",
                                                           ".m4a", ".mp4", ".mov", ".m4v")):
         return "audio"
+    # Everything else is a "file" only if someone named it, and not mail
+    # plumbing: in the Gmail archive 2,758 of 3,318 such parts were unnamed
+    # XML — the archive's Chat transcripts — and the rest of the noise was
+    # winmail.dat, signatures and HTML copies of message bodies.
+    if not fn or fn.endswith((".xml", ".dat", ".asc", ".sig", ".p7s", ".html", ".htm")) \
+            or ct in ("application/pgp-signature", "application/pkcs7-signature", "application/ms-tnef"):
+        return None
     return "file"
 
 

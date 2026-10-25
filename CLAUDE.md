@@ -147,6 +147,7 @@ out to be present on macOS too.
 | `bin/executable_mail-backup`       | `~/bin/mail-backup`       | encrypted restic backup of the maildir to the NAS — same section |
 | `bin/executable_mail-attachments`  | `~/bin/mail-attachments`  | copies attachments worth keeping to the NAS, by hand — same section |
 | `bin/executable_mail-unlabel`      | `~/bin/mail-unlabel`      | NeoMutt's `-`: takes one label off a message — same section |
+| `bin/executable_mail-image`, `bin/executable_mail-open` | `~/bin/…` | NeoMutt attachments: inline in kitty, or in their macOS app — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -682,6 +683,19 @@ like an orphan, before it went.
   default is to stay, so a reflexive `q` then Enter does nothing. It covers
   `x` (exit without saving) too, and the pager's `q` still just goes back —
   all four measured in a throwaway session.
+- **Attachments are viewed through mailcap**, which before covered only HTML,
+  so an image showed as raw bytes. `image/*` now runs `~/bin/mail-image`
+  (needsterminal): `kitten icat` draws it inline, through tmux by switching on
+  passthrough for its own pane as snacks.nvim does, and the script waits for
+  Enter itself and clears the image — icat's `--hold` prompt did not answer to
+  Enter in a test session. `application/pdf` runs `~/bin/mail-open`, and `o`
+  in the attachment list pipes any attachment to it; it copies the file out of
+  NeoMutt's temp file first (deleted the moment the command returns, while
+  `open` returns at once) and names piped data with `file --extension`. Tested
+  in a detached session up to the pixels: kitty's placeholder cells appeared,
+  one Enter came back, the PDF landed in `~/.cache/mail-open`. Seeing the image
+  needs a real kitty window. `wait_key = no`, or leaving an image took two
+  keys; the cost is that `!` and `|` output no longer waits.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,

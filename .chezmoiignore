@@ -118,6 +118,8 @@ Library/LaunchAgents/local.mail-backup.plist
 bin/mail-backup
 bin/mail-attachments
 bin/mail-unlabel
+bin/mail-image
+bin/mail-open
 {{ end -}}
 {{/*
   Nothing else under ~/Library is managed, and on Linux there is no ~/Library.

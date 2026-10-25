@@ -1,0 +1,22 @@
+#!/bin/sh
+# Shows an image attachment inline in kitty — NeoMutt's mailcap runs this for
+# image/* when Enter is pressed on one in the attachment list.
+#
+# kitty's graphics protocol reaches kitty through tmux only where tmux allows
+# passthrough, which is off by default; it is switched on for this pane alone,
+# the way snacks.nvim does for nvim's. The script waits for Enter itself
+# rather than using icat's --hold, whose prompt did not answer to Enter in a
+# test session; --clear then takes the picture off, since kitty images
+# otherwise outlive the program that drew them.
+#
+# $1 is NeoMutt's temporary copy of the attachment.
+[ -n "${TMUX:-}" ] && tmux set -p allow-passthrough on >/dev/null 2>&1
+clear
+if kitten icat --transfer-mode=stream "$1"; then
+    printf '\n[Enter to go back — o in the attachment list opens it in Preview] '
+else
+    printf '\nkitten icat could not show it here. Press o in the attachment list to open it in an app instead. '
+fi
+read -r _ </dev/tty
+kitten icat --clear >/dev/null 2>&1
+clear

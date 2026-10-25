@@ -61,6 +61,18 @@ in it is **bold blue**.
 `J` / `K` mean folders in the index and messages in the pager — the same keys,
 one level apart.
 
+**Attachments.** `v` lists them; then:
+
+| Key     | Does                                                          |
+| ------- | ------------------------------------------------------------- |
+| `Enter` | an image: shown inline in kitty — `Enter` again to come back   |
+| `Enter` | a PDF: opens in Preview                                       |
+| `o`     | any attachment: opens in its macOS app                        |
+| `s`     | save it somewhere                                             |
+
+Inline images need kitty; through tmux they need passthrough, which the
+viewer switches on for its own pane.
+
 ## Folders and labels
 
 Proton puts every message in **one folder** — Inbox, Archive, Sent, Trash — and
