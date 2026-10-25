@@ -143,7 +143,33 @@ bind pager j next-line
 bind pager k previous-line
 macro index J "<sidebar-next><sidebar-open>" "next folder"
 macro index K "<sidebar-prev><sidebar-open>" "previous folder"
-macro index,pager a "<save-message>+Archive<enter>" "archive"
+macro index a "<save-message>+Archive<enter>" "archive"
+# Reading a thread stays inside it. Enter limits the index to the thread and
+# opens it; q or i clears the limit and folds every thread back up, leaving the
+# cursor on the one just read. Without this, opening a message expanded its
+# thread for good, and J ran on past its end into the next one.
+# - collapse-all toggles a folder-wide flag rather than folding, but clearing
+#   the limit re-expands everything, so after <limit>all it always collapses
+#   (measured on four opens in a row, thread and single message alike).
+# - J, K, d and a fall out of the pager when there is no next message, here at
+#   the end of the thread, into the limited index; the trailing pair reopens the
+#   message there, so you stay put. It is display-toggle-weed twice because the
+#   pager has no display-message: left over in a macro, that errored and ate
+#   the next key you pressed. Twice is a no-op in the pager and "open with
+#   headers as usual" in the index.
+# - Ctrl-N/Ctrl-P do what J/K do, as in nvim; they were next/previous thread,
+#   which in a one-thread view has nowhere to go.
+# Clearing the limit also clears one set with l.
+macro index <return> "<limit-current-thread><display-message>" "read the thread"
+macro index <enter> "<limit-current-thread><display-message>" "read the thread"
+macro pager q "<exit><limit>all<enter><collapse-all>" "back to the folder"
+macro pager i "<exit><limit>all<enter><collapse-all>" "back to the folder"
+macro pager J "<next-entry><display-toggle-weed><display-toggle-weed>" "next in thread"
+macro pager K "<previous-entry><display-toggle-weed><display-toggle-weed>" "previous in thread"
+macro pager \Cn "<next-entry><display-toggle-weed><display-toggle-weed>" "next in thread"
+macro pager \Cp "<previous-entry><display-toggle-weed><display-toggle-weed>" "previous in thread"
+macro pager d "<delete-message><display-toggle-weed><display-toggle-weed>" "trash"
+macro pager a "<save-message>+Archive<enter><display-toggle-weed><display-toggle-weed>" "archive"
 # Labels: + adds one (Tab completes after the prefix), - removes one by
 # handing the message to ~/bin/mail-unlabel, which finds its copies under
 # Labels/ and asks which to take off. Both work from any folder.

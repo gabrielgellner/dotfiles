@@ -44,9 +44,15 @@ in it is **bold blue**.
 
 | Key     | Does                                        |
 | ------- | ------------------------------------------- |
-| `Enter` | open the thread's first message             |
+| `Enter` | read the thread, from its first message     |
 | `Esc v` | open / collapse the thread under the cursor |
 | `Esc V` | open / collapse every thread                |
+
+**Reading a thread keeps you inside it.** `Enter` narrows the index to that
+thread and opens it; `J` / `K` walk it and stop at either end, as do `d` and
+`a` on its last message. `q` brings the whole folder back, every thread
+collapsed again, the cursor on the one you read. Coming back clears a limit set
+with `l`, too.
 
 ## In the pager
 
@@ -54,8 +60,8 @@ in it is **bold blue**.
 | ------------- | ------------------------------------------------------------- |
 | `j` / `k`     | scroll a line                                                 |
 | `Space` / `-` | next / previous page                                          |
-| `J` / `K`     | next / previous **message** — walks through a thread, then on |
-| `q` or `i`    | back to the index                                             |
+| `J` / `K`     | next / previous message **in the thread** (`Ctrl-N` / `Ctrl-P`) |
+| `q` or `i`    | back to the folder, threads collapsed                         |
 | `v`           | attachments                                                   |
 
 `J` / `K` mean folders in the index and messages in the pager — the same keys,

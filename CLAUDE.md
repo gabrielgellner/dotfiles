@@ -675,11 +675,26 @@ like an orphan, before it went.
   20-message maildir (5, 12, 20, 1). There is no relative numbering.
 - **Threads open collapsed** (`folder-hook . 'push <collapse-all>'`), the row
   showing the hidden count (`%M`) and drawn bold blue when the thread holds
-  anything unread (`~v~(~U)`). In the pager `J`/`K` are mutt's next/previous
-  message again — measured on a three-message collapsed thread: `Enter` opened
-  the first, `J` walked the other two, then on to the next row. They had been
-  bound to next/previous *folder* in the pager too, which took that away;
-  folder hopping is the index's alone now.
+  anything unread (`~v~(~U)`). Folder hopping is the index's `J`/`K` alone.
+- **Reading a thread stays inside it** (2026-10-25). Stock, `Enter` expanded
+  the thread for good and `J` ran on past its end into the next row. Now
+  `Enter` is `<limit-current-thread><display-message>` and the pager's `q`/`i`
+  are `<exit><limit>all<enter><collapse-all>`. Three things were measured to
+  get there, on a scratch maildir of a 3-thread, a single and a 2-thread:
+  - `collapse-all` is a **toggle of a folder-wide flag**, not "collapse": run
+    after a thread had been opened it expanded everything. But `<limit>all`
+    re-expands every thread anyway, so after it the toggle always collapses —
+    four opens in a row came back folded, cursor on the thread just read.
+  - **`next-entry` with nowhere to go leaves the pager** — silently, into the
+    still-limited index. `d` and `a` do the same on the thread's last
+    message. So those pager keys end in a reopen.
+  - **The pager has no `display-message`.** Left over at the end of a macro it
+    reported "Key is not bound" and *swallowed the next key pressed* — a `d`
+    after `J` deleted nothing. The reopen is `display-toggle-weed` twice: a
+    no-op in the pager, "open with headers as usual" in the index.
+  Testing `d`/`a` needs `folder` *and* `trash` overridden: `trash = "+Trash"`
+  is expanded when the config loads, so resetting `folder` afterwards still
+  left it pointing at the real Proton Trash.
 - **`q` in the index asks before quitting** (`quit = ask-no`): the prompt's
   default is to stay, so a reflexive `q` then Enter does nothing. It covers
   `x` (exit without saving) too, and the pager's `q` still just goes back —
