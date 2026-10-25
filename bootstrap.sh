@@ -588,6 +588,12 @@ if $IS_MACOS || $IS_OMARCHY; then
     elif ! command -v cargo &>/dev/null; then
         record_failure "gmuse (no cargo)"
     elif [[ -f "$GMUSE_SRC/Cargo.toml" ]]; then
+        # cmake first: opusic-sys (under symphonia-adapter-libopus) compiles
+        # libopus from source with it, and the build fails without — measured
+        # on the Omarchy machine, "failed to run custom build command for
+        # `opusic-sys v0.7.5` ... is `cmake` not installed?". The laptop had it
+        # already, which is why nothing listed it.
+        brew_install cmake
         # Release, not debug: gmuse's own justfile notes debug builds are too
         # slow for glitch-free audio. --locked builds against its Cargo.lock.
         green "Building gmuse from $GMUSE_SRC and linking it into ~/.local/bin..."
@@ -599,6 +605,7 @@ if $IS_MACOS || $IS_OMARCHY; then
         fi
     else
         green "Installing gmuse from GitHub (no checkout at $GMUSE_SRC)..."
+        brew_install cmake   # the same opusic-sys dependency, see above
         cargo install --locked --git https://github.com/gabrielgellner/gmuse gmuse \
             || record_failure "gmuse"
     fi
