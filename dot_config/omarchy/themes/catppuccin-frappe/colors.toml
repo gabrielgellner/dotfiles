@@ -1,0 +1,50 @@
+# Catppuccin Frappé for Omarchy — the bar, borders, lock screen and the rest of
+# the desktop, so they match the Frappé that kitty, tmux, nvim, btop and yazi
+# already pin. Omarchy's stock `catppuccin` is Mocha.
+#
+# Written by mapping Omarchy's own catppuccin theme
+# (/usr/share/omarchy/themes/catppuccin/colors.toml) onto Frappé, key by key:
+# where that file uses a Mocha colour, this uses the Frappé one with the same
+# name. The hexes match dot_config/kitty/catppuccin-frappe.conf (catppuccin/kitty
+# b14e838). Two of Omarchy's keys have no catppuccin name — `orange`, which is
+# peach here, and `brown`, a darkened flamingo in the same spirit as Mocha's.
+#
+# `backgrounds` is a symlink to the stock catppuccin theme's wallpapers rather
+# than a copy of 2MB of PNGs. theme-set copies a theme with `cp -r`, which keeps
+# the link, and finds wallpapers with `find -L`, which follows it — both
+# reproduced on a scratch copy before relying on it.
+#
+# Omarchy generates every app's colours from this file through
+# $OMARCHY_PATH/default/themed/*.tpl. Apply with
+# `omarchy theme set catppuccin-frappe`.
+mode = "dark"
+
+accent = "#8caaee"            # blue
+selection = "#51576d"         # surface1
+muted = "#626880"             # surface2
+
+background = "#303446"        # base
+dark_background = "#292c3c"   # mantle
+darker_background = "#232634" # crust
+lighter_background = "#414559" # surface0
+
+foreground = "#c6d0f5"        # text
+dark_foreground = "#737994"   # overlay0
+light_foreground = "#b5bfe2"  # subtext1
+bright_foreground = "#c6d0f5" # text
+
+red = "#e78284"
+yellow = "#e5c890"
+orange = "#ef9f76"            # peach
+green = "#a6d189"
+cyan = "#81c8be"              # teal
+blue = "#8caaee"
+magenta = "#f4b8e4"           # pink
+brown = "#7d6363"
+
+bright_red = "#e78284"
+bright_yellow = "#e5c890"
+bright_green = "#a6d189"
+bright_cyan = "#81c8be"
+bright_blue = "#8caaee"
+bright_magenta = "#f4b8e4"
