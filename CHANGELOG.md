@@ -1,6 +1,312 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
+## [v2.0.0] — 2026-10-25
+
+### Features
+
+- Gx lists the message's links in urlscan
+
+- Ctrl-J/Ctrl-K do what J/K do
+
+- Show the position in the thread under each message
+
+- Read a thread inside it, and come back to it collapsed
+
+- Complete addresses with Ctrl-Y, and align the saved searches
+
+- Complete addresses with Ctrl-T from all indexed mail
+
+- View image attachments inline in kitty, open others in their app
+
+- Academic categories, label rules, and a saved-files record
+
+- Read the Gmail archive, one kind at a time
+
+- The Gmail archive, searchable beside Proton and backed up
+
+- + and - for labels, and d means delete everywhere
+
+- Mail-attachments, saving attachments to the NAS by hand
+
+- Render HTML mail with lynx, without w3m's table boxes
+
+- Encrypted nightly backup of the maildir to the NAS
+
+- Ask before q quits from the index
+
+- Collapse threads on open, flag unread ones, J/K read through
+
+- Allow read-only notmuch, ask before tagging
+
+- Notmuch search across every folder
+
+- Number the rows so typing a number jumps there
+
+- Gg, counted j/k and nG in the message list
+
+- Ctrl-r re-lists the open folder
+
+- Fall back to subject when a reply's parent is in another folder
+
+- NeoMutt beside aerc, for comparison
+
+- Sync with aerc closed, from a launchd agent
+
+- Read through a local maildir that mbsync keeps
+
+- Colour the columns, folder tree and Nerd Font icons
+
+- Gate himalaya so sending and deleting always ask
+
+- Aerc and himalaya on Proton Mail Bridge
+
+- Octo.nvim for GitHub issues and PRs
+
+- Show the selection count in the status bar
+
+- <leader>aw starts Claude with --chrome
+
+- Register the .drab filetype
+
+- PrefersReducedMotion, for the xterm machine's sake
+
+- Xterm instead of kitty on the RDP machine
+
+- Install racket, the REPL behind conjure
+
+- Bookmarks via whoosh, on vim's marks grammar
+
+- Vim counts, from a vendored relative-motions
+
+- Track .xsession, the file that starts i3 under xrdp
+
+- Font size per machine, because the point is not the same size
+
+- Archive the selection with `c a`
+
+- Render mermaid diagrams inline in markdown
+
+- Give .scrawl its own filetype, highlighted as markdown
+
+- The bar asks the engine, because the player is no longer the view
+
+- Install broot, and generate its launcher without the patch
+
+- Track broot's br launcher, guarded and XDG
+
+- Yazi as a third file browser, and into the explorer
+
+- Let the shell follow yazi out, on `yazi` and `y`
+
+- A Catppuccin Frappé theme, registered as a theme
+
+- Show what gmuse is playing in status-right
+
+- Toggle a plv or lazygit float to full screen with <a-m>
+
+- View a file from the snacks explorer in plv, with T
+
+- **Breaking:** Replace cmus with gmuse, run from its build tree
+
+- View data files in plv, in a float
+
+- Mark breaking changes in the changelog template
+
+- **Breaking:** Drop Haskell support
+
+- Track the config with a frappe theme and meter-first layout
+
+- Configure the RSS reader, frappe theme and feed list
+
+
+### Bug Fixes
+
+- A Frappé palette, so the selected link is readable
+
+- Bring back reply-all as gr
+
+- Set popup and menu styles quietly on tmux < 3.3
+
+- Stop prefix+P locking the pane on the xrdp machine
+
+- Format gitignored markdown when the project has a .prettierignore
+
+- Pin popup and menu styles to frappe crust
+
+- Parse and fold big XML files
+
+- Model back to opus[1m] on every machine
+
+- Start tmux through zsh, so popups can find dev
+
+- Drop the counted tab commands, keep {count}gt
+
+- Case pairs that were never scope, and a key that only errored
+
+- Install yazi packages whatever the flavor's state
+
+- The disk filter names both machines, not just the laptop
+
+- Keep Claude Code out of the alternate screen
+
+- The Claude counters latched, and said "wants you" while it worked
+
+- Gate eilmeldung on macOS, so the Linux run stops failing
+
+- Resolve rustup before deciding it is missing, portable mktemp
+
+- Collect install failures instead of aborting the run
+
+- Correct three measured comments and one mocha colour
+
+- Unpin rustaceanvim from v5, which warns on every rust buffer
+
+
+### Performance
+
+- Drop the one-second pause after every sync
+
+
+### Refactoring
+
+- Remove VisiData
+
+- Remove aerc; NeoMutt is the client
+
+
+### Documentation
+
+- A killed tmux session can leave its program running
+
+- Refresh the README for the setup as it stands
+
+- Proton labels do not nest; SDMX sits beside Work & Research
+
+- How to label an email in neomutt, and that tag means select
+
+- A guide to the neomutt setup
+
+- Deleting inside Trash in NeoMutt is a permanent delete
+
+- Emptying Trash in Proton while deletes sync crosses them
+
+- What label create, copy and delete do through Bridge
+
+- Bridge files sent mail itself, so no copy-to
+
+- Plenary is installed now; say what that revives
+
+- E31 in v:errmsg after opening markdown is expected
+
+- Yazi's <Esc> order was stated backwards for filters
+
+- Say what yazi's copy keys actually copy
+
+- A card for scheme/racket, and what paredit cannot do
+
+- A card for markdown
+
+- A card for the Claude Code setup
+
+- The music card still described gmuse before the split
+
+- The git card was missing how to stage from a review
+
+- Cards for debugging and treesitter
+
+- A card for the LSP setup
+
+- A card for the zsh setup
+
+- A card for the tmux setup
+
+- A card for the just recipes in both repos
+
+- Yazi does have switch-by-index, via {count}gt
+
+- Counts change what H, L and w mean in yazi
+
+- Main on the notes repo is a hook, not a rule
+
+- A card for the three note tiers
+
+- Where notes live, and why none of them live here
+
+- Bring the yazi card up to this config
+
+- The keymap audit, and why `d` only looked broken
+
+- Compare parser revisions as strings, not as SHAs
+
+- Why the queries cannot go stale, only the parsers
+
+- :Lazy restore leaves the parsers behind
+
+- Move the remote to GitHub and re-protect main and v* there
+
+- A Yazi guide, on q/Q and where the shell lands
+
+- The Claude status latch, and why it is a latch
+
+- A VisiData guide, on column layout
+
+- The lock landed, and a guide for programs in a window
+
+- Session.toml is not saved unconditionally, --no-resume opts out
+
+- Correct two claims the guide got wrong, and sharpen two more
+
+- Git-cliff names the skipped commits now, and style is used
+
+- Fix a comment that was misplaced and wrong on both halves
+
+- Record that the eilmeldung shadows A/B did not reproduce
+
+- Name the command that honours the pin, not the one that moves it
+
+- State the cmd+t unbind as a decision, not a reconstruction
+
+- Retire two dead reasons and correct the theme count
+
+- List bash-language-server among the language servers
+
+- Drop the lualine mention and re-measure the keymap census
+
+- Correct the scrolloff comments to match the value in use
+
+- Record btop's two writers and its preset trap
+
+- Record how eilmeldung is configured and verified
+
+- Record that v* tags are now protected
+
+
+### Chores
+
+- Lazy update; follow markdown-preview/live-server renames
+
+- Model opus[1m], captured from the live settings
+
+- Re-add settings.json, which the tool reordered
+
+- Track the process sort, which is "cpu direct" now
+
+- Update 13 plugins, and the parsers with them
+
+- Drop eilmeldung, the RSS reader
+
+- Pin remote control off at startup
+
+- Re-add settings.json to capture rust-analyzer-lsp
+
+- Move codediff to v2.67.10 and lspconfig to master's tip
+
+- Move zk-nvim to v0.5.2
+
+- Capture effortLevel high as the tracked default
+
+
 ## [v1.1.0] — 2026-08-27
 
 ### Features
