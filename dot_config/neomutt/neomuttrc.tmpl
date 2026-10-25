@@ -195,7 +195,8 @@ macro index,pager - "<pipe-message>~/bin/mail-unlabel<enter>" "remove a label"
 # the macro so that with messages tagged (t, ; …) both halves apply to all of
 # them — a ; prefix would reach only the macro's first function. A space is
 # typed as <quote-char> and a space: in the prompt Space is mailbox-cycle, and a
-# bare one made "Finance & Tax" copy nowhere while the archive half still ran.
+# bare one sent "Finance & Tax" copies to a new mailbox named Tax in the working
+# directory, while the archive half still ran.
 # The label list
 # is also in the Proton Sieve filter; a new label needs both.
 {{- $labels := list

@@ -111,12 +111,12 @@ Naming conventions: `dot_*` → `~/.*`, `executable_*` gets the execute bit,
 `private_*` gets `chmod 600`, `.tmpl` is a Go template. `run_onchange_*`
 scripts reload the launchd agents when their definitions change.
 
-Some tracked files have a second writer — `~/.claude/settings.json`,
-`karabiner.json` and `btop.conf` are all rewritten by their own apps, so a
-change made inside one is reverted by the next `chezmoi apply` unless you
-`chezmoi re-add` it first. gmuse avoids the hazard by construction: it never
-writes its own config, keeping state in `$XDG_STATE_HOME` instead. `CLAUDE.md`
-has the reasoning for all of them.
+Some tracked files have a second writer — `~/.claude/settings.json` and
+`karabiner.json` are both rewritten by their own apps, so a change made inside
+one is reverted by the next `chezmoi apply` unless you `chezmoi re-add` it
+first. gmuse avoids the hazard by construction: it never writes its own
+config, keeping state in `$XDG_STATE_HOME` instead. btop is told not to
+(`save_config_on_exit = false`). `CLAUDE.md` has the reasoning for all of them.
 
 ## Conventions
 

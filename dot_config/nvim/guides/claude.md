@@ -122,7 +122,7 @@ made in the tool is reverted by the next `chezmoi apply`.
 chezmoi re-add ~/.claude/settings.json     # before applying
 ```
 
-Same shape as karabiner and btop — see CLAUDE.md for the full list.
+Same shape as karabiner — see CLAUDE.md for the full list.
 
 Editing that file from a script makes you a **third** writer, so keep the
 serialiser faithful: Python's `json.dump` defaults to `ensure_ascii=True`, which

@@ -284,20 +284,19 @@ attached to *that* — verified in a nested tmux, the popup came up showing
 ctrl-x with it. Any utility session added here has the same trap: name it for
 its role, and check the name against `ls ~/dev` first.
 
-`~/.config/btop/btop.conf` is the karabiner problem a third time, with an extra
-edge. btop rewrites the whole file on quit whenever `save_config_on_exit` is
-true, so `chezmoi re-add ~/.config/btop/btop.conf` before applying after any
-change made in its own options menu (`F2`). The rewrite is faithful — quitting
-btop and diffing showed every hand-edited value preserved — so the tracked copy
-is btop's own canonical output and `chezmoi diff` stays quiet. The edge is
-`shown_boxes`: cycling view presets with `p` *mutates* it, and the mutated value
-is what gets saved. Quitting on a preset that hides the net box wrote
-`shown_boxes = "cpu proc"` into the file (measured, twice). So quit from
-preset 0 before re-adding, or fix the line up by hand.
+`~/.config/btop/btop.conf` was the karabiner problem a third time, and is now
+the gmuse case: **`save_config_on_exit = false`**, so btop never writes it. On,
+btop rewrote the whole file on every quit, and cycling view presets with `p`
+*mutates* `shown_boxes` — quitting on preset 1 saved `"cpu mem proc"`, which
+left `chezmoi apply` stuck on a both-sides-changed prompt. With it off, the same
+`p p P p` then `q` on a throwaway copy changed no line (2026-10-25, A/B with
+`btop -c`; btop ignores keys for its first second or two, so wait before
+sending any). The cost: a change made in btop's options menu (`F2`) lasts
+until it quits. Make it stick by editing the tracked copy and applying.
 
 `disks_filter = "/ /media/triples /System/Volumes/Data"` names mountpoints for
 *both* machines at once, and is deliberately *not* a template: `chezmoi re-add`
-refuses to overwrite templates, which would break the workflow above for the
+refuses to overwrite templates, which would break a re-add workflow for the
 sake of one line. The union is safe because the match is by **equality**, not
 prefix — btop tests each mountpoint for membership in the list — so an entry
 naming a path the machine does not have is inert rather than wrong. That is what
@@ -788,7 +787,9 @@ like an orphan, before it went.
     a macro's first function. With it, two tagged messages were both labelled
     and archived and the one under the cursor was left alone.
   - **Space in a prompt is `mailbox-cycle`**, so a macro typing "Finance & Tax"
-    copied nowhere — and the archive half still ran, filing without the label.
+    saved into a new maildir named `Tax` in NeoMutt's working directory (it
+    turned up later as an untracked `Tax/` in this repo, where the test session
+    had started) — and the archive half still ran, filing without the label.
     Spaces are typed `<quote-char> `.
   - **A driving harness can eat the keys**: an error such as "You are on the
     last message" (a `t` on the last row) flushed the `,f` sent after it.
