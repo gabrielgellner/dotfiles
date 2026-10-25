@@ -949,6 +949,11 @@ hard way:
   the *current* session before any session name was tried — and test keystrokes
   went into the user's own nvim (2026-10-24). Confirm with
   `tmux display-message -p -t '=name:' '#S'` before sending anything.
+- **A killed session can leave its program running.** `tmux kill-session`
+  hangs up the pane, and aerc ignored the hangup: 42 test instances outlived
+  their sessions by most of a day, invisible, before anyone noticed. Quit the
+  program inside first, or `pgrep` for it after teardown and kill what is left.
+  NeoMutt did exit; it is a per-program thing, so check rather than assume.
 - **Check colours from the escapes, not the look.** `capture-pane -e` keeps
   the SGR sequences, so `^[[38;5;183m` on a row is mauve and `^[[1m` is bold —
   a check on the attribute itself rather than a screenshot.
