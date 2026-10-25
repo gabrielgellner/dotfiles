@@ -23,8 +23,16 @@
 #     12.5   192x51   cell 10x21     size where the cell gets *narrower*.
 #     12.0   192x54   cell 10x20
 #     10.5   213x60   cell  9x18
-{{ if eq .chezmoi.os "darwin" -}}
+#
+# Omarchy is Wayland at scale 1, where kitty uses the same 96-per-inch point as
+# that Xvnc — but on a physical panel rather than a remote one: the BenQ
+# EX3501R is 3440 px over 820 mm (`hyprctl monitors`), about 107 ppi. 11.0 is
+# a starting point reasoned from that, not yet measured for taste or grid.
+{{ $desktop := includeTemplate "desktop" . -}}
+{{ if eq $desktop "macos" -}}
 font_size 14.0
+{{- else if eq $desktop "omarchy" -}}
+font_size 11.0
 {{- else -}}
 font_size 12.0
 {{- end }}

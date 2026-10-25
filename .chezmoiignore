@@ -32,12 +32,28 @@ bootstrap.sh
   session to start.
 
   .config/xterm is the terminal i3 launches there; macOS uses kitty.
+
+  All four belong to the RDP machine, not to Linux: the Omarchy desktop runs
+  Hyprland on Wayland and has no use for any of them. See
+  .chezmoitemplates/desktop for how the three machines are told apart.
 */ -}}
-{{ if ne .chezmoi.os "linux" -}}
+{{ $desktop := includeTemplate "desktop" . -}}
+{{ if ne $desktop "xrdp" -}}
 .config/i3/**
 .config/i3status/**
 .config/xterm/**
 .xsession
+{{ end -}}
+
+{{/*
+  Omarchy's half. Only the files Omarchy hands the user to override are
+  tracked — hypr/input.lua and a theme of our own — never anything under
+  /usr/share/omarchy, which its package owns. Everything else in ~/.config/hypr
+  stays Omarchy's, and chezmoi leaves an untracked file alone.
+*/ -}}
+{{ if ne $desktop "omarchy" -}}
+.config/hypr/**
+.config/omarchy/**
 {{ end -}}
 
 {{/*
@@ -93,9 +109,10 @@ bootstrap.sh
 {{/*
   mkv2mp4 remuxes video and needs ffmpeg, which is a large install for a
   machine that is used for work. bootstrap.sh gates the ffmpeg package the same
-  way, so the script and its dependency arrive together or not at all.
+  way, so the script and its dependency arrive together or not at all. Omarchy
+  ships ffmpeg itself, so the personal desktop gets the script as well.
 */ -}}
-{{ if ne .chezmoi.os "darwin" -}}
+{{ if eq $desktop "xrdp" -}}
 bin/mkv2mp4
 {{ end -}}
 

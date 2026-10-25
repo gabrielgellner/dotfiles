@@ -1,0 +1,24 @@
+{{- /*
+  Which of the three machines this is, as one word: macos, omarchy or xrdp.
+
+  .chezmoi.os stopped being enough once a second Linux machine arrived. It used
+  to mean "the RDP work VM", so i3, xterm and a 12pt kitty all keyed on it — and
+  an Omarchy desktop is Linux too, running Hyprland on Wayland, where every one
+  of those is wrong.
+
+  Detected rather than asked, and included rather than stored in the generated
+  chezmoi.toml. A prompt would need every machine to re-run `chezmoi init`
+  before the key existed, and a template reading a missing key fails the apply.
+  Computing it on each use needs nothing on any machine. Omarchy is the
+  directory its package installs everything into; any other Linux is taken to
+  be the RDP machine, which is what `linux` meant before this file existed.
+
+  Use: {{ $desktop := includeTemplate "desktop" . }}
+*/ -}}
+{{- if eq .chezmoi.os "darwin" -}}
+macos
+{{- else if stat "/usr/share/omarchy" -}}
+omarchy
+{{- else -}}
+xrdp
+{{- end -}}
