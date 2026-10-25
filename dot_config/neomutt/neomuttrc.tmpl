@@ -187,6 +187,28 @@ macro pager a "<save-message>+Archive<enter><display-toggle-weed><display-toggle
 # Labels/ and asks which to take off. Both work from any folder.
 macro index,pager + "<copy-message>+Labels/" "add a label"
 macro index,pager - "<pipe-message>~/bin/mail-unlabel<enter>" "remove a label"
+# One key per label, under a , prefix: in the Inbox ,r labels Receipts *and*
+# archives, which is what filing usually is; in any other folder it only adds
+# the label, because archiving from there would pull a message out of Sent or
+# move a label copy. The folder-hooks pick the version: every folder gets the
+# label-only one, then the Inbox replaces it. auto_tag is on for the length of
+# the macro so that with messages tagged (t, ; …) both halves apply to all of
+# them — a ; prefix would reach only the macro's first function. A space is
+# typed as <quote-char> and a space: in the prompt Space is mailbox-cycle, and a
+# bare one made "Finance & Tax" copy nowhere while the archive half still ran.
+# The label list
+# is also in the Proton Sieve filter; a new label needs both.
+{{- $labels := list
+      (list "r" "Receipts") (list "f" "Finance & Tax") (list "m" "Medical")
+      (list "h" "Home") (list "p" "Pets") (list "d" "Domains & Hosting")
+      (list "c" "Cooking") (list "t" "Travel") (list "o" "Community")
+      (list "w" "Work & Research") (list "l" "Licences") (list "s" "SDMX") }}
+{{- range $labels }}
+{{- $k := index . 0 }}{{ $l := index . 1 }}{{ $typed := replace " " "<quote-char> " $l }}
+folder-hook . "macro index,pager ,{{ $k }} '<enter-command>set auto_tag<enter><copy-message>+Labels/{{ $typed }}<enter><enter-command>unset auto_tag<enter>' 'label {{ $l }}'"
+folder-hook /proton/INBOX$ "macro index ,{{ $k }} '<enter-command>set auto_tag<enter><copy-message>+Labels/{{ $typed }}<enter><save-message>+Archive<enter><enter-command>unset auto_tag<enter>' 'label {{ $l }}, archive'"
+folder-hook /proton/INBOX$ "macro pager ,{{ $k }} '<copy-message>+Labels/{{ $typed }}<enter><save-message>+Archive<enter><display-toggle-weed><display-toggle-weed>' 'label {{ $l }}, archive'"
+{{- end }}
 # gx lists the message's links, as nvim's gx opens the one under the cursor:
 # urlscan reads every MIME part, HTML hrefs included, so a link lynx wrapped
 # over two lines or left below the fold is there whole. j/k and Enter opens it

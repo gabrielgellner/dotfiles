@@ -770,6 +770,22 @@ like an orphan, before it went.
   NeoMutt — the selection on `black` (surface1), as NeoMutt's indicator, read
   back from `capture-pane -e` as `40`. The file replaces *all* the built-in
   palettes, so `p` has only this one to cycle to.
+- **`,` files a message: label and archive in one key** (`,r` Receipts …,
+  generated per label by a template `range`). Measured on a scratch tree laid
+  out like the real one, then once on Proton with a self-sent message, which
+  ended in Archive with the label and nowhere else (All Mail 1). Four things
+  shaped it:
+  - **Archive only from the Inbox.** folder-hooks give every folder the
+    label-only macro, then `/proton/INBOX$` replaces it; in Archive `,r` added
+    the label and left one copy.
+  - **Batches need `auto_tag`**, set and unset inside the macro: `;` reaches only
+    a macro's first function. With it, two tagged messages were both labelled
+    and archived and the one under the cursor was left alone.
+  - **Space in a prompt is `mailbox-cycle`**, so a macro typing "Finance & Tax"
+    copied nowhere — and the archive half still ran, filing without the label.
+    Spaces are typed `<quote-char> `.
+  - **A driving harness can eat the keys**: an error such as "You are on the
+    last message" (a `t` on the last row) flushed the `,f` sent after it.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,

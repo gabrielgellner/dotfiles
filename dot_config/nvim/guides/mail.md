@@ -104,10 +104,23 @@ folder. (`t` is not labelling — it only *selects*; see Tagging below.)
 
 | To                                | Keys                                         |
 | --------------------------------- | -------------------------------------------- |
+| **file it**: label **and** archive | `,` and the label's letter — `,r` Receipts   |
 | add a label, keep it in the Inbox | `+`, `Rec<Tab>`, `Enter`                     |
-| label it **and** clear the Inbox  | the same, then `a`                           |
-| several at once                   | `t` each, then `;+` … `Enter`, then `;a`     |
+| several at once                   | `t` each, then `,r` — it takes all tagged    |
 | take a label off                  | `-`, then the number of the label            |
+
+**The `,` keys file a message in one go.** In the Inbox `,r` labels it Receipts
+and archives it; anywhere else it only adds the label, since archiving from
+Sent or a label folder is not filing. With messages tagged it files all of them.
+
+| Key  | Label             | Key  | Label           |
+| ---- | ----------------- | ---- | --------------- |
+| `,r` | Receipts          | `,c` | Cooking         |
+| `,f` | Finance & Tax     | `,t` | Travel          |
+| `,m` | Medical           | `,o` | Community       |
+| `,h` | Home              | `,w` | Work & Research |
+| `,p` | Pets              | `,l` | Licences        |
+| `,d` | Domains & Hosting | `,s` | SDMX            |
 
 `+` opens the copy prompt with `+Labels/` already typed; `Tab` completes the
 name. `-` lists the labels this message carries and removes the one you pick
@@ -145,7 +158,7 @@ without a question. Until then `u` takes it back.
 
 **In mutt, "tag" means *select*, not label.** A tagged message is marked for
 the next action and nothing more — it gets no label, on Proton or anywhere.
-For labels, see "Labelling an email" above.
+For labels, see "Folders and labels" above.
 
 | Key            | Does                                              |
 | -------------- | ------------------------------------------------- |
