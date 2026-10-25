@@ -62,8 +62,15 @@ bootstrap.sh
   `omarchy font set`, which rewrites it whole — the omarchy shell, Qt and GTK
   all take their monospace from it. Tracking it there would make two writers
   for a file whose tuning was never meant for that screen.
+
+  conf.d/ beside it is fontconfig's own per-user drop-in directory (read
+  through /etc/fonts/conf.d/50-user.conf), which `omarchy font set` never
+  touches — so Omarchy-only rendering tweaks live there instead.
 */ -}}
-.config/fontconfig/**
+.config/fontconfig/fonts.conf
+{{ end -}}
+{{ if ne $desktop "omarchy" -}}
+.config/fontconfig/conf.d/**
 {{ end -}}
 
 {{/*

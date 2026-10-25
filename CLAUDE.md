@@ -179,7 +179,9 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
   `~/.config/fontconfig/fonts.conf` whole, and the tracked copy is tuned for
   the VM's Xvnc, so `.chezmoiignore` skips it on Omarchy. FiraCode as the
   system monospace is `omarchy font set "FiraCode Nerd Font"`; kitty names
-  its font itself and does not need it.
+  its font itself and does not need it. Rendering tweaks go in
+  `conf.d/20-subpixel.conf` instead, which Omarchy never writes: RGB subpixel
+  AA, which made the bar's text visibly crisper.
 - **The bar's text is 14px, not 12.** `.config/omarchy/shell.toml` sets the
   shell's `[font] base-size`; at 12 the text looked thin on this panel.
   `omarchy display text size` would also do it, but it writes `font_size`
