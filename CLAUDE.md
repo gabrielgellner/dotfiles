@@ -708,6 +708,11 @@ like an orphan, before it went.
     reported "Key is not bound" and *swallowed the next key pressed* — a `d`
     after `J` deleted nothing. The reopen is `display-toggle-weed` twice: a
     no-op in the pager, "open with headers as usual" in the index.
+  The same holds in a notmuch view (a search, Last 2 weeks, Starred):
+  measured on a scratch database over the same three threads, `J`/`K` and
+  `Ctrl-J`/`Ctrl-K` stopped at both ends of a thread and `q`/`i` came back
+  collapsed. Built with its own `NOTMUCH_CONFIG` and `nm_default_url`, so no
+  real message was opened (opening marks read, and that syncs to Proton).
   Testing `d`/`a` needs `folder` *and* `trash` overridden: `trash = "+Trash"`
   is expanded when the config loads, so resetting `folder` afterwards still
   left it pointing at the real Proton Trash.
