@@ -57,3 +57,10 @@ hl.config({
 --     column_width = 0.97,
 --   },
 -- })
+
+-- No window transparency. Omarchy tags every window `default-opacity` and
+-- gives it 0.985 focused / 0.96 unfocused (default/hypr/windows.lua), with
+-- browsers at 1.0 / 0.985. This file loads after those rules, so a later
+-- rule for every window overrides them all; Omarchy's own
+-- `omarchy hyprland window transparency toggle` only reaches the focused one.
+o.window(".*", { opacity = "1 1" })

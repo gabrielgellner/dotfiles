@@ -162,7 +162,10 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
   `hypr/monitors.lua` asks for the BenQ's 99.98 Hz, which `preferred` left at
   59.97. `hypr/looknfeel.lua` holds a lone tiled window to 4:3, centred,
   through Hyprland's `layout.single_window_aspect_ratio` — the ultrawide's
-  answer to a terminal stretched over 3440 px. `omarchy refresh hyprland`
+  answer to a terminal stretched over 3440 px — and a last rule setting every
+  window's opacity to `1 1`, overriding Omarchy's 0.985/0.96 (measured: the
+  focused kitty and an unfocused Brave both read 1 from `hyprctl getprop
+  ... opacity`). `omarchy refresh hyprland`
   resets all three; re-apply after one.
 - **The theme is Frappé, desktop included.**
   `.config/omarchy/themes/catppuccin-frappe` maps Omarchy's stock catppuccin
