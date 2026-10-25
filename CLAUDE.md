@@ -180,6 +180,10 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
   the VM's Xvnc, so `.chezmoiignore` skips it on Omarchy. FiraCode as the
   system monospace is `omarchy font set "FiraCode Nerd Font"`; kitty names
   its font itself and does not need it.
+- **The bar's text is 14px, not 12.** `.config/omarchy/shell.toml` sets the
+  shell's `[font] base-size`; at 12 the text looked thin on this panel.
+  `omarchy display text size` would also do it, but it writes `font_size`
+  into the chezmoi-managed `kitty.conf`, so the file is edited instead.
 - **mermaid** names `/usr/bin/chromium`: there is no Google Chrome, and
   `channel: chrome` fails there.
 - **Mail stays off.** Bridge is packaged (`protonmail-bridge`), but the stack

@@ -1,0 +1,14 @@
+# Overrides for the Omarchy shell (bar, notifications, menus). Layered over the
+# active theme's shell.toml, and watched by the shell, so a change re-flows
+# live. Tracked by chezmoi, on the Omarchy machine only.
+#
+# `omarchy display text size <px>` also writes base-size here — and then sets
+# a terminal font size inside kitty.conf, which chezmoi manages, so it is not
+# used here; edit this and GTK's text-scaling-factor separately.
+
+[font]
+# The rem root every shell text size derives from; Omarchy's default is 12.
+# At 12 on this 107 ppi panel the bar's capitals were about 8 px tall and read
+# thin and grey ("wispy"); 14 thickened the strokes with the same rendering
+# (compared on grim crops of the clock, 2026-10-25). Valid range 9-20.
+base-size = 14
