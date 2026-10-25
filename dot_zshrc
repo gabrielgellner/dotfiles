@@ -1,7 +1,8 @@
 # Only run this file for interactive shells
 [[ -o interactive ]] || return
 
-# Brew shellenv (Linux, macOS ARM, macOS Intel)
+# Brew shellenv (Linux, macOS ARM, macOS Intel). Omarchy has no brew at all —
+# pacman provides everything there — and the loop simply finds nothing.
 for _brew in /home/linuxbrew/.linuxbrew/bin/brew /opt/homebrew/bin/brew /usr/local/bin/brew; do
   if [[ -x "$_brew" ]]; then
     eval "$("$_brew" shellenv)"
@@ -13,14 +14,24 @@ unset _brew
 # Cache brew prefix
 # `brew shellenv` above already exported HOMEBREW_PREFIX, so asking brew again
 # would fork a process for a value we already have.
-#
-# If the loop found no brew, say so rather than carrying an empty prefix into
-# fpath and the plugin paths below — but keep going. ${VAR:?} would abort the
-# rest of this file, and a half-sourced rc (no aliases, no PATH, no vi mode) is
-# a worse shell than one missing its completions.
 BREW_PREFIX="$HOMEBREW_PREFIX"
-[[ -n $BREW_PREFIX ]] ||
-  print -u2 "zshrc: no brew found — completions and the zsh plugins will fail to load"
+
+# Where the three zsh plugins live. brew keeps them under its prefix. Without
+# brew they come from Arch's packages, which install to /usr/share/zsh/plugins
+# — and fzf-tab is the AUR's fzf-tab-git there, a name its directory keeps.
+#
+# If neither exists, say so rather than sourcing paths that are not there — but
+# keep going. ${VAR:?} would abort the rest of this file, and a half-sourced rc
+# (no aliases, no PATH, no vi mode) is a worse shell than one missing plugins.
+if [[ -n $BREW_PREFIX ]]; then
+  _zsh_plugins="$BREW_PREFIX/share"
+  _fzf_tab="$_zsh_plugins/fzf-tab/fzf-tab.zsh"
+else
+  _zsh_plugins=/usr/share/zsh/plugins
+  _fzf_tab="$_zsh_plugins/fzf-tab-git/fzf-tab.zsh"
+fi
+[[ -d $_zsh_plugins ]] ||
+  print -u2 "zshrc: no brew and no $_zsh_plugins — the zsh plugins will fail to load"
 
 # Don't let Ctrl-S freeze the terminal
 stty -ixon
@@ -79,7 +90,7 @@ unset _zcompdump_stale
 # the last thing to bind ^I. fzf's own shell integration (`fzf --zsh`) used to
 # sit just above and bind ^I, C-t and Alt-c. It was dropped as unused: atuin had
 # already taken its C-r, and Tab is fzf-tab's.
-source "$BREW_PREFIX/share/fzf-tab/fzf-tab.zsh"
+source "$_fzf_tab"
 
 # `menu no` is required rather than cosmetic: zsh's own completion menu would
 # consume the unambiguous prefix before fzf-tab could see it.
@@ -171,7 +182,7 @@ SAVEHIST=10000
 # plugin meant no autosuggestions and no explanation for it. The tool evals
 # below — fzf, starship, zoxide, direnv — already fail loudly, so this matches
 # them.
-source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+source "$_zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # Prompt
 # Guarded so it runs once per shell *process*, not once per source. Starship's
@@ -288,8 +299,15 @@ bindkey -M viins '^N' down-line-or-history
 # use direnv for automatic .env loading
 eval "$(direnv hook zsh)"
 
+# mise, which is how Omarchy installs claude, node and gh. The session's PATH
+# already holds mise's shims, so those resolve without this; activating is what
+# makes a project's own mise.toml take effect on cd, as Omarchy's bash does in
+# default/bash/init. Guarded: neither the laptop nor the VM has mise.
+command -v mise >/dev/null && eval "$(mise activate zsh)"
+
 # zsh-syntax-highlighting (must be last)
-source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+source "$_zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+unset _zsh_plugins _fzf_tab
 
 # Setup personal path
 # ~/.cargo/bin is here because bootstrap.sh installs rustup with
