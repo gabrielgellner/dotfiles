@@ -171,8 +171,8 @@ them. `tag:gmail` narrows to the archive, and its old Gmail labels are tags:
 | `folder:"Labels/Receipts" not tag:unread` | a label, read only      |
 
 The sidebar's **Last 2 weeks** and **Starred** are saved searches of the same
-kind. A result behaves like a message in a folder — `d` there moves it to
-Trash too.
+kind, named `recent` and `starred` in notmuch's config (`query:starred`). A
+result behaves like a message in a folder — `d` there moves it to Trash too.
 
 > **Never give a message the notmuch tag `deleted`.** It becomes the mail
 > file's "trashed" flag, and the sync turns that into a **permanent delete** on
@@ -188,8 +188,10 @@ Trash too.
 | `f`  | forward                  |
 | `R`  | reopen a postponed draft |
 
-**Addresses complete with `Ctrl-T`** at the To:, Cc: and Bcc: prompts: type
-part of a name or address, `Ctrl-T`, pick from the list (`Enter`). It draws on
+**Addresses complete with `Ctrl-Y`** (or `Ctrl-T`) at the To:, Cc: and Bcc:
+prompts: type part of a name or address, then `Ctrl-Y`. One match fills in; more
+open a list that takes nvim's completion keys — `Ctrl-N`/`Ctrl-P` to move,
+`Ctrl-Y` to take one (`Enter` too), `Ctrl-E` to leave. It draws on
 all your mail, Proton and the Gmail archive, people you have written to first;
 the list is rebuilt daily (`mail-contacts --rebuild` to force it). `Tab` there
 completes only aliases.

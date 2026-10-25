@@ -34,3 +34,11 @@ exclude_tags=
 # maps to the T (trashed) flag, and with mbsync's Expunge Both that is a
 # permanent delete on Proton. Never tag anything deleted; delete in NeoMutt.
 synchronize_flags=true
+
+[query]
+# NeoMutt's two sidebar searches, by name (notmuch://?query=query:recent). In
+# the URL they were indented in the sidebar one level per / in the query, since
+# sidebar_folder_indent counts slashes in the whole path; a name has none.
+# Proton only: the archive keeps receiving a copy of whatever Gmail forwards.
+recent=date:14d.. and path:proton/** and not folder:proton/Trash and not folder:proton/Spam
+starred=tag:flagged and path:proton/** and not folder:proton/Trash

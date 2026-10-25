@@ -38,10 +38,10 @@ mailboxes `cd ~/.local/share/mail/proton && find Labels -type d -name cur | sed 
 # search moved the file to Trash, the same as in a folder.
 set nm_default_url = "notmuch://{{ .chezmoi.homeDir }}/.local/share/notmuch/mail"
 set nm_query_type = threads
-# Both saved searches are Proton only: the archive keeps receiving a copy of
-# whatever Gmail forwards, which would otherwise show up here twice.
-virtual-mailboxes "󰃰 Last 2 weeks" "notmuch://?query=date:14d.. and path:proton/** and not folder:proton/Trash and not folder:proton/Spam" \
-                  "󰈻 Starred" "notmuch://?query=tag:flagged and path:proton/** and not folder:proton/Trash"
+# Both saved searches are named queries in ~/.config/notmuch/default/config
+# (Proton only); written out here, their slashes indented them in the sidebar.
+virtual-mailboxes "󰃰 Last 2 weeks" "notmuch://?query=query:recent" \
+                  "󰈻 Starred" "notmuch://?query=query:starred"
 # Search everything: \ then a notmuch query (from:amy, subject:passport, …);
 # tag:gmail narrows to the Gmail archive, e.g. tag:gmail tag:"Product Serial".
 bind index,pager \\ vfolder-from-query
@@ -52,6 +52,16 @@ bind index,pager \\ vfolder-from-query
 # (~/bin/mail-contacts, which caches the list for a day). Ctrl-T rather than
 # Tab, because Tab is also folder-name completion (c +Arc<Tab>).
 set query_command = "~/bin/mail-contacts %s"
+# Ctrl-Y does the same, and the list it opens on several matches answers to
+# blink.cmp's keys in nvim: Ctrl-N/Ctrl-P move, Ctrl-Y takes, Ctrl-E leaves.
+# All four were unbound in the editor and query menus. The prompt's own
+# Ctrl-N/Ctrl-P stay history, as in nvim's command line. Ctrl-Y reaches
+# NeoMutt only because dot_zshrc frees it from the tty (dsusp, on macOS).
+bind editor \Cy complete-query
+bind query \Cn next-entry
+bind query \Cp previous-entry
+bind query \Cy select-entry
+bind query \Ce exit
 # Keep the script's ranking; the default sorted by name, which put the address
 # written to 1,155 times sixth of seven.
 set alias_sort = unsorted

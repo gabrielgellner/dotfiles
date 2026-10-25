@@ -148,7 +148,7 @@ out to be present on macOS too.
 | `bin/executable_mail-attachments`  | `~/bin/mail-attachments`  | copies attachments worth keeping to the NAS, by hand — same section |
 | `bin/executable_mail-unlabel`      | `~/bin/mail-unlabel`      | NeoMutt's `-`: takes one label off a message — same section |
 | `bin/executable_mail-image`, `bin/executable_mail-open` | `~/bin/…` | NeoMutt attachments: inline in kitty, or in their macOS app — same section |
-| `bin/executable_mail-contacts`     | `~/bin/mail-contacts`     | NeoMutt's address lookup (Ctrl-T), from notmuch — same section |
+| `bin/executable_mail-contacts`     | `~/bin/mail-contacts`     | NeoMutt's address lookup (Ctrl-Y), from notmuch — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -714,6 +714,19 @@ like an orphan, before it went.
   unsorted` keeps that ranking — the default sorted by name and put the
   address written to 1,155 times sixth of seven. `Tab` stays alias completion,
   since it is folder completion too.
+- **`Ctrl-Y` completes too, and needed the tty fixed first.** It mirrors
+  blink.cmp — `Ctrl-N`/`Ctrl-P`/`Ctrl-Y`/`Ctrl-E` in the query list, all four
+  unbound there by default (read off `:bind query` and `:bind generic`). But
+  bound alone it did nothing, at the prompt or in the list: macOS's tty has
+  `dsusp = ^Y` (`stty -a` in a tmux pane), and NeoMutt keeps the tty's signal
+  characters, so the key never arrived. `dot_zshrc` runs `stty dsusp undef` on
+  macOS; with that, `amy` `Ctrl-Y` `Ctrl-N` `Ctrl-Y` put the second match in
+  To:. nvim was never affected — it puts the tty in raw mode.
+- **The saved searches are notmuch named queries** (`[query]` in its config,
+  `notmuch://?query=query:starred`). Written into the URL, their slashes
+  (`path:proton/**`) indented the rows: `sidebar_folder_indent` counts every
+  `/` in a mailbox's path, so the three-slash search sat 6 spaces in and the
+  two-slash one 4. Named, both line up with Inbox and give the same counts.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,
@@ -749,8 +762,8 @@ carry the prefix as a result (`folder:proton/INBOX`). The index is
 `~/.local/share/notmuch/mail`, apart from the mail so mbsync never sees it;
 37,722 files became 37,003 messages in 75s. The launchd agent runs
 `notmuch new` after each sync and keeps mbsync's exit status. In NeoMutt, `\`
-searches both, and the sidebar's two saved searches are Proton only
-(`path:proton/**`), since the archive keeps receiving Gmail's forwarded
+searches both, and the sidebar's two saved searches (named queries in its
+config) are Proton only (`path:proton/**`), since the archive keeps receiving Gmail's forwarded
 copies.
 
 - **`nm_default_url` names the database**, not the maildir: pointed at the

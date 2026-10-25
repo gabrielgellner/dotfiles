@@ -24,6 +24,10 @@ BREW_PREFIX="$HOMEBREW_PREFIX"
 
 # Don't let Ctrl-S freeze the terminal
 stty -ixon
+# Nor Ctrl-Y: macOS's tty reserves it as dsusp (delayed suspend), so programs
+# that keep the tty's signal keys, NeoMutt among them, never saw it. Linux has
+# no dsusp, and its stty rejects the name.
+[[ $OSTYPE == darwin* ]] && stty dsusp undef
 
 # fzf default command
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
