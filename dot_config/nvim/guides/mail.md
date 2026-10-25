@@ -64,10 +64,17 @@ with `l`, too. The line under the message says where you are:
 | `J` / `K`     | next / previous message **in the thread** — `Ctrl-j`/`k`, `Ctrl-n`/`p` too |
 | `q` or `i`    | back to the folder, threads collapsed                         |
 | `v`           | attachments                                                   |
+| `gx`          | list the message's links; `j`/`k`, `Enter` opens one          |
 
 `J` / `K` mean folders in the index and messages in the pager — the same keys,
 one level apart, by the capital-is-wider rule in [Keymaps](keymaps.md). `Ctrl-j` /
 `Ctrl-k` are the same moves, as nvim's step to the window below / above.
+
+**Links.** `gx` (in the index too) lists every link in the message — HTML
+ones included, whole even when they wrap — each in the sentence it came from.
+`j`/`k` to move, `Enter` opens it in the browser and closes the list, `q`
+leaves. Without it, kitty's `Ctrl+Shift+E` labels the links on screen, and
+`Shift`-click opens one past tmux.
 
 **Attachments.** `v` lists them; then:
 

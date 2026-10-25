@@ -187,6 +187,11 @@ macro pager a "<save-message>+Archive<enter><display-toggle-weed><display-toggle
 # Labels/ and asks which to take off. Both work from any folder.
 macro index,pager + "<copy-message>+Labels/" "add a label"
 macro index,pager - "<pipe-message>~/bin/mail-unlabel<enter>" "remove a label"
+# gx lists the message's links, as nvim's gx opens the one under the cursor:
+# urlscan reads every MIME part, HTML hrefs included, so a link lynx wrapped
+# over two lines or left below the fold is there whole. j/k and Enter opens it
+# in the browser; --single closes the list after, --dedupe drops repeats.
+macro index,pager gx "<pipe-message>urlscan --dedupe --single<enter>" "open a link"
 # In the attachment list (v): o opens the attachment in its macOS app, whatever
 # it is (Enter already shows images inline and opens PDFs; see mailcap).
 macro attach o "<pipe-entry>~/bin/mail-open<enter>" "open in its app"

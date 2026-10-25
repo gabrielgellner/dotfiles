@@ -747,6 +747,13 @@ like an orphan, before it went.
   (`path:proton/**`) indented the rows: `sidebar_folder_indent` counts every
   `/` in a mailbox's path, so the three-slash search sat 6 spaces in and the
   two-slash one 4. Named, both line up with Inbox and give the same counts.
+- **`gx` lists a message's links** through urlscan (brew; in `bootstrap.sh`),
+  piped the raw message so it reads every MIME part: on a test message it
+  found the plain part's link once (`--dedupe`) and both HTML hrefs, the long
+  one with `&amp;` decoded. The list shortens long links on screen, but
+  the whole link is what gets opened — checked by swapping the browser for
+  `--run-safe 'tee …' --pipe`. Opening goes through Python's `webbrowser`,
+  which is the macOS opener when `$BROWSER` is unset.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,
