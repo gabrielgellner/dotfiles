@@ -1,0 +1,34 @@
+#!/bin/sh
+# NeoMutt's `a` in the compose screen: pick files in yazi, attach them.
+#
+# Space marks several, Enter takes them (or the one under the cursor), q
+# attaches nothing. NeoMutt cannot be handed files by another program, so this
+# writes one `push` line for neomuttrc to source straight after — attach-file
+# for each path, typed into the prompt NeoMutt would otherwise have shown. In
+# that prompt Space is mailbox-cycle, so a space in a path is typed as
+# <quote-char> and a space; \ and " are escaped for the quoted string, and <
+# as \< so push does not read it as a key name.
+#
+# Starts in $MAIL_ATTACH_DIR, else ~/Downloads, where attachments usually wait.
+set -u
+out="${XDG_CACHE_HOME:-$HOME/.cache}/neomutt/attach.rc"
+mkdir -p "$(dirname "$out")"
+: > "$out"
+chosen=$(mktemp)
+trap 'rm -f "$chosen"' EXIT
+
+dir="${MAIL_ATTACH_DIR:-$HOME/Downloads}"
+[ -d "$dir" ] || dir="$HOME"
+cd "$dir" || exit 1
+yazi --chooser-file="$chosen"
+
+keys=""
+# yazi ends the list without a newline, and a bare `read` drops that last line
+# — which lost the one file picked, every time a single file was picked.
+while IFS= read -r f || [ -n "$f" ]; do
+    [ -f "$f" ] || continue
+    esc=$(printf '%s' "$f" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/</\\</g' -e 's/ /<quote-char> /g')
+    keys="$keys<attach-file>$esc<enter>"
+done < "$chosen"
+[ -n "$keys" ] && printf 'push "%s"\n' "$keys" > "$out"
+exit 0

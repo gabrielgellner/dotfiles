@@ -214,6 +214,10 @@ folder-hook /proton/INBOX$ "macro pager ,{{ $k }} '<copy-message>+Labels/{{ $typ
 # over two lines or left below the fold is there whole. j/k and Enter opens it
 # in the browser; --single closes the list after, --dedupe drops repeats.
 macro index,pager gx "<pipe-message>urlscan --dedupe --single<enter>" "open a link"
+# a in the compose screen picks the files in yazi (~/bin/mail-attach-pick):
+# Space marks several, Enter attaches them, q attaches nothing. The script
+# writes a push line, sourced here; NeoMutt's own typed prompt is gone from a.
+macro compose a "<shell-escape>~/bin/mail-attach-pick<enter><enter-command>source ~/.cache/neomutt/attach.rc<enter>" "attach files (yazi)"
 # In the attachment list (v): o opens the attachment in its macOS app, whatever
 # it is (Enter already shows images inline and opens PDFs; see mailcap).
 macro attach o "<pipe-entry>~/bin/mail-open<enter>" "open in its app"

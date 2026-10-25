@@ -149,6 +149,7 @@ out to be present on macOS too.
 | `bin/executable_mail-attachments`  | `~/bin/mail-attachments`  | copies attachments worth keeping to the NAS, by hand — same section |
 | `bin/executable_mail-unlabel`      | `~/bin/mail-unlabel`      | NeoMutt's `-`: takes one label off a message — same section |
 | `bin/executable_mail-image`, `bin/executable_mail-open` | `~/bin/…` | NeoMutt attachments: inline in kitty, or in their macOS app — same section |
+| `bin/executable_mail-attach-pick` | `~/bin/mail-attach-pick` | NeoMutt compose's `a`: attach files picked in yazi — same section |
 | `bin/executable_mail-contacts`     | `~/bin/mail-contacts`     | NeoMutt's address lookup (Ctrl-Y), from notmuch — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
@@ -786,6 +787,15 @@ like an orphan, before it went.
     Spaces are typed `<quote-char> `.
   - **A driving harness can eat the keys**: an error such as "You are on the
     last message" (a `t` on the last row) flushed the `,f` sent after it.
+- **`a` in the compose screen attaches through yazi** (`~/bin/mail-attach-pick`):
+  yazi's `--chooser-file`, turned into a `push "<attach-file>…<enter>…"` line
+  that the macro sources, since NeoMutt takes no files from outside. Two
+  traps, both hit: yazi writes the list **with no final newline**, and a bare
+  `while read` drops that line — so every single-file pick attached nothing;
+  and a space in the path must go in as `<quote-char> ` (Space is
+  mailbox-cycle in that prompt too). Measured in a compose screen opened with
+  `editor=true abort_unmodified=no`: a spaced path attached whole, two files
+  marked with Space both attached, `q` in yazi attached nothing.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,

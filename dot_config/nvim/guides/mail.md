@@ -226,8 +226,9 @@ completes only aliases.
 
 nvim opens with the headers at the top — edit To, Cc and Subject right there.
 After `:wq` comes the compose screen: `y` sends, `a` attaches, `q` gives up
-(it asks). Bridge files the sent copy in Sent itself; nothing here saves a
-second one.
+(it asks). `a` opens yazi in `~/Downloads`: `Space` marks several files,
+`Enter` attaches them (or the one under the cursor), `q` attaches nothing.
+Bridge files the sent copy in Sent itself; nothing here saves a second one.
 
 `gr` and not mutt's `g`: binding `gg` made `g` a prefix, which took reply-all
 with it.
