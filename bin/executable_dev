@@ -190,7 +190,12 @@ list_items() {
     is_active "$proj" "$active" || printf '%s\n' "$proj"
   done
 
+  # An extra already listed from DEV_DIR is skipped. On the Omarchy machine the
+  # repo lives at ~/dev/dotfiles and ~/.local/share/chezmoi is a symlink to it,
+  # so the glob above has already printed `dotfiles` — and resolve_dir sends
+  # either entry to the same session, so the second was a pure duplicate.
   extra_names | while IFS= read -r proj; do
+    [[ -e "$DEV_DIR/$proj" ]] && continue
     is_active "$proj" "$active" || printf '%s\n' "$proj"
   done
 }

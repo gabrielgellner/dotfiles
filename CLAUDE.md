@@ -149,8 +149,11 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
   first apply: chezmoi only replaces the files it manages, and lazy.nvim would
   go on loading LazyVim's leftover `lua/plugins/*.lua` — the
   `tmux-navigator.lua` trap from `.chezmoiremove`. Starship, btop and kitty
-  are simply replaced. tmux needs nothing: it reads `~/.tmux.conf` before
-  Omarchy's `~/.config/tmux/tmux.conf`. git reads Omarchy's
+  are simply replaced. tmux was the one assumed safe and was not: 3.8
+  loads `~/.tmux.conf` *and then* Omarchy's `~/.config/tmux/tmux.conf`, so
+  Omarchy's prefix and top status bar won. A tracked empty file now takes that
+  path on Omarchy (`dot_config/tmux/tmux.conf` says how it was measured). A
+  running server keeps what it loaded until `tmux kill-server`. git reads Omarchy's
   `~/.config/git/config` and then `~/.gitconfig`, so this repo's wins on any
   key both set.
 - **Tracked Omarchy files** are the override files it hands the user, never

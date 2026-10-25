@@ -54,6 +54,7 @@ bootstrap.sh
 {{ if ne $desktop "omarchy" -}}
 .config/hypr/**
 .config/omarchy/**
+.config/tmux/**
 {{ else -}}
 {{/*
   fontconfig goes the other way: the tracked file is rendering tuned for the
