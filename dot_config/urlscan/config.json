@@ -1,0 +1,15 @@
+{
+  "palettes": {
+    "frappe": [
+      ["header", "white", "black", "standout", "#a5adce", "#51576d"],
+      ["footer", "light red", "black", "standout", "#e78284", "#51576d"],
+      ["search", "black", "brown", "standout", "#51576d", "#e5c890"],
+      ["msgtext", "", "", "", "", ""],
+      ["msgtext:ellipses", "dark gray", "", "", "#626880", ""],
+      ["urlref:number:braces", "dark gray", "", "", "#626880", ""],
+      ["urlref:number", "yellow", "", "standout", "#e5c890", ""],
+      ["urlref:url", "dark blue", "", "", "#8caaee", ""],
+      ["url:sel", "default", "black", "bold", "", "#51576d"]
+    ]
+  }
+}

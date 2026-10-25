@@ -754,6 +754,12 @@ like an orphan, before it went.
   the whole link is what gets opened — checked by swapping the browser for
   `--run-safe 'tee …' --pipe`. Opening goes through Python's `webbrowser`,
   which is the macOS opener when `$BROWSER` is unset.
+  Its stock palette was unreadable here: the selected row is bright white on
+  blue (`97;44`), which kitty's Frappé draws as light text on light blue.
+  `dot_config/urlscan/config.json` replaces it with ANSI names matching
+  NeoMutt — the selection on `black` (surface1), as NeoMutt's indicator, read
+  back from `capture-pane -e` as `40`. The file replaces *all* the built-in
+  palettes, so `p` has only this one to cycle to.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,
