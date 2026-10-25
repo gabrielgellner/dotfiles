@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Address lookup for NeoMutt's query_command (Ctrl-T in the To:/Cc: prompts).
+
+Ranks addresses from everything notmuch indexes — the Proton maildir and the
+Gmail archive — with people you have written to first, by how often, then
+people who have written to you, minus no-reply and list senders. "Mail you
+sent" is the Proton Sent folder plus Gmail's Sent tag, so no address of yours
+needs to be written down here.
+
+Building the list takes notmuch ~3s over 37k messages, so it is cached in
+~/.cache/mail-contacts.json and rebuilt when older than a day (or with
+--rebuild). A lookup is then a substring match over the cache.
+
+Output is what NeoMutt expects: one header line, then
+"address<TAB>name<TAB>note" per match.
+"""
+import json, os, re, subprocess, sys, time
+
+CACHE = os.path.join(os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")), "mail-contacts.json")
+SENT = "folder:proton/Sent or tag:Sent"
+NOREPLY = re.compile(r"(no-?reply|donotreply|do-not-reply|do_not_reply|notifications?|newsletter|mailer-daemon|"
+                     r"bounce|updates|marketing|info@|support@|billing|receipts?|orders?@|news@|hello@|team@)", re.I)
+
+def address(query, output):
+    out = subprocess.run(["notmuch", "address", "--format=json", f"--output={output}", "--output=count",
+                          "--deduplicate=address", query], capture_output=True, text=True).stdout
+    return json.loads(out or "[]")
+
+def build():
+    people = {}
+    for e in address(SENT, "recipients"):                         # you wrote to them: strongest signal
+        a = e["address"].lower()
+        people[a] = {"a": e["address"], "n": e.get("name", ""), "s": e.get("count", 1) * 10, "w": e.get("count", 1)}
+    for e in address(f"not ({SENT})", "sender"):                   # they wrote to you
+        a = e["address"].lower()
+        if NOREPLY.search(a):
+            continue
+        p = people.setdefault(a, {"a": e["address"], "n": e.get("name", ""), "s": 0, "w": 0})
+        p["s"] += e.get("count", 1)
+        p["n"] = p["n"] or e.get("name", "")
+    ranked = sorted(people.values(), key=lambda p: -p["s"])
+    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
+    with open(CACHE + ".tmp", "w") as f:
+        json.dump(ranked, f)
+    os.replace(CACHE + ".tmp", CACHE)
+    return ranked
+
+def load():
+    if "--rebuild" in sys.argv or not os.path.exists(CACHE) or time.time() - os.path.getmtime(CACHE) > 86400:
+        return build()
+    with open(CACHE) as f:
+        return json.load(f)
+
+def main():
+    terms = [t.lower() for t in sys.argv[1:] if t != "--rebuild"]
+    people = load()
+    if not terms:
+        print(f"{len(people)} addresses cached"); return
+    hits = [p for p in people if all(t in (p["a"] + " " + p["n"]).lower() for t in terms)][:40]
+    print(f"{len(hits)} matches" if hits else "no matches")
+    for p in hits:
+        note = f"wrote to {p['w']}x" if p["w"] else "wrote to you"
+        print(f"{p['a']}\t{p['n']}\t{note}")
+
+if __name__ == "__main__":
+    main()

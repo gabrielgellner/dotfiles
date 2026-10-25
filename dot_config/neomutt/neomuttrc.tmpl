@@ -46,6 +46,16 @@ virtual-mailboxes "󰃰 Last 2 weeks" "notmuch://?query=date:14d.. and path:prot
 # tag:gmail narrows to the Gmail archive, e.g. tag:gmail tag:"Product Serial".
 bind index,pager \\ vfolder-from-query
 
+# ── Contacts ──────────────────────────────────────────────────────────────────
+# Ctrl-T in the To:/Cc:/Bcc: prompts looks addresses up in everything notmuch
+# indexes — Proton and the Gmail archive — people you have written to first
+# (~/bin/mail-contacts, which caches the list for a day). Ctrl-T rather than
+# Tab, because Tab is also folder-name completion (c +Arc<Tab>).
+set query_command = "~/bin/mail-contacts %s"
+# Keep the script's ranking; the default sorted by name, which put the address
+# written to 1,155 times sixth of seven.
+set alias_sort = unsorted
+
 # ── Sending ──────────────────────────────────────────────────────────────────
 set real_name = "Gabriel Gellner"
 set from = "{{ .proton_email }}"

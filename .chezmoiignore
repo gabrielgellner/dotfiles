@@ -120,6 +120,7 @@ bin/mail-attachments
 bin/mail-unlabel
 bin/mail-image
 bin/mail-open
+bin/mail-contacts
 {{ end -}}
 {{/*
   Nothing else under ~/Library is managed, and on Linux there is no ~/Library.

@@ -148,6 +148,7 @@ out to be present on macOS too.
 | `bin/executable_mail-attachments`  | `~/bin/mail-attachments`  | copies attachments worth keeping to the NAS, by hand — same section |
 | `bin/executable_mail-unlabel`      | `~/bin/mail-unlabel`      | NeoMutt's `-`: takes one label off a message — same section |
 | `bin/executable_mail-image`, `bin/executable_mail-open` | `~/bin/…` | NeoMutt attachments: inline in kitty, or in their macOS app — same section |
+| `bin/executable_mail-contacts`     | `~/bin/mail-contacts`     | NeoMutt's address lookup (Ctrl-T), from notmuch — same section |
 | `private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl` | `~/Library/LaunchAgents/…` | launchd agent running mbsync every 2m — same section |
 | `dot_claude/settings.json`         | `~/.claude/settings.json` | Claude Code settings — see the caveat below                   |
 | `dot_claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Statusline renderer invoked by that settings file     |
@@ -704,6 +705,15 @@ like an orphan, before it went.
   jobs running alongside (the Gmail conversion, indexing, backups, NAS writes).
   When timing, read the *total* in `Msgs:29/36` — with threads collapsed the
   first number is visible rows, and it does not move when one message goes.
+- **Address completion is `Ctrl-T`** (`query_command` = `~/bin/mail-contacts`),
+  over everything notmuch indexes: recipients of mail you sent (Proton Sent
+  plus Gmail's Sent tag, so no address of yours is written into the script)
+  ranked by count ×10, then senders, minus no-reply and list addresses. Listing
+  recipients takes notmuch ~3s, so the 2,163 addresses are cached in
+  `~/.cache/mail-contacts.json` for a day; a lookup is 0.03s. `alias_sort =
+  unsorted` keeps that ranking — the default sorted by name and put the
+  address written to 1,155 times sixth of seven. `Tab` stays alias completion,
+  since it is folder completion too.
 - **`gg` cost mutt's `g`** (group-reply), since binding it makes `g` a prefix;
   reply-all is `gr`.
 - **HTML is rendered by lynx, not w3m** (`dot_config/neomutt/executable_html-filter`,

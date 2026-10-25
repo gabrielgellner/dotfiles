@@ -188,6 +188,12 @@ Trash too.
 | `f`  | forward                  |
 | `R`  | reopen a postponed draft |
 
+**Addresses complete with `Ctrl-T`** at the To:, Cc: and Bcc: prompts: type
+part of a name or address, `Ctrl-T`, pick from the list (`Enter`). It draws on
+all your mail, Proton and the Gmail archive, people you have written to first;
+the list is rebuilt daily (`mail-contacts --rebuild` to force it). `Tab` there
+completes only aliases.
+
 nvim opens with the headers at the top — edit To, Cc and Subject right there.
 After `:wq` comes the compose screen: `y` sends, `a` attaches, `q` gives up
 (it asks). Bridge files the sent copy in Sent itself; nothing here saves a
