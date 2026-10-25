@@ -1,0 +1,56 @@
+#!/bin/sh
+# One sync of the Proton maildir, run every two minutes by launchd
+# (local.mbsync-proton): mbsync, then `notmuch new` so the search index follows
+# — including moves and deletes made in NeoMutt, which is why it runs even when
+# the sync fails. Exits with mbsync's status, so `launchctl print` reports a
+# failed sync.
+#
+# It also says when mail has stopped. Proton Mail Bridge quitting is silent
+# otherwise: on 2026-10-24 it shut down cleanly in the evening, every sync after
+# that failed with "connection refused" into a log nobody reads, and the first
+# sign was a send failing the next day. So a macOS notification, on changes only
+# — once when Bridge stops answering, once when it is back, and once if syncs
+# fail three runs in a row for any other reason, with mbsync's last line. The
+# state behind that is two files in $XDG_STATE_HOME/mail-sync.
+set -u
+export PATH="/opt/homebrew/bin:/usr/bin:/bin"
+port="${MAIL_SYNC_PORT:-1143}"
+state="${MAIL_SYNC_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/mail-sync}"
+mkdir -p "$state"
+
+# Arguments, not interpolation: mbsync's error lines carry quotes.
+notify() {
+    osascript - "$1" "$2" >/dev/null 2>&1 <<'EOF'
+on run argv
+    display notification (item 2 of argv) with title "Mail" subtitle (item 1 of argv)
+end run
+EOF
+}
+
+if ! nc -z -G 2 127.0.0.1 "$port" 2>/dev/null; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') nothing listening on 127.0.0.1:$port — Bridge not running"
+    if [ ! -e "$state/bridge-down" ]; then
+        touch "$state/bridge-down"
+        notify "Proton Mail Bridge is not running" "Mail is not syncing or sending. Open Bridge to resume."
+    fi
+    notmuch new --quiet
+    exit 1
+fi
+if [ -e "$state/bridge-down" ]; then
+    rm -f "$state/bridge-down"
+    notify "Proton Mail Bridge is back" "Mail is syncing again."
+fi
+
+out=$(mbsync -q proton 2>&1)
+rc=$?
+[ -n "$out" ] && printf '%s\n' "$out"
+notmuch new --quiet
+
+if [ "$rc" -ne 0 ]; then
+    n=$(( $(cat "$state/failures" 2>/dev/null || echo 0) + 1 ))
+    echo "$n" > "$state/failures"
+    [ "$n" -eq 3 ] && notify "Mail sync is failing" "$(printf '%s\n' "$out" | tail -n 1)"
+else
+    rm -f "$state/failures"
+fi
+exit "$rc"

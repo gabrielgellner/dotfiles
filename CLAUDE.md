@@ -144,6 +144,7 @@ out to be present on macOS too.
 | `dot_config/neomutt/`              | `~/.config/neomutt/`      | NeoMutt, the mail client; macOS only — same section            |
 | `dot_config/isyncrc.tmpl`          | `~/.config/isyncrc`       | mbsync: mirrors Proton into the maildir NeoMutt reads — same section |
 | `dot_config/notmuch/default/config.tmpl` | `~/.config/notmuch/default/config` | notmuch: search index over that maildir — same section |
+| `bin/executable_mail-sync`         | `~/bin/mail-sync`         | one sync, run by that agent; notifies when Bridge is down — same section |
 | `bin/executable_mail-backup`       | `~/bin/mail-backup`       | encrypted restic backup of the maildir to the NAS — same section |
 | `bin/executable_mail-attachments`  | `~/bin/mail-attachments`  | copies attachments worth keeping to the NAS, by hand — same section |
 | `bin/executable_mail-unlabel`      | `~/bin/mail-unlabel`      | NeoMutt's `-`: takes one label off a message — same section |
@@ -498,7 +499,16 @@ re-reading the open folder every 30s. mbsync runs from a launchd agent every
 2m, client open or not
 (`private_Library/private_LaunchAgents/local.mbsync-proton.plist.tmpl`,
 loaded by `run_onchange_after_load-mbsync-agent.sh.tmpl` whenever the plist
-changes; errors only, to `~/Library/Logs/mbsync-proton.log`). To sync now,
+changes; errors only, to `~/Library/Logs/mbsync-proton.log`). The agent runs
+`~/bin/mail-sync`, which also raises a macOS notification when Bridge stops
+answering on 1143, again when it is back, and when a sync fails three runs in a
+row for another reason — on changes only, from two state files in
+`$XDG_STATE_HOME/mail-sync`. That exists because Bridge quit cleanly one
+evening (2026-10-24, nothing in its log saying why) and the first sign was a
+send failing the next day. Each path was run: a dead port (`MAIL_SYNC_PORT`,
+scratch `MAIL_SYNC_STATE`) notified once over two runs, the real port then
+notified the recovery and synced rc 0, and a stubbed failing mbsync notified
+on the third failure only. To sync now,
 `launchctl kickstart gui/$(id -u)/local.mbsync-proton` rather than running
 mbsync by hand: two mbsyncs at once collide — forced side by side, one of each
 pair failed with "channel ... is locked" — and launchd runs one instance at a
