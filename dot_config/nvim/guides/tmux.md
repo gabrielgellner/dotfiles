@@ -76,7 +76,8 @@ two more consoles.
 
 `mode-keys vi`, so movement in copy mode is `hjkl`, `/` searches, `gg`/`G`
 jump. The clipboard command is chosen once at load — `pbcopy` on macOS,
-`xclip` on Linux — so `y` means the same thing on both machines.
+`wl-copy` under Omarchy's Wayland, `xclip` on the RDP machine — so `y` means
+the same thing on all three.
 
 Note `prefix + P` is paste and `prefix + p` is not: lowercase is tmux's own
 previous-window.
