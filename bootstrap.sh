@@ -540,6 +540,70 @@ else
     fi
 fi
 
+# ── Personal tools: plv and gmuse ─────────────────────────────────────────────
+# Both are this user's own Rust projects, and both are hard dependencies of the
+# config: config/plv.lua opens tables in plv, and the tmux `prefix C-p` popup and
+# ~/bin/gmuse-tmux-status run gmuse. They arrive by different routes because
+# they are released differently.
+#
+# plv is on crates.io with [package.metadata.binstall], and its release
+# workflow attaches prebuilt tarballs (x86_64 Linux built against glibc 2.35,
+# aarch64 macOS), so `cargo binstall` fetches a binary in seconds. Without
+# binstall it still compiles from crates.io.
+#
+# gmuse is not on crates.io — its workspace crates depend on each other by
+# path — but the repo is public. Where it is cloned at ~/dev/gmuse (a machine
+# it is developed on), the binary on PATH is a symlink into that checkout's
+# target/release, as CLAUDE.md describes: every release build updates it, and
+# `cargo clean` makes it absent rather than stale. Anywhere else it is a frozen
+# `cargo install --git` copy. Not on the RDP machine, which is for work and
+# where the config never expected it.
+blue "\nChecking personal tools..."
+if command -v plv &>/dev/null; then
+    yellow "plv already present ($(command -v plv)), skipping"
+elif ! command -v cargo &>/dev/null; then
+    record_failure "plv (no cargo)"
+else
+    # cargo-binstall from the package manager rather than `cargo install`,
+    # which would compile it first. Absent on the RDP machine's brew-less path,
+    # where the fallback below compiles plv instead.
+    if ! command -v cargo-binstall &>/dev/null; then
+        if $IS_OMARCHY; then pacman_install cargo-binstall
+        elif $IS_MACOS; then brew_install cargo-binstall
+        fi
+    fi
+    if command -v cargo-binstall &>/dev/null; then
+        green "Installing plv (prebuilt, cargo binstall)..."
+        cargo binstall --no-confirm plv || record_failure "plv"
+    else
+        green "Installing plv (compiling, cargo install)..."
+        cargo install --locked plv || record_failure "plv"
+    fi
+fi
+
+if $IS_MACOS || $IS_OMARCHY; then
+    GMUSE_SRC="$HOME/dev/gmuse"
+    if command -v gmuse &>/dev/null; then
+        yellow "gmuse already present ($(command -v gmuse)), skipping"
+    elif ! command -v cargo &>/dev/null; then
+        record_failure "gmuse (no cargo)"
+    elif [[ -f "$GMUSE_SRC/Cargo.toml" ]]; then
+        # Release, not debug: gmuse's own justfile notes debug builds are too
+        # slow for glitch-free audio. --locked builds against its Cargo.lock.
+        green "Building gmuse from $GMUSE_SRC and linking it into ~/.local/bin..."
+        if (cd "$GMUSE_SRC" && cargo build --release --locked); then
+            mkdir -p "$HOME/.local/bin"
+            ln -sfn "$GMUSE_SRC/target/release/gmuse" "$HOME/.local/bin/gmuse"
+        else
+            record_failure "gmuse:build"
+        fi
+    else
+        green "Installing gmuse from GitHub (no checkout at $GMUSE_SRC)..."
+        cargo install --locked --git https://github.com/gabrielgellner/gmuse gmuse \
+            || record_failure "gmuse"
+    fi
+fi
+
 # ── atuin history import ──────────────────────────────────────────────────────
 
 blue "\nChecking atuin history..."
@@ -721,6 +785,11 @@ if ! $IS_MACOS && ! $IS_OMARCHY; then
         command -v "$c" &>/dev/null || missing+=("i3-dep:$c")
     done
 fi
+
+# plv everywhere; gmuse wherever it is installed above. A dangling gmuse
+# symlink (after `cargo clean`) fails `command -v`, so it is reported too.
+command -v plv &>/dev/null || missing+=("plv")
+{ $IS_MACOS || $IS_OMARCHY; } && { command -v gmuse &>/dev/null || missing+=("gmuse"); }
 
 if $IS_OMARCHY; then
     for c in zsh kitty; do

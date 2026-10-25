@@ -186,6 +186,12 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
   shell's `[font] base-size`; at 12 the text looked thin on this panel.
   `omarchy display text size` would also do it, but it writes `font_size`
   into the chezmoi-managed `kitty.conf`, so the file is edited instead.
+- **plv and gmuse come from `bootstrap.sh` too** (its "Personal tools"
+  section). plv by `cargo binstall` — it is on crates.io with binstall
+  metadata and prebuilt release tarballs — falling back to `cargo install`.
+  gmuse is not on crates.io: with `~/dev/gmuse` cloned it is built release and
+  symlinked into `~/.local/bin`, as on the laptop; otherwise a
+  `cargo install --git` copy. The RDP machine gets plv only.
 - **mermaid** names `/usr/bin/chromium`: there is no Google Chrome, and
   `channel: chrome` fails there.
 - **Mail stays off.** Bridge is packaged (`protonmail-bridge`), but the stack
