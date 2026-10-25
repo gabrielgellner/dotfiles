@@ -351,6 +351,9 @@ ensure_command tmux
 ensure_command zk
 
 # dev tooling
+# chezmoi itself: the README installs it by hand before anything else, since
+# `chezmoi apply` comes first, but nothing kept it installed afterwards.
+brew_install chezmoi
 brew_install git
 brew_install just
 brew_install git-cliff
@@ -616,8 +619,8 @@ missing=()
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi vivid btop starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
-         git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket R \
+         yazi vivid btop starship zoxide atuin direnv lazygit just uv tree-sitter \
+         chezmoi git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket R \
          yamlfmt yamllint lua-language-server bash-language-server julia jetls runic \
          typst tinymist typstyle websocat; do
     command -v "$c" &>/dev/null || missing+=("$c")
