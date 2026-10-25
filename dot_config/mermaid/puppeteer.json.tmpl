@@ -1,0 +1,17 @@
+{{- /*
+  The browser mmdc drives. `channel: chrome` resolves the installed Google
+  Chrome by its well-known path, which is why this was plain JSON until there
+  was a machine without Chrome. Omarchy ships Chromium instead, and there the
+  channel fails outright; naming the binary renders (measured with a scratch
+  mermaid-cli on a four-node flowchart: chrome exit 1, chromium a 552x146 PNG
+  in 0.8s). A template now because JSON has nowhere to say any of this.
+*/ -}}
+{{ if eq (includeTemplate "desktop" .) "omarchy" -}}
+{
+  "executablePath": "/usr/bin/chromium"
+}
+{{ else -}}
+{
+  "channel": "chrome"
+}
+{{ end -}}

@@ -262,7 +262,8 @@ brew_install neovim
 # fails with "Could not find chrome-headless-shell (ver. ...)". That is what
 # `.config/mermaid/puppeteer.json` answers, by naming the *installed* Google
 # Chrome instead. So this install covers everything but the browser: a machine
-# with no Chrome gets a working mmdc that cannot render, and says so.
+# with no Chrome gets a working mmdc that cannot render, and says so. On
+# Omarchy the same file names /usr/bin/chromium, which Omarchy ships.
 brew_install mermaid-cli
 
 # typst: the compiler, tinymist (its language server, and the server behind
