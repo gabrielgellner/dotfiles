@@ -54,6 +54,15 @@ bootstrap.sh
 {{ if ne $desktop "omarchy" -}}
 .config/hypr/**
 .config/omarchy/**
+{{ else -}}
+{{/*
+  fontconfig goes the other way: the tracked file is rendering tuned for the
+  VM's Xvnc (full hinting, subpixel), and on Omarchy the same path belongs to
+  `omarchy font set`, which rewrites it whole — the omarchy shell, Qt and GTK
+  all take their monospace from it. Tracking it there would make two writers
+  for a file whose tuning was never meant for that screen.
+*/ -}}
+.config/fontconfig/**
 {{ end -}}
 
 {{/*

@@ -166,6 +166,11 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
   `omarchy-theme-set-tmux` writes the theme's colours into tmux's
   `window-style` on every theme change, so another Omarchy theme repaints
   panes away from Frappé.
+- **fontconfig is Omarchy's there.** `omarchy font set` rewrites
+  `~/.config/fontconfig/fonts.conf` whole, and the tracked copy is tuned for
+  the VM's Xvnc, so `.chezmoiignore` skips it on Omarchy. FiraCode as the
+  system monospace is `omarchy font set "FiraCode Nerd Font"`; kitty names
+  its font itself and does not need it.
 - **mermaid** names `/usr/bin/chromium`: there is no Google Chrome, and
   `channel: chrome` fails there.
 - **Mail stays off.** Bridge is packaged (`protonmail-bridge`), but the stack
