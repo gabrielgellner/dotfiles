@@ -121,6 +121,10 @@ set sidebar_format = "%D%* %?N?%N?"
 # %C is each row's position in the list, so a message can be reached by typing
 # the number you can see. (There is no relative numbering in NeoMutt.)
 set index_format = "%4C %Z  %-22.22F  %?M?(%M) ?%s%*  %{%b %d}"
+# The pager's line under the message: where you are in the thread (%e of %E;
+# a lone message reads 1/1), then in the folder (%C of %m) — the stock line had
+# only the second.
+set pager_format = "-%Z- thread %e/%E · %C/%m: %-20.20n   %s%*  -- (%P)"
 # Nerd Font glyphs: tagged, flagged, deleted, deleted-attachment,
 # replied, old, new, old-thread, new-thread, then two fillers.
 set flag_chars = "󰸞󰈻󰆴󰆴󰑚󰇰󰇮󰇰󰇮- "

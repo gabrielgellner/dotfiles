@@ -52,7 +52,8 @@ in it is **bold blue**.
 thread and opens it; `J` / `K` walk it and stop at either end, as do `d` and
 `a` on its last message. `q` brings the whole folder back, every thread
 collapsed again, the cursor on the one you read. Coming back clears a limit set
-with `l`, too.
+with `l`, too. The line under the message says where you are:
+`thread 2/4 · 37/880` is the second of four in the thread, 37th in the folder.
 
 ## In the pager
 
