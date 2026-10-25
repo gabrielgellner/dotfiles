@@ -676,6 +676,11 @@ like an orphan, before it went.
 - **Threads open collapsed** (`folder-hook . 'push <collapse-all>'`), the row
   showing the hidden count (`%M`) and drawn bold blue when the thread holds
   anything unread (`~v~(~U)`). Folder hopping is the index's `J`/`K` alone.
+- **`Ctrl-J`/`Ctrl-K` are `J`/`K`** in both index and pager. `Ctrl-J` is the
+  line-feed byte, which NeoMutt names `<Enter>` and bound to open the thread;
+  the Enter key sends `<Return>`, a separate binding, so taking `\Cj` left
+  Enter working (measured: Enter opened the thread, `Ctrl-J` changed folder).
+  `Ctrl-K` was `extract-keys` (PGP).
 - **Reading a thread stays inside it** (2026-10-25). Stock, `Enter` expanded
   the thread for good and `J` ran on past its end into the next row. Now
   `Enter` is `<limit-current-thread><display-message>` and the pager's `q`/`i`

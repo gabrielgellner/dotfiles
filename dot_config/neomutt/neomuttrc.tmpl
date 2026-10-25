@@ -147,6 +147,13 @@ bind pager j next-line
 bind pager k previous-line
 macro index J "<sidebar-next><sidebar-open>" "next folder"
 macro index K "<sidebar-prev><sidebar-open>" "previous folder"
+# Ctrl-J/Ctrl-K are J/K again, here and in the pager below — nvim's
+# window-below/above, and the key reached for when J was meant. Ctrl-J is the
+# line-feed byte, NeoMutt's <Enter>, which opened the thread under the cursor;
+# the Enter key itself sends <Return> and still does. Ctrl-K was extract-keys
+# (PGP, unused here).
+macro index \Cj "<sidebar-next><sidebar-open>" "next folder"
+macro index \Ck "<sidebar-prev><sidebar-open>" "previous folder"
 macro index a "<save-message>+Archive<enter>" "archive"
 # Reading a thread stays inside it. Enter limits the index to the thread and
 # opens it; q or i clears the limit and folds every thread back up, leaving the
@@ -165,13 +172,14 @@ macro index a "<save-message>+Archive<enter>" "archive"
 #   which in a one-thread view has nowhere to go.
 # Clearing the limit also clears one set with l.
 macro index <return> "<limit-current-thread><display-message>" "read the thread"
-macro index <enter> "<limit-current-thread><display-message>" "read the thread"
 macro pager q "<exit><limit>all<enter><collapse-all>" "back to the folder"
 macro pager i "<exit><limit>all<enter><collapse-all>" "back to the folder"
 macro pager J "<next-entry><display-toggle-weed><display-toggle-weed>" "next in thread"
 macro pager K "<previous-entry><display-toggle-weed><display-toggle-weed>" "previous in thread"
 macro pager \Cn "<next-entry><display-toggle-weed><display-toggle-weed>" "next in thread"
 macro pager \Cp "<previous-entry><display-toggle-weed><display-toggle-weed>" "previous in thread"
+macro pager \Cj "<next-entry><display-toggle-weed><display-toggle-weed>" "next in thread"
+macro pager \Ck "<previous-entry><display-toggle-weed><display-toggle-weed>" "previous in thread"
 macro pager d "<delete-message><display-toggle-weed><display-toggle-weed>" "trash"
 macro pager a "<save-message>+Archive<enter><display-toggle-weed><display-toggle-weed>" "archive"
 # Labels: + adds one (Tab completes after the prefix), - removes one by

@@ -33,7 +33,7 @@ without applying deletes) asks the same way.
 | `Ctrl-d` / `Ctrl-u` | half a page down / up                                       |
 | a number, `Enter`   | jump to that row — every row is numbered on the left        |
 | `Tab`               | next unread message                                         |
-| `J` / `K`           | next / previous **folder** in the sidebar                   |
+| `J` / `K`           | next / previous **folder** in the sidebar (`Ctrl-j` / `Ctrl-k`) |
 | `c`                 | go to a folder by name: `c +Arc<Tab>`, `c +Labels/Rec<Tab>` |
 
 ## Threads
@@ -61,12 +61,13 @@ with `l`, too. The line under the message says where you are:
 | ------------- | ------------------------------------------------------------- |
 | `j` / `k`     | scroll a line                                                 |
 | `Space` / `-` | next / previous page                                          |
-| `J` / `K`     | next / previous message **in the thread** (`Ctrl-N` / `Ctrl-P`) |
+| `J` / `K`     | next / previous message **in the thread** — `Ctrl-j`/`k`, `Ctrl-n`/`p` too |
 | `q` or `i`    | back to the folder, threads collapsed                         |
 | `v`           | attachments                                                   |
 
 `J` / `K` mean folders in the index and messages in the pager — the same keys,
-one level apart.
+one level apart, by the capital-is-wider rule in [Keymaps](keymaps.md). `Ctrl-j` /
+`Ctrl-k` are the same moves, as nvim's step to the window below / above.
 
 **Attachments.** `v` lists them; then:
 
