@@ -3,7 +3,8 @@
 # working or idle, so `dev` and the tmux status bar can show it.
 #
 #   claude-tmux-state working   # a prompt was submitted, or a tool ran
-#   claude-tmux-state idle      # Claude stopped responding
+#   claude-tmux-state idle      # Claude stopped responding; records `background`
+#                               # instead if work is still running to wake it
 #   claude-tmux-state waiting   # a notification fired; the kind is recorded
 #   claude-tmux-state clear     # the session ended
 #
@@ -83,9 +84,40 @@ session=$(tmux display-message -p -t "$pane" '#{session_name}' 2>/dev/null) || e
 safe=${session//\//%2F}
 
 case "${1:-}" in
-  working | idle)
+  working)
     mkdir -p "$STATE_DIR"
     printf '%s\n' "$1" > "$STATE_DIR/$safe"
+    ;;
+  idle)
+    # Stop does not always mean done. A turn that ends with a shell running in
+    # the background, a Monitor watching CI, or a /loop wake-up scheduled is
+    # parked, not finished: Claude is re-invoked when that work reports back.
+    # That used to read as idle, so a session waiting twenty minutes on CI
+    # looked the same as one that had finished. You had to open it to find out.
+    #
+    # The Stop payload says which. It carries background_tasks and
+    # session_crons, and an entry in either means the session will wake itself
+    # up. Measured on 2.1.308, with a throwaway Claude told to background
+    # `sleep 120` and end its turn:
+    #
+    #   "background_tasks":[{"id":"b5gaklomw","type":"shell","status":"running",
+    #   "description":"Sleep for 120 seconds","command":"sleep 120"}],
+    #   "session_crons":[]
+    #
+    # When the sleep finished Claude woke (`working`) and the next Stop carried
+    # `"background_tasks":[]`, which lands here as plain `idle`. So nothing has
+    # to clear `background`; the next Stop does it.
+    #
+    # Read with grep, no jq, for the same reason as notification_type below.
+    # The test is only "is either array non-empty": the entries' own strings
+    # are JSON-escaped, so a `[{` inside a command cannot fake a match. A
+    # terminal on stdin means a hand-run with no payload, which is plain idle.
+    state=idle
+    if [[ ! -t 0 ]] && grep -Eq '"(background_tasks|session_crons)"[[:space:]]*:[[:space:]]*\[[[:space:]]*\{'; then
+      state=background
+    fi
+    mkdir -p "$STATE_DIR"
+    printf '%s\n' "$state" > "$STATE_DIR/$safe"
     ;;
   waiting)
     # The payload carries notification_type, and the *kind* now decides a
@@ -105,6 +137,16 @@ case "${1:-}" in
     # is read without it.
     kind=$(grep -o '"notification_type"[[:space:]]*:[[:space:]]*"[^"]*"' \
       | sed 's/.*"\([^"]*\)"$/\1/' | head -1) || kind=""
+    # idle_prompt still fires sixty seconds after a Stop that left background
+    # work running (measured: `waiting idle_prompt` 30s into a 120s sleep).
+    # It means "you have not come back", which says nothing new about a
+    # session already parked on that work, so it must not overwrite
+    # `background`.
+    if [[ "$kind" == idle_prompt ]] &&
+      read -r current _ < "$STATE_DIR/$safe" 2>/dev/null &&
+      [[ "$current" == background ]]; then
+      exit 0
+    fi
     mkdir -p "$STATE_DIR"
     printf 'waiting %s\n' "$kind" > "$STATE_DIR/$safe"
     ;;

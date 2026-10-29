@@ -67,6 +67,7 @@ live=$(live_sessions)
 live_set=$'\n'"$live"$'\n'
 
 working=0
+background=0
 idle=0
 waiting=0
 for f in "$STATE_DIR"/*; do
@@ -79,6 +80,7 @@ for f in "$STATE_DIR"/*; do
   read -r state kind < "$f" 2>/dev/null || continue
   case "$state" in
     working) working=$((working + 1)) ;;
+    background) background=$((background + 1)) ;;
     idle) idle=$((idle + 1)) ;;
     waiting)
       # idle_prompt is not a question. It fires sixty seconds after Stop and
@@ -110,10 +112,21 @@ done
 # The order is by glyph height, not by importance: ⣿ then ⣤ then ⣀ is a
 # descending staircase, so the row reads as a shape before it reads as numbers.
 # That it also runs active, waiting, idle is a coincidence worth keeping.
+#
+# The active slot is two numbers, `⣿ 1 (2)`: one session running now, two
+# parked on background work (a shell, a Monitor on CI, a /loop) that will wake
+# them. Both are active, since neither needs you, so they share the slot and
+# its yellow. The parens say "not running this second". Each half greys out on
+# its own at zero, and the (n) is always drawn, for the fixed-slots reason above.
 if ((working)); then
   out="#[fg=#e5c890]⣿ $working#[default] "
 else
   out="#[fg=#737994]⣿ 0#[default] "
+fi
+if ((background)); then
+  out+="#[fg=#e5c890]($background)#[default] "
+else
+  out+="#[fg=#737994](0)#[default] "
 fi
 # Pink, matching the [q] in `dev`.
 if ((waiting)); then
