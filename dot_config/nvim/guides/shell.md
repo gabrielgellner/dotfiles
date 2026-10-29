@@ -63,7 +63,6 @@ rather than running `.venv/bin/python`, because this evaluates on every prompt.
 | `z <bit of a path>` | jump there (zoxide, by frecency)  |
 | `zi`    | pick interactively                            |
 | `y`     | browse in yazi, and **the shell follows**     |
-| `br`    | broot                                         |
 
 **`z` and `y` are the same verb split two ways**: `z` jumps when you know where
 you are going, `y` browses when you do not.
@@ -73,9 +72,7 @@ ended in and the wrapper `cd`s there, while `Q` quits without writing so the
 shell stays put. That distinction is the whole reason to use the wrapper; see
 [Yazi](yazi.md).
 
-Note it is **not** `ya`, which is yazi's own package manager. And `broot`'s `br`
-is the same trick one tool over: a subshell cannot change your directory, so
-broot writes the command it wants run to a file and the function evals it.
+Note it is **not** `ya`, which is yazi's own package manager.
 
 ## Aliases and environment
 

@@ -1147,7 +1147,7 @@ only the gaps — run it on a half-provisioned machine to fill it in. An install
 that *fails* is the error it reports: the run continues, and ends non-zero
 naming what failed, rather than aborting at the first one and leaving the rest
 uninstalled. Core:
-`tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `broot`,
+`tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`,
 `btop`, `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`,
 `zk`, `just`, `git-cliff`, `tree-sitter`, `uv` (Python), `racket` (the REPL
 behind both conjure clients — added 2026-09-29, having been installed by hand
