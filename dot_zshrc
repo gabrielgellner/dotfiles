@@ -41,16 +41,14 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 # self-updating completion with one frozen at the version it was generated from.
 
 # 1. fpath first
-# -U for the same reason as `path` further down. Two things add this directory:
-# `brew shellenv` above and the line below. That alone is two copies, measured
-# from a clean environment with this line removed. It is three in any shell
-# started from another one, because brew shellenv *exports* FPATH, so the child
-# inherits the entry and then both writers add it again — which is the common
-# case here, every shell being a tmux pane. Each further level of nesting adds
-# one more. compinit walks every copy. Declared before the assignment so that
-# one is deduped too.
+# `brew shellenv` above already puts site-functions at the front of fpath, so
+# nothing here adds it. -U is still needed, for the same reason as `path`
+# further down: brew shellenv *exports* FPATH, so a shell started from another
+# one inherits the entry and brew prepends it again — the common case here,
+# every shell being a tmux pane. Each level of nesting would add one more, and
+# compinit walks every copy. Declaring -U on the existing array dedupes it on
+# the spot, keeping the first occurrence.
 typeset -U fpath
-fpath=("$BREW_PREFIX/share/zsh/site-functions" $fpath)
 
 # 2. compinit with 24hr cache
 # The staleness test is a glob qualifier rather than a find(1) fork: N is
