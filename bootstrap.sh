@@ -168,6 +168,8 @@ brew_install yazi
 # compress.yazi reaches for the same binary (its fallback list is 7z, 7zz,
 # 7za, and homebrew installs only the middle one). Without it both stay silent.
 brew_install sevenzip
+# LS_COLORS for eza and the completion list, generated in dot_zshrc
+brew_install vivid
 
 # system monitor
 brew_install btop
@@ -440,7 +442,7 @@ missing=()
 # Binaries. Formula name and command name differ often enough (neovim/nvim,
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
-         yazi btop starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
+         yazi vivid btop starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
          git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket \
          yamlfmt yamllint lua-language-server bash-language-server; do
     command -v "$c" &>/dev/null || missing+=("$c")

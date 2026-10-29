@@ -33,6 +33,15 @@ stty -ixon
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 
+# LS_COLORS from vivid, in the catppuccin frappe that kitty, tmux, nvim and bat
+# use. macOS exports none, so before this eza fell back to its built-in colours
+# and the completion list-colors below had nothing to work with. Set here, ahead
+# of that zstyle, because the zstyle expands it once, when it is defined. vivid
+# takes about 3ms, so this runs every time rather than being cached. Unguarded,
+# like the plugin sources below: if vivid is missing you get an error, not plain
+# uncoloured output that you'd never notice.
+export LS_COLORS="$(vivid generate catppuccin-frappe)"
+
 ## Completion setup
 # Nothing to generate by hand. Every completion in site-functions is a symlink
 # brew maintains into the Cellar, so they follow their formula on upgrade. This
@@ -63,25 +72,20 @@ else
 fi
 unset _zcompdump_stale
 
-# 3. fzf shell integration
-source <(fzf --zsh)
-
-# 4. fzf-tab — every TAB completion goes through fzf, not just the ** trigger.
+# 3. fzf-tab — every TAB completion goes through fzf.
 #
-# Wedged between fzf and zsh-autosuggestions because both neighbours constrain
-# it. It has to be the *last* plugin to bind ^I: fzf's integration above binds
-# ^I to fzf-completion, and fzf-tab calls whatever it finds there to produce the
-# candidate list. It also has to load *before* anything that wraps widgets,
-# which zsh-autosuggestions does. compinit has already run above. Move it out of
-# this gap in either direction and it stops working, quietly.
+# Needs compinit to have run, which it has above, and has to load *before*
+# anything that wraps widgets, which zsh-autosuggestions does. It must also be
+# the last thing to bind ^I. fzf's own shell integration (`fzf --zsh`) used to
+# sit just above and bind ^I, C-t and Alt-c. It was dropped as unused: atuin had
+# already taken its C-r, and Tab is fzf-tab's.
 source "$BREW_PREFIX/share/fzf-tab/fzf-tab.zsh"
 
 # `menu no` is required rather than cosmetic: zsh's own completion menu would
 # consume the unambiguous prefix before fzf-tab could see it.
 zstyle ':completion:*' menu no
 zstyle ':completion:*:descriptions' format '[%d]'
-# LS_COLORS is unset on macOS unless something exports it; this then yields an
-# empty colour list, which is harmless — candidates are simply uncoloured.
+# Coloured from the vivid LS_COLORS exported near the top.
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
 # Preview the directory a completion refers to, using the eza the ls aliases use.
@@ -247,16 +251,13 @@ eval "$(zoxide init zsh)"
 # Vi mode
 bindkey -v
 export KEYTIMEOUT=10
-bindkey '^P' history-search-backward
-bindkey '^N' history-search-forward
 bindkey '^Y' autosuggest-accept
 
-# Atuin — SQLite-backed history, replacing fzf's C-r. Records cwd, exit code and
+# Atuin — SQLite-backed history, and the C-r widget. Records cwd, exit code and
 # duration per command, which is what makes `--cwd .` and `--exit 0` possible;
 # a flat HISTFILE has nowhere to put them.
 #
-# Placed here because it has to come after all three of:
-#   * fzf, which binds C-r above — atuin must run later to take it.
+# Placed here because it has to come after both of:
 #   * zsh-autosuggestions, which must already have set ZSH_AUTOSUGGEST_STRATEGY.
 #     atuin *prepends* itself, so sourced first it becomes ("atuin") alone and
 #     silently drops the history fallback instead of ("atuin" "history").
@@ -276,6 +277,13 @@ eval "$(atuin init zsh --disable-ai)"
 # Delete these two lines to run atuin's stock bindings.
 bindkey -M vicmd 'k' up-line-or-history
 bindkey -M vicmd '/' vi-history-search-backward
+
+# C-p opens atuin the way Up does, filtered by what you have typed, and inside
+# its UI C-p/C-n then move through the matches. C-n mirrors Down. In viins both
+# were bound to zsh's own prefix search over HISTFILE, which only duplicated
+# atuin. Bound here because the widget only exists after atuin's init.
+bindkey -M viins '^P' atuin-up-search-viins
+bindkey -M viins '^N' down-line-or-history
 
 # use direnv for automatic .env loading
 eval "$(direnv hook zsh)"

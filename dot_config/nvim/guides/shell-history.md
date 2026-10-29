@@ -4,22 +4,23 @@ Atuin records every command into SQLite with its **directory**, **exit code**
 and **duration**. That is the whole point: a flat `.zsh_history` has nowhere to
 put those, so questions like "the version that worked" were unanswerable before.
 
-Installed by `bootstrap.sh`, wired in `dot_zshrc` after fzf and
+Installed by `bootstrap.sh`, wired in `dot_zshrc` after
 zsh-autosuggestions. Local only — no account, nothing leaves the machine.
 
 ## Keys
 
 | Key        | Mode   | Does                                        |
 | ---------- | ------ | ------------------------------------------- |
-| `Ctrl-R`   | insert | atuin search UI (was fzf)                   |
+| `Ctrl-R`   | insert | atuin search UI                             |
 | `Up`       | insert | atuin, filtered by what you have typed      |
-| `Ctrl-P/N` | insert | step back/forward, prefix match — unchanged |
-| `Ctrl-Y`   | insert | accept the ghost suggestion — unchanged     |
-| `Ctrl-T`   | insert | fzf file picker — still fzf, untouched      |
+| `Ctrl-P`   | insert | the same as `Up`                            |
+| `Ctrl-N`   | insert | the same as `Down`                          |
+| `Ctrl-Y`   | insert | accept the ghost suggestion                 |
 | `Tab`      | insert | fzf-tab — completion through fzf            |
-| `**` `Tab` | insert | fzf's own file picker, still available      |
-| `Alt-C`    | insert | fzf cd widget — unchanged                   |
 | `k` `/`    | normal | still vi motions, deliberately restored     |
+
+fzf's own shell keys (`Ctrl-T`, `Alt-C`, `**` `Tab`) are gone. Its integration
+was removed as unused.
 
 Inside the search UI, atuin prints its own hint line —
 `<esc>: exit, <tab>: edit, <enter>: run, <ctrl-o>: inspect`. Two more are not in
@@ -40,7 +41,7 @@ keystroke to this repo.
 
 ## Completion — fzf-tab
 
-Every `Tab` is an fzf picker now, not just the `**` trigger. It is fuzzy, so a
+Every `Tab` is an fzf picker. It is fuzzy, so a
 couple of characters is usually faster than reading the list.
 
     git checkout <Tab>    branches
@@ -48,7 +49,7 @@ couple of characters is usually faster than reading the list.
     kill <Tab>            processes
     cd <Tab>              directories, with an eza preview
 
-fzf-tab and atuin never collide: atuin owns `Ctrl-R` and `Up` (history), fzf-tab
+fzf-tab and atuin never collide: atuin owns `Ctrl-R`, `Up` and `Ctrl-P` (history), fzf-tab
 owns `Tab` (completion). Different widgets, different question.
 
 ### just, and why it needed a nudge

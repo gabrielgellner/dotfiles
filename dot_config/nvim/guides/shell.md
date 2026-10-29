@@ -28,7 +28,8 @@ interactively, at which point `dev` cannot find `new-session`.
 
 | Key    | Mode   | Does                            |
 | ------ | ------ | ------------------------------- |
-| `^P` `^N` | insert | history search backward / forward |
+| `^P`   | insert | atuin, like `Up`                |
+| `^N`   | insert | down, like `Down`               |
 | `^Y`   | insert | accept the ghost suggestion     |
 | `k`    | normal | up a line                       |
 | `/`    | normal | search history                  |
@@ -99,19 +100,18 @@ work where they are. Moving one breaks something quietly:
 
 1. **brew shellenv**, then `fpath`
 2. **compinit** — with a 24-hour cache
-3. **fzf**, which binds `^I` and `^R`
-4. **fzf-tab**, which must be the *last* thing to bind `^I` and must load before
-   anything that wraps widgets
-5. **zsh-autosuggestions**, which wraps widgets and sets the strategy
-6. **starship**, guarded to once per process
-7. **zoxide**, then `bindkey -v`
-8. **atuin**, which must come after fzf (to take `^R`), after autosuggestions
-   (it *prepends* to the strategy, so sourced first it drops the history
-   fallback), and after `bindkey -v` (so it binds into the keymaps in use)
-9. **zsh-syntax-highlighting**, last
+3. **fzf-tab**, which needs compinit and must load before anything that wraps
+   widgets
+4. **zsh-autosuggestions**, which wraps widgets and sets the strategy
+5. **starship**, guarded to once per process
+6. **zoxide**, then `bindkey -v`
+7. **atuin**, which must come after autosuggestions (it *prepends* to the
+   strategy, so sourced first it drops the history fallback) and after
+   `bindkey -v` (so it binds into the keymaps in use), followed by the `^P`
+   binding that points at its widget
+8. **zsh-syntax-highlighting**, last
 
-That is why fzf-tab is wedged between two neighbours that both constrain it, and
-why atuin sits so far down. Neither position is arbitrary and neither fails
+That is why fzf-tab sits right after compinit, and why atuin sits so far down. Neither position is arbitrary and neither fails
 loudly if moved.
 
 ## Things that bit
