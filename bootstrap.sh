@@ -290,8 +290,17 @@ blue "\nChecking Julia apps..."
 # plugins/formatting.lua) are Julia packages that Pkg.Apps installs as
 # executables in ~/.julia/bin. Neither has a formula. Both need Julia 1.12+.
 #
-# ensure_command, so a juliaup install is left alone rather than shadowed.
-ensure_command julia
+# Julia itself comes from juliaup, not the `julia` formula: juliaup's `julia`
+# is a launcher that runs whichever version its default channel names, and the
+# first run installs that version. ensure_command, so a julia that is already
+# on PATH from anywhere is left alone rather than shadowed.
+#
+# The app scripts in ~/.julia/bin record the *exact* julia binary they were
+# installed with, a versioned path under ~/.julia/juliaup — measured
+# 2026-10-30, `julia_cmd=` in ~/.julia/bin/jetls. Once juliaup drops that
+# version, jetls and runic point at nothing; re-run the two adds below
+# (julia_app_install skips them while the scripts exist, so by hand).
+ensure_command julia juliaup
 export PATH="$HOME/.julia/bin:$PATH"
 julia_app_install() {
     local app="$1" spec="$2"

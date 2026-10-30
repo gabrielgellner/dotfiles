@@ -1165,7 +1165,10 @@ Language servers: `lua-language-server`, `bash-language-server`, `pyrefly`,
 `dot_zshenv` and `dot_zshrc`; neither has a formula. JETLS reports some
 findings twice, once from its `JETLS/live` pass and once from `JETLS/save`
 (measured on a scratch project, 2026-10-30) — that is the server, not a
-duplicated client. bash-language-server
+duplicated client. LaTeX input (`\alpha` to `α`) comes from JETLS too, through
+blink, so julia-vim is not needed for it (measured the same day). Julia itself
+is juliaup, and the app scripts pin the exact julia they were installed with —
+see the Julia section of `bootstrap.sh`. bash-language-server
 shells out to `shellcheck` and serves its findings as code actions, which is
 why `plugins/lint.lua` has no `sh` entry.
 `basedpyright` is installed but deliberately *not* enabled in nvim — it is the
