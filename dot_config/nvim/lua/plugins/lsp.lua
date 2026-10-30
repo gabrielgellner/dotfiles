@@ -178,6 +178,20 @@ return {
     })
     vim.lsp.enable("just_lsp")
 
+    -- ── jetls ─────────────────────────────────────────────────────────────
+    -- aviatesk/JETLS.jl, not LanguageServer.jl (julials): diagnostics come from
+    -- JET's type inference, and it starts without the 20s+ SymbolServer wait.
+    -- Needs Julia 1.12+. Installed as a Pkg app into ~/.julia/bin by
+    -- bootstrap.sh; re-run that same Pkg.Apps.add to update it.
+    --
+    -- cmd, filetypes and root_markers are not restated: nvim-lspconfig's
+    -- lsp/jetls.lua gives exactly what JETLS's own docs say ({ "jetls",
+    -- "serve" }, julia, Project.toml), and vim.lsp.config merges onto it.
+    vim.lsp.config("jetls", {
+      capabilities = capabilities,
+    })
+    vim.lsp.enable("jetls")
+
     -- ── lua_ls (for editing this config) ─────────────────────────────────
     vim.lsp.config("lua_ls", {
       capabilities = capabilities,

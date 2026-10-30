@@ -5,7 +5,7 @@
 # `#!/usr/bin/env zsh` line, `zsh -c`, and anything a tool spawns. uv installs
 # there (ruff, basedpyright, debugpy, djlint via bootstrap.sh).
 #
-# The three directories are the same three .zshrc lists, in the same order. ~/bin
+# The directories are the same ones .zshrc lists, in the same order. ~/bin
 # used to be missing from this copy, so the scripts in it — dev and new-session —
 # resolved only in an interactive shell. Everything still worked, because tmux is
 # started from one and hands its environment to the popup, but the moment that
@@ -14,7 +14,7 @@
 # $HOME rather than a literal path: uv's installer wrote this file with
 # /Users/gabrielgellner hardcoded, which would have expanded to nothing useful
 # on the Linux machine had it ever been synced.
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.julia/bin:$PATH"
 
 # Keep Claude Code out of the alternate screen, so its output lands in Neovim's
 # terminal scrollback.

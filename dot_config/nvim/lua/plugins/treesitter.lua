@@ -28,6 +28,7 @@ return {
         "rust",
         "scheme",
         "racket",
+        "julia",
         "xml",
       },
     },

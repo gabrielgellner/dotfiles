@@ -1159,7 +1159,13 @@ formula would have put a second, smaller racket beside the full one).
 `node`, and leans on a Google Chrome that nothing here installs.
 
 Language servers: `lua-language-server`, `bash-language-server`, `pyrefly`,
-`ruff`, `just-lsp` — the five `plugins/lsp.lua` enables. bash-language-server
+`ruff`, `just-lsp`, `jetls` — the six `plugins/lsp.lua` enables. `jetls`
+(JETLS.jl) and the formatter `runic` are Julia packages installed by
+`Pkg.Apps` into `~/.julia/bin`, which is why that directory is on PATH in
+`dot_zshenv` and `dot_zshrc`; neither has a formula. JETLS reports some
+findings twice, once from its `JETLS/live` pass and once from `JETLS/save`
+(measured on a scratch project, 2026-10-30) — that is the server, not a
+duplicated client. bash-language-server
 shells out to `shellcheck` and serves its findings as code actions, which is
 why `plugins/lint.lua` has no `sh` entry.
 `basedpyright` is installed but deliberately *not* enabled in nvim — it is the

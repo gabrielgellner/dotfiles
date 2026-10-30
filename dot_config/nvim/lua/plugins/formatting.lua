@@ -37,6 +37,9 @@ return {
       typescriptreact = { "biome" },
       rust = { "rustfmt" },
       just = { "just" },
+      -- Runic, not JuliaFormatter: no options, the gofmt model. conform ships
+      -- the definition; `runic` is a Pkg app in ~/.julia/bin (bootstrap.sh).
+      julia = { "runic" },
     },
     -- Prettier's default proseWrap is "preserve", so markdown saves left long
     -- lines untouched. Hard-wrap prose at 120 instead; tables are never wrapped

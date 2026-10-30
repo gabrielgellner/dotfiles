@@ -283,6 +283,31 @@ ensure_command racket minimal-racket
 ensure_command pyrefly
 ensure_command just-lsp
 
+# ── Julia apps ────────────────────────────────────────────────────────────────
+
+blue "\nChecking Julia apps..."
+# jetls (the LSP in plugins/lsp.lua) and runic (the formatter in
+# plugins/formatting.lua) are Julia packages that Pkg.Apps installs as
+# executables in ~/.julia/bin. Neither has a formula. Both need Julia 1.12+.
+#
+# ensure_command, so a juliaup install is left alone rather than shadowed.
+ensure_command julia
+export PATH="$HOME/.julia/bin:$PATH"
+julia_app_install() {
+    local app="$1" spec="$2"
+    if [[ -x "$HOME/.julia/bin/$app" ]]; then
+        yellow "  julia app: $app already installed, skipping"
+    elif command -v julia &>/dev/null; then
+        green "  julia app: installing $app"
+        julia -e "using Pkg; Pkg.Apps.add($spec)" || record_failure "julia:$app"
+    else
+        record_failure "julia:$app (no julia)"
+    fi
+}
+# rev="release" is JETLS's own recommended branch; rerunning the add updates it.
+julia_app_install jetls '; url="https://github.com/aviatesk/JETLS.jl", rev="release"'
+julia_app_install runic '"Runic"'
+
 # ── uv itself ─────────────────────────────────────────────────────────────────
 
 blue "\nChecking uv..."
@@ -444,7 +469,7 @@ missing=()
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
          yazi vivid btop starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
          git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket \
-         yamlfmt yamllint lua-language-server bash-language-server; do
+         yamlfmt yamllint lua-language-server bash-language-server julia jetls runic; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done
 
