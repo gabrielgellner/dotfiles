@@ -302,5 +302,12 @@ source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 # ~/.julia/bin is the same story for Julia: Pkg.Apps installs jetls and runic
 # there and adds nothing to PATH, it only warns. nvim's LSP and conform both
 # need them by bare name.
-path=($HOME/.local/bin $HOME/.cargo/bin $HOME/bin $HOME/.julia/bin $path)
+#
+# /Applications/quarto/bin goes *after* the system path: the quarto cask's
+# .pkg links quarto into /usr/local/bin, which does not exist on an Apple
+# Silicon Mac, so the link silently never happens. The directory holds only
+# `quarto` (its bundled pandoc, deno and typst are a level down, in tools/, and
+# stay off PATH), so the position is just lowest priority. On Linux it does not
+# exist, and a missing PATH entry is inert.
+path=($HOME/.local/bin $HOME/.cargo/bin $HOME/bin $HOME/.julia/bin $path /Applications/quarto/bin)
 typeset -U path   # dedupe, keeps first occurrence, repeated sourcing .zshrc won't stack

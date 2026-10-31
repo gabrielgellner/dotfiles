@@ -14,7 +14,9 @@
 # $HOME rather than a literal path: uv's installer wrote this file with
 # /Users/gabrielgellner hardcoded, which would have expanded to nothing useful
 # on the Linux machine had it ever been synced.
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.julia/bin:$PATH"
+#
+# /Applications/quarto/bin is appended, not prepended; .zshrc says why.
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin:$HOME/.julia/bin:$PATH:/Applications/quarto/bin"
 
 # Keep Claude Code out of the alternate screen, so its output lands in Neovim's
 # terminal scrollback.
