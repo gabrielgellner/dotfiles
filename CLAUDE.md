@@ -967,7 +967,7 @@ Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
   `scratch`, `markdown_checkbox`, `markdown_outline`, `rules_lookup`.
 - `plugins/` — one file per plugin or plugin group, lazy-loaded.
 - `guides/` — hand-written markdown reference cards, opened with `<leader>?`.
-  Twenty-five of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
+  Twenty-six of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
   link between them, and `<C-g>` in the picker switches from matching titles to
   grepping their contents.
 
@@ -983,7 +983,8 @@ defect to fix: some table rows are deliberately not aligned.
 
 Plugin categories: LSP + completion (blink.cmp), DAP debugging, treesitter,
 formatting/linting, UI (noice, snacks, mini), navigation (flash, spider, oil),
-git (gitsigns, codediff), GitHub (octo), Rust, Scheme (conjure, paredit).
+git (gitsigns, codediff), GitHub (octo), Rust, Scheme (conjure, paredit),
+documents (quarto-nvim + otter + vim-slime, typst-preview).
 
 **`:Lazy restore` does not rebuild treesitter parsers; run `:TSUpdate` after
 it.** The lockfile pins nvim-treesitter, and its queries move with it because
@@ -1149,7 +1150,8 @@ naming what failed, rather than aborting at the first one and leaving the rest
 uninstalled. Core:
 `tmux`, `nvim`, `fzf`, `fd`, `ripgrep` (`rg`), `eza`, `bat`, `yazi`, `vivid`,
 `btop`, `zoxide`, `atuin`, `starship`, `direnv`, `lazygit`,
-`zk`, `just`, `git-cliff`, `tree-sitter`, `uv` (Python), `racket` (the REPL
+`zk`, `just`, `git-cliff`, `tree-sitter`, `typst`, `tinymist`, `typstyle`,
+`websocat`, `quarto` (cask, macOS only), `uv` (Python), `racket` (the REPL
 behind both conjure clients — added 2026-09-29, having been installed by hand
 here while absent from this list; `ensure_command racket minimal-racket`, not
 `brew_install`, because the **cask** `racket` is the full distribution and the
@@ -1159,7 +1161,7 @@ formula would have put a second, smaller racket beside the full one).
 `node`, and leans on a Google Chrome that nothing here installs.
 
 Language servers: `lua-language-server`, `bash-language-server`, `pyrefly`,
-`ruff`, `just-lsp`, `jetls` — the six `plugins/lsp.lua` enables. `jetls`
+`ruff`, `just-lsp`, `jetls`, `tinymist` — the seven `plugins/lsp.lua` enables. `jetls`
 (JETLS.jl) and the formatter `runic` are Julia packages installed by
 `Pkg.Apps` into `~/.julia/bin`, which is why that directory is on PATH in
 `dot_zshenv` and `dot_zshrc`; neither has a formula. JETLS reports some

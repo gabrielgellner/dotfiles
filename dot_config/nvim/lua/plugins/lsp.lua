@@ -192,6 +192,18 @@ return {
     })
     vim.lsp.enable("jetls")
 
+    -- ── tinymist (typst) ──────────────────────────────────────────────────
+    -- Myriad-Dreamin/tinymist (brew). Diagnostics, completion, hover with
+    -- rendered docs, and :LspTinymistExportPdf and friends, which
+    -- nvim-lspconfig's lsp/tinymist.lua defines on attach. cmd and filetypes
+    -- come from there too. Formatting is typstyle through conform rather than
+    -- the server's formatterMode, so `:w` formats the same way the CLI does;
+    -- the live preview is typst-preview.nvim (plugins/typst.lua).
+    vim.lsp.config("tinymist", {
+      capabilities = capabilities,
+    })
+    vim.lsp.enable("tinymist")
+
     -- ── lua_ls (for editing this config) ─────────────────────────────────
     vim.lsp.config("lua_ls", {
       capabilities = capabilities,

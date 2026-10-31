@@ -216,6 +216,22 @@ brew_install neovim
 # with no Chrome gets a working mmdc that cannot render, and says so.
 brew_install mermaid-cli
 
+# typst: the compiler, tinymist (its language server, and the server behind
+# typst-preview.nvim), typstyle (the formatter conform runs on save), and
+# websocat, which typst-preview.nvim talks to tinymist's preview through.
+# plugins/typst.lua points the plugin at these rather than letting it download
+# its own copies of the last two.
+brew_install typst
+brew_install tinymist
+brew_install typstyle
+brew_install websocat
+
+# quarto, for .qmd. A cask wrapping a .pkg, so it asks for an admin password
+# part-way through; and macOS only, since linuxbrew rejects --cask — on Linux
+# it is a .deb from quarto.org, not handled here. quarto-nvim's preview and
+# render need it; the editing side (otter, the runner) does not.
+$IS_MACOS && cask_install quarto
+
 # lua (for editing neovim config)
 brew_install lua-language-server
 brew_install stylua
@@ -478,13 +494,15 @@ missing=()
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
          yazi vivid btop starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
          git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket \
-         yamlfmt yamllint lua-language-server bash-language-server julia jetls runic; do
+         yamlfmt yamllint lua-language-server bash-language-server julia jetls runic \
+         typst tinymist typstyle websocat; do
     command -v "$c" &>/dev/null || missing+=("$c")
 done
 
 # Gated on macOS to match the install above, which is gated because
 # .chezmoiignore applies bin/mkv2mp4 there alone.
 $IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
+$IS_MACOS && { command -v quarto &>/dev/null || missing+=("quarto"); }
 
 # Mail, gated the same way as its install above. Bridge is an app, not a
 # command, so it is asked of brew.

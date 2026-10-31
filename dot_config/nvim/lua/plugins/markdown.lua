@@ -3,8 +3,12 @@ return {
   {
     "MeanderingProgrammer/render-markdown.nvim",
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
-    ft = { "markdown" },
+    -- quarto too: a .qmd is markdown to render-markdown (it reads the
+    -- markdown parser the filetype is registered to), but it only attaches to
+    -- the filetypes in `file_types`, which defaults to markdown alone.
+    ft = { "markdown", "quarto" },
     opts = {
+      file_types = { "markdown", "quarto" },
       heading = { enabled = true },
       code = { enabled = true, sign = false },
       dash = { enabled = true },
@@ -32,7 +36,7 @@ return {
       {
         "<leader>mr",
         "<cmd>RenderMarkdown toggle<CR>",
-        ft = "markdown",
+        ft = { "markdown", "quarto" },
         desc = "Toggle render",
       },
     },

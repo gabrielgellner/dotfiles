@@ -30,6 +30,10 @@ return {
         "racket",
         "julia",
         "xml",
+        "typst",
+        -- markdown_inline injects `latex` into $…$ math, which is most of what a
+        -- .qmd that is not code is made of.
+        "latex",
       },
     },
     config = function(_, opts)

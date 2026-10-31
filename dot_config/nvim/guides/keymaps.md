@@ -227,6 +227,8 @@ ones these rules shaped; the rest document tools that came with their own keys.
   the tmux bar
 - [Markdown](markdown.md) — checkboxes, the outline picker, rendering and
   `.scrawl`, and why each needed writing
+- [Quarto and Typst](writing.md) — documents that compile: running chunks in
+  the tmux console, LSP inside them, and the live previews
 - [Notes](notes.md) — three tiers sorted by friction: the scratch log, the
   global journal, and zk — plus what is synced and what is not
 - [Just recipes](just.md) — the two justfiles: getting config onto a machine,

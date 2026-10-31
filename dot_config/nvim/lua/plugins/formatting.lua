@@ -40,6 +40,9 @@ return {
       -- Runic, not JuliaFormatter: no options, the gofmt model. conform ships
       -- the definition; `runic` is a Pkg app in ~/.julia/bin (bootstrap.sh).
       julia = { "runic" },
+      typst = { "typstyle" },
+      -- No quarto entry: prettier's markdown parser does not know `{python}`
+      -- chunk headers or cell options, and nothing else formats a .qmd.
     },
     -- Prettier's default proseWrap is "preserve", so markdown saves left long
     -- lines untouched. Hard-wrap prose at 120 instead; tables are never wrapped
