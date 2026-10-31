@@ -9,6 +9,16 @@
 # sdmxlib-rest. The kill binding matters most: ctrl-x on pinax would otherwise
 # kill pinax-ai, silently.
 #
+# Every one also ends in a colon, "=$name:", and that is load-bearing too. A
+# target is session:window.pane, so a dot in a bare session target is read as
+# the pane separator: "=FoodWebs.jl" asks for pane "jl" of a session
+# FoodWebs, and tmux 3.8 answers "can't find pane: jl" — though it created the
+# session under that exact name. Every Julia package directory ends .jl, so
+# picking one failed has-session, sent new-session after a session that
+# already existed, and could not switch to it or ctrl-x it. The colon closes
+# the session part, after which the dot is just a character (measured on a
+# throwaway -L server: has-session, switch and kill all found it).
+#
 # That binding writes the target as \={-1}, and the backslash is load-bearing.
 # fzf runs an execute binding through $SHELL — *not* through the shell this
 # script is written in, which is why the backslash survived the move to bash;
@@ -225,7 +235,7 @@ choice=$(
     --layout=reverse \
     --border=rounded \
     --header='ctrl-x: kill session' \
-    --bind="ctrl-x:execute-silent(tmux kill-session -t \={-1} 2>/dev/null)+reload($SELF --list)" \
+    --bind="ctrl-x:execute-silent(tmux kill-session -t \={-1}: 2>/dev/null)+reload($SELF --list)" \
     --info=inline
 ) || exit 0
 
@@ -233,11 +243,11 @@ choice=$(
 # could sit between it and the name.
 name="${choice##* }"
 
-if tmux has-session -t "=$name" 2>/dev/null; then
+if tmux has-session -t "=$name:" 2>/dev/null; then
   if [[ -n "$TMUX" ]]; then
-    tmux switch-client -t "=$name"
+    tmux switch-client -t "=$name:"
   else
-    tmux attach -t "=$name"
+    tmux attach -t "=$name:"
   fi
 else
   new-session "$name" "$(resolve_dir "$name")"

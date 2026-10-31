@@ -16,8 +16,9 @@ fi
 # *prefix*, then fnmatch, so a bare name can land on a longer sibling — pinax
 # reaching pinax-ai, say. Here the session has just been created so the exact
 # match wins anyway; the = keeps that true if this is ever called somewhere the
-# assumption does not hold.
-if tmux has-session -t "=$SESSION" 2>/dev/null; then
+# assumption does not hold. The trailing colon on the session-only targets
+# stops a dot in the name (FoodWebs.jl) being read as a pane; see `dev`.
+if tmux has-session -t "=$SESSION:" 2>/dev/null; then
   # Already built. Do not lay it out again: `tmux new-session` fails with
   # "duplicate session" but the rest of the script used to carry on regardless,
   # renaming the live session's first window, typing nvim into it and appending
@@ -31,8 +32,8 @@ else
   tmux rename-window -t "=$SESSION:1" nvim
 
   # two consoles, for a build and something else
-  tmux new-window -t "=$SESSION" -n console -c "$DIR"
-  tmux new-window -t "=$SESSION" -n console -c "$DIR"
+  tmux new-window -t "=$SESSION:" -n console -c "$DIR"
+  tmux new-window -t "=$SESSION:" -n console -c "$DIR"
 
   tmux send-keys -t "=$SESSION:nvim" "nvim" Enter
   tmux select-window -t "=$SESSION:nvim"
@@ -40,7 +41,7 @@ fi
 
 # attach or switch depending on whether we're already in tmux
 if [[ -n "$TMUX" ]]; then
-  tmux switch-client -t "=$SESSION"
+  tmux switch-client -t "=$SESSION:"
 else
-  tmux attach -t "=$SESSION"
+  tmux attach -t "=$SESSION:"
 fi
