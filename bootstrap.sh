@@ -293,6 +293,17 @@ brew_install tree-sitter
 # machine.
 ensure_command racket minimal-racket
 
+# R. `ensure_command` for the racket reason — the cask `r-app` is CRAN's own
+# build, and a second R beside it would split the site-library — and for one of
+# its own: the formula can be installed and still not on PATH. On 2026-11-01
+# its link failed on a leftover lib/R/4.6/site-library/.keepme from an earlier
+# install, so `brew list r` said yes while `R` was command-not-found. The
+# install step cannot repair that — `brew install r` on an unlinked keg only
+# warns "already installed, it's just not linked" and exits 0 (measured) — but
+# the verification pass asks for the command, so it reports it. The fix is
+# `brew link --overwrite r`, after a `--dry-run` shows what it would replace.
+ensure_command R r
+
 # LSP servers that plugins/lsp.lua actually enables. basedpyright below is not
 # one of them — it is kept deliberately for CI and `just` checks, where broader
 # coverage matters than the editor needs (see the comment in lsp.lua).
@@ -493,7 +504,7 @@ missing=()
 # ripgrep/rg) that this list is the command names, deliberately.
 for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
          yazi vivid btop starship zoxide atuin direnv lazygit just uv tree-sitter 7zz \
-         git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket \
+         git git-cliff shellcheck stylua prettier taplo shfmt biome mmdc racket R \
          yamlfmt yamllint lua-language-server bash-language-server julia jetls runic \
          typst tinymist typstyle websocat; do
     command -v "$c" &>/dev/null || missing+=("$c")
