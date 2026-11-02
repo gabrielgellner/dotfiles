@@ -226,11 +226,46 @@ brew_install tinymist
 brew_install typstyle
 brew_install websocat
 
-# quarto, for .qmd. A cask wrapping a .pkg, so it asks for an admin password
-# part-way through; and macOS only, since linuxbrew rejects --cask — on Linux
-# it is a .deb from quarto.org, not handled here. quarto-nvim's preview and
-# render need it; the editing side (otter, the runner) does not.
-$IS_MACOS && cask_install quarto
+# quarto, for .qmd. quarto-nvim's preview and render need it; the editing side
+# (otter, the runner) does not. On macOS a cask wrapping a .pkg, so it asks for
+# an admin password part-way through. linuxbrew rejects --cask, so on Linux it
+# is the release .deb, pinned with its sha256 the way codelldb is pinned below,
+# and installed through apt — which asks for sudo the same way. A .deb lands in
+# /usr/local/bin, already on PATH; the /Applications entry in dot_zshrc is
+# inert here.
+if $IS_MACOS; then
+    cask_install quarto
+elif command -v quarto &>/dev/null; then
+    yellow "  quarto already present ($(command -v quarto)), skipping"
+elif ! command -v apt-get &>/dev/null; then
+    yellow "  no apt-get, and quarto ships only a .deb here — install it by hand"
+else
+    QUARTO_VERSION="1.11.9"
+    QUARTO_ARCH="$(dpkg --print-architecture)"
+    case "$QUARTO_ARCH" in
+        amd64) QUARTO_SHA256="64078d1623d9ab89da766591f3410a0756f3737a37efb0897c7e84b863bf092a" ;;
+        arm64) QUARTO_SHA256="17aef0c6b02c93a295483063571b5db3315095fe76f4274f286f1f9e44cdac9e" ;;
+        *) QUARTO_SHA256="" ;;
+    esac
+    if [[ -z "$QUARTO_SHA256" ]]; then
+        yellow "  no quarto .deb for $QUARTO_ARCH, skipping"
+    else
+        green "  deb: installing quarto $QUARTO_VERSION ($QUARTO_ARCH)"
+        # Same mktemp form as codelldb's, for the same reason. apt-get wants a
+        # path containing a slash to treat the argument as a file, not a name.
+        QUARTO_DEB="$(mktemp "${TMPDIR:-/tmp}/quarto.XXXXXX").deb"
+        if curl -fsSL -o "$QUARTO_DEB" \
+                "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-${QUARTO_ARCH}.deb" \
+           && echo "$QUARTO_SHA256  $QUARTO_DEB" | sha256sum -c --quiet - \
+           && sudo apt-get install -y "$QUARTO_DEB"; then
+            :
+        else
+            record_failure "deb:quarto"
+        fi
+        # mktemp created the name without the suffix; that file is ours too.
+        rm -f "$QUARTO_DEB" "${QUARTO_DEB%.deb}"
+    fi
+fi
 
 # lua (for editing neovim config)
 brew_install lua-language-server
@@ -513,7 +548,10 @@ done
 # Gated on macOS to match the install above, which is gated because
 # .chezmoiignore applies bin/mkv2mp4 there alone.
 $IS_MACOS && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
-$IS_MACOS && { command -v quarto &>/dev/null || missing+=("quarto"); }
+
+# quarto is installed on both now (cask, or the .deb), so it is checked on both.
+# A Linux machine without apt-get reports it here rather than passing silently.
+command -v quarto &>/dev/null || missing+=("quarto")
 
 # Mail, gated the same way as its install above. Bridge is an app, not a
 # command, so it is asked of brew.
