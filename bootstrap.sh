@@ -476,7 +476,8 @@ else
         else
             record_failure "codelldb"
         fi
-        rm -f "$CODELLDB_VSIX"
+        # mktemp created the name without the suffix; that file is ours too.
+        rm -f "$CODELLDB_VSIX" "${CODELLDB_VSIX%.vsix}"
     fi
 fi
 
