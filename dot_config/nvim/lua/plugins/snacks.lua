@@ -316,8 +316,8 @@ return {
     -- snacks detects kitty through `tmux display-message -p #{client_termname}`
     -- rather than a TermResponse query (extended-keys would eat that), and it
     -- runs `tmux set -p allow-passthrough all` on the pane itself — pane-scoped,
-    -- so `.tmux.conf` stays out of it and a pane that never shows an image never
-    -- gets the option set.
+    -- and wider than the global `on` in `.tmux.conf`, which man tmux limits to
+    -- visible panes.
     image = {
       enabled = true,
       doc = {
