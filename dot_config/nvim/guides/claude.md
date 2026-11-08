@@ -79,6 +79,14 @@ Long autonomous stretches need that. Re-invocation by background-task output
 fires no `UserPromptSubmit` at all, and one session here went fifteen hours on
 four prompts.
 
+**Under kitty** (the laptop, where kitty replaces tmux) the same files and
+counters are used, keyed by the kitty session's name. The hook reads it from
+`DEV_SESSION`, which `new-session` and `prefix + c` put in every window, so
+the hot path is still one write; a window without it costs one `kitten @ ls`.
+The counters are drawn by kitty's `tab_bar.py`, which hands
+`claude-tmux-status --panes-stdin` kitty's window pids in place of
+`tmux list-panes`.
+
 ### Two things that look like bugs
 
 **`PostToolUse` does not fire when a tool errors** — measured on a `git status`

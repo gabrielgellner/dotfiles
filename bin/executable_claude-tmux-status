@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# claude-tmux-status - one-line summary of Claude activity, for tmux status-right.
+# claude-tmux-status - one-line summary of Claude activity, for tmux status-right
+# (and kitty's tab bar, which reads the same output).
 #
 # Reads the files ~/bin/claude-tmux-state writes from Claude's hooks. Prints
 # nothing at all when no Claude is running anywhere, so the status bar stays as
@@ -12,6 +13,19 @@
 set -uo pipefail
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/claude-tmux"
+
+# Under kitty there are no tmux panes to list. kitty's tab_bar.py runs this with
+# --panes-stdin and writes the same "pid session" lines on stdin, built from its
+# own windows: the pid is each window's shell, which is where a ppid walk from
+# claude ends up, exactly as with a pane_pid.
+panes=""
+if [[ "${1:-}" == --panes-stdin ]]; then
+  panes=$(cat)
+  panes_from_stdin=1
+else
+  panes_from_stdin=0
+fi
+
 [[ -d "$STATE_DIR" ]] || exit 0
 
 # Sessions that actually contain a running Claude, one name per line.
@@ -35,7 +49,11 @@ live_sessions() {
   {
     ps -Ao pid=,ppid=,comm=
     echo '---'
-    tmux list-panes -a -F '#{pane_pid} #{session_name}' 2>/dev/null
+    if ((panes_from_stdin)); then
+      printf '%s\n' "$panes"
+    else
+      tmux list-panes -a -F '#{pane_pid} #{session_name}' 2>/dev/null
+    fi
   } | awk '
     /^---$/ { panes = 1; next }
     !panes {

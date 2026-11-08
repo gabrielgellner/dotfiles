@@ -45,7 +45,8 @@ return {
     },
   },
 
-  -- The runner's transport. Chunks go to window 2 of this tmux session, the
+  -- The runner's transport. Chunks go to window 2 of this tmux session (or the
+  -- first kitty console, see config below), the
   -- console bin/new-session opens and config/just.lua also targets. Start the
   -- REPL there yourself (`python`, `julia`): slime types into whatever the
   -- pane is running, so into a bare shell a Python chunk is run as zsh.
@@ -65,6 +66,24 @@ return {
         socket_name = vim.split(vim.env.TMUX or "default", ",")[1],
         target_pane = ":2",
       }
+    end,
+    -- Under kitty as the multiplexer (mux.conf; same test as config/just.lua),
+    -- slime's kitty target instead, sent to the first console new-session
+    -- opened. slime wants a window id, and the lookup is a `kitten @` round
+    -- trip, so it is done when slime first loads rather than at every startup.
+    config = function()
+      if (vim.env.TMUX or "") ~= "" or (vim.env.KITTY_LISTEN_ON or "") == "" or (vim.env.KITTY_WINDOW_ID or "") == "" then
+        return
+      end
+      local res = vim.system({ "kitten", "@", "ls", "--match", "session:. and var:dev_role=console" }, { text = true }):wait()
+      local ok, data = pcall(vim.json.decode, res.stdout or "")
+      local first = ok and data[1] and data[1].tabs[1] and data[1].tabs[1].windows[1]
+      if not first then
+        vim.notify("slime: no kitty console window in this session", vim.log.levels.WARN)
+        return
+      end
+      vim.g.slime_target = "kitty"
+      vim.g.slime_default_config = { window_id = first.id, listen_on = vim.env.KITTY_LISTEN_ON }
     end,
   },
 }

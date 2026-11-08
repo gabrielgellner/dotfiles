@@ -211,11 +211,15 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
 | `bin/executable_claude-tmux-state` | `~/bin/claude-tmux-state` | Records Claude's state per tmux session — see its section below |
 | `bin/executable_claude-tmux-status`| `~/bin/claude-tmux-status`| Summarises those states for the status bar — same section      |
 | `bin/executable_gmuse-tmux-status` | `~/bin/gmuse-tmux-status` | Asks the running gmuse what is playing, for the same bar       |
+| `bin/executable_dev-mux`           | `~/bin/dev-mux`           | Prints `tmux` or `kitty`: which one `dev` should drive — see kitty below |
 | `dot_config/private_starship.toml` | `~/.config/starship.toml` | Starship prompt: vi mode indicators, custom uv_python module  |
 | `dot_config/private_karabiner/`    | `~/.config/karabiner/`    | macOS modifier remaps — see the caveat below                  |
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 5 settings, a theme include, and a font-size include; rest is commented |
 | `dot_config/kitty/font.conf.tmpl`  | `~/.config/kitty/font.conf` | Font size per machine — see the caveat below                  |
+| `dot_config/kitty/mux.conf.tmpl`   | `~/.config/kitty/mux.conf` | kitty as the multiplexer, macOS only — see kitty below       |
+| `dot_config/kitty/tab_bar.py`      | `~/.config/kitty/tab_bar.py` | tmux's status line, drawn by kitty — same section           |
+| `dot_config/kitty/music_popup.py`  | `~/.config/kitty/music_popup.py` | The gmuse popup under kitty — same section              |
 | `dot_config/xterm/XTerm`           | `~/.config/xterm/XTerm`   | The Linux machine's terminal; Linux only — see below          |
 | `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, vim counts, marks, keymap audit — see below |
 | `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; RDP VM only                             |
@@ -1039,6 +1043,104 @@ Driving this is the usual detached-tmux method, with one wrinkle: the first
 `send-keys` after launch is swallowed by Claude's startup screen, so send the
 prompt twice. Sample the state file rather than the bar — content plus mtime, a
 few times a second — and the transitions read out directly.
+
+## kitty as the Multiplexer (macOS)
+
+On the laptop **kitty replaces tmux** (2026-11-08); the work VM and Omarchy keep
+tmux. The switch is one include: `kitty.conf` ends with `include ./mux.conf`, and
+`mux.conf.tmpl` is the whole thing on macOS and empty elsewhere — a template
+because kitty.conf cannot be one (the font.conf reason). Not on Omarchy even
+though its kitty could: tmux runs inside kitty there, and every `ctrl+a>…` map
+would take tmux's prefix first. The same is true of a tmux started by hand
+inside the laptop's kitty.
+
+**What decides kitty or tmux** is `~/bin/dev-mux`: `$DEV_MUX` wins, then `$TMUX`
+means tmux, then `$KITTY_WINDOW_ID` *and* `$KITTY_LISTEN_ON` mean kitty, else
+tmux. `KITTY_LISTEN_ON` is only set in a child when `listen_on` is configured,
+which only mux.conf does, so "a kitty" and "the kitty meant to multiplex" are
+told apart for free. `claude-tmux-state`, `config/just.lua` and
+`plugins/quarto.lua` inline rules 2-4, since the hook is on every tool call.
+
+**The mapping onto kitty**, all measured on 0.50.0 in a throwaway instance:
+
+- **Sessions are kitty sessions** (0.43+). `new-session` writes
+  `$XDG_STATE_HOME/dev/kitty-sessions/<name>.kitty-session` (nvim, console,
+  console; `nvim` typed into the first shell, as tmux did) and runs
+  `kitten @ action goto_session` on it. The session is named after the file,
+  dots included (`Foo.jl`); a second goto on an open session switches and
+  creates nothing, so the same call is the switch. Each window carries
+  `--env DEV_SESSION=<name>` and `--var dev_role=editor|console`.
+- **`tab_bar_filter session:~`**, not the documented `session:~ or session:^$`:
+  with the second, the startup shell (no session) showed in every session as
+  tab 1 and pushed nvim to 2, so `ctrl+a>1` stopped meaning nvim. `goto_tab`
+  counts only filtered tabs (measured: 1/2/3 = nvim/console/console).
+- **`dev`** lists sessions from `kitten @ ls` (`session_name`, newest
+  `last_focused_at` first, current last) parsed by `kitty +runpy`, 19ms.
+  That snippet must keep **everything inside a function, imports too**: `+runpy`
+  execs with separate globals and locals, so a top-level generator could not
+  see `current`, and a function could not see a top-level `import json` — both
+  were NameErrors that showed only as an empty list. "Current" comes from the
+  tab holding `is_self`, because the picker's overlay belongs to no session.
+- **ctrl-x is `dev --kill`**, which uses `close-tab --match session:^name$`. kitty's
+  `close_session` asked "Close session?" whenever nvim was running, in a window
+  over the picker after fzf had already reloaded. Killing the current session
+  runs `goto_session -1` first, the `detach-on-destroy off` behaviour; without
+  it kitty fell back to the bare startup tab.
+- **The status line is `tab_bar.py`**, the tmux layout and colours, running the
+  same two scripts and translating their `#[fg=…]` markup. Four things were
+  found by measuring rather than reading:
+  - the scripts run on a worker thread, because the tab bar is drawn on the
+    thread that handles typing;
+  - the subprocess env is `kitty.child.default_env()`: kitty's own process has
+    launchd's bare PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) and no gmuse, while
+    its windows get the login shell's;
+  - `mark_tab_bar_dirty` alone did not redraw a kitty that was behind other
+    windows, so the tick calls `update_tab_bar_data`; and a 5s tick drew each
+    result one tick late (~9s behind a state change), so it ticks every second,
+    runs the scripts every fifth and redraws on change. State to bar: 3s;
+  - the active tab arrives italic (`active_tab_font_style`), and under the
+    `dev` overlay `active_session_name` is empty, so the left side falls back
+    to the tab's own `session_name`.
+  `tab_bar.py` is imported once; `load_config_file` does not reload it.
+- **Claude's counters**: `claude-tmux-status --panes-stdin` takes "pid session"
+  lines in place of `tmux list-panes`, built from kitty's windows. The window's
+  pid is a login process one above the shell (a claude's parent was 13676, the
+  window 13668), which the ppid walk already climbs.
+- **Music** is `kitten music_popup.py`: a `no_ui` kitten runs inside kitty's
+  process, so it can read the active window's size and ask quick-access-terminal
+  for 90%x85% of it. Two shell versions failed first: a background `launch`
+  gets no `KITTY_LISTEN_ON` (`kitten @` fell back to `/dev/tty`), and a fixed
+  147x38 came out 1323x798 points, wider than the laptop's 1280x832. While the
+  popup runs, a call with *different* `-o` values reconfigures it rather than
+  toggling it, which is why the size is computed only from the window.
+- **`ctrl+a>c`'s `--copy-env`** does carry `DEV_SESSION` when pressed (measured
+  through `kitten @ action`). Run as a *remote* `kitten @ launch`, it copies the
+  calling process's env instead, which is how a test window once picked up the
+  harness shell's `$TMUX`.
+- **just.lua** finds consoles by `var:dev_role=console and session:.` and takes
+  the first with `at_prompt` (kitty shell integration, the `pane_current_command`
+  of this side); none free opens a console tab with `--keep-focus
+  --add-to-session=.`. **slime** resolves the first console's window id when it
+  loads. Both measured: a busy console was skipped, then both busy opened tab 11
+  in the session with nvim's tab left active.
+
+**Not measured**: the popup's toggle from a real keypress. From a test harness
+the panel never takes focus while another app is frontmost, and its toggle
+then re-shows instead of hiding. A real Claude driving the hooks end to end
+was not run either; the hook script was driven with payloads in a kitty window.
+
+**Testing kitty here needs its own instance, and its own tmux server.** Start
+kitty directly (`open` discards its stderr, where tab-bar exceptions go) with
+`KITTY_CONFIG_DIRECTORY` pointing at a rendered copy, `--listen-on` on a short
+`/tmp` socket (macOS caps a socket path at 104 bytes; the scratchpad is longer),
+`XDG_STATE_HOME` scratch for both kitty and its windows, and `-u TMUX` with a
+scratch `TMUX_TMPDIR`. Without the last two a test fell through to tmux on the
+real server, and killing that session moved the client — via
+`detach-on-destroy off` — onto a live session, where the next `send-text` typed
+into a Claude prompt. Wait for a new shell's prompt before sending it keys.
+Nothing can be screenshotted without Screen Recording, so the bar is read back
+by dumping `screen.line(0).as_ansi()` from a patched copy of `tab_bar.py`, and
+popup visibility from `CGWindowListCopyWindowInfo` (onscreen, layer 100).
 
 ## Neovim Configuration Architecture
 

@@ -153,6 +153,44 @@ trap: check the name against `ls ~/dev` first.
 clears it for the one command (`TMUX= tmux new-session -A -s music`). Without
 that the attach silently does not take.
 
+## On the laptop: kitty instead of tmux
+
+On macOS, **kitty is the multiplexer** and tmux does not run. The same keys
+work: `C-a` is still the prefix, a project is still a session with
+`1 nvim 2 console 3 console`, and the bar at the bottom is this one, redrawn by
+`~/.config/kitty/tab_bar.py`. `dev` and `new-session` see they are in kitty
+(`~/bin/dev-mux`) and drive kitty sessions instead. The work VM and Omarchy
+keep tmux.
+
+| Key              | Does in kitty                                 |
+| ---------------- | --------------------------------------------- |
+| `prefix + Enter` | `dev`, in an overlay over the current window  |
+| `prefix + C-j`   | the same                                      |
+| `prefix + C-p`   | gmuse, floating; again inside it hides it     |
+| `prefix + 1`…`9` | tab by index, this session's tabs only        |
+| `prefix + c`     | new tab here, in this session                 |
+| `prefix + n / p` | next / previous tab                           |
+| `prefix + l`     | the tab you were last in                      |
+| `prefix + L`     | the session you were last in                  |
+| `prefix + ,`     | rename the tab                                |
+| `prefix + & / x` | close the tab / the window                    |
+| `prefix + [`     | scrollback in the pager (there is no copy mode) |
+| `prefix + P`     | paste                                         |
+| `prefix + r`     | reload kitty's config                         |
+
+What is different:
+
+- **There is no detach.** Quitting kitty ends every session in it.
+- **No vi copy mode.** A mouse selection goes straight to the clipboard, as
+  tmux's drag did; `prefix + [` opens the scrollback in the pager.
+- **ctrl-x in `dev` asks nothing**, as tmux's kill-session did, even with nvim
+  running. Killing the session you are in moves you to the previous one.
+- **A tmux started inside kitty here loses its prefix**: kitty takes `C-a`
+  first. `DEV_MUX=tmux dev` still drives tmux, from a terminal that is not
+  kitty.
+- `tab_bar.py` is only read when kitty starts, so a change to it needs a new
+  kitty; `prefix + r` reloads everything else.
+
 ## See also
 
 - [Claude Code](claude.md) — what writes the `⣿ ⣤ ⣀` counters

@@ -1,0 +1,98 @@
+# kitty as the multiplexer, in place of tmux. Included by kitty.conf, which
+# cannot be a template itself (see font.conf for why), so the per-machine
+# switch lives here: the laptop gets the whole file, every other machine an
+# empty include.
+#
+# Not on Omarchy, though its kitty could do this too: there tmux still runs
+# inside kitty, and every `map ctrl+a>…` below would take tmux's prefix before
+# tmux saw it. The same is true on the laptop for a tmux started by hand.
+#
+# Turning this file on is also what switches `dev`, `new-session`, just.lua,
+# slime and the Claude hooks over to kitty. They test $KITTY_LISTEN_ON, which
+# kitty sets in a child only when `listen_on` below is in force, so a kitty
+# without this file still gets tmux. ~/bin/dev-mux holds the rule.
+{{ if eq (includeTemplate "desktop" .) "macos" -}}
+
+# ── Remote control ──────────────────────────────────────────────────────────
+# `dev`, new-session and just.lua drive kitty through `kitten @`. socket-only
+# keeps it off the tty, so a program printing escape codes cannot drive it.
+# The socket is in $TMPDIR, the per-user private directory launchd sets for GUI
+# apps, rather than world-writable /tmp; kitty appends -<pid> to the path.
+allow_remote_control socket-only
+listen_on unix:${TMPDIR}kitty
+
+# ── Sessions as tmux sessions ───────────────────────────────────────────────
+# A kitty session (0.43+) is a set of tabs created from one session file.
+# new-session writes one per project, so a project's tabs are one session, as
+# its windows were one tmux session. This filter shows only the current
+# session's tabs, plus tabs belonging to no session — the window kitty opens
+# at startup, which would otherwise be hidden but still running once you left
+# it. goto_tab, next_tab and previous_tab only reach tabs that match the filter,
+# so ctrl+a>1 is window 1 of *this* project, as in tmux.
+tab_bar_filter session:~
+
+# The status line is drawn by tab_bar.py, tmux's status line ported over:
+# session on the left, tabs, then gmuse, Claude and the clock on the right.
+tab_bar_style custom
+tab_bar_edge bottom
+tab_bar_min_tabs 1
+tab_bar_background #292c3c
+
+# tmux's MouseDragEnd1Pane copy-pipe, which put a mouse selection straight on
+# the clipboard.
+copy_on_select clipboard
+
+# ── Keys: the tmux prefix and its bindings ──────────────────────────────────
+# Ctrl-A, then a key, as tmux had it. Every binding below is one tmux had,
+# either from dot_tmux.conf or from tmux's defaults that were actually in use.
+# Ones with no kitty meaning are left out: d (there is no detach) and
+# hjkl (select-pane, for panes this config never splits).
+
+# Windows → tabs.
+map ctrl+a>1 goto_tab 1
+map ctrl+a>2 goto_tab 2
+map ctrl+a>3 goto_tab 3
+map ctrl+a>4 goto_tab 4
+map ctrl+a>5 goto_tab 5
+map ctrl+a>6 goto_tab 6
+map ctrl+a>7 goto_tab 7
+map ctrl+a>8 goto_tab 8
+map ctrl+a>9 goto_tab 9
+map ctrl+a>n next_tab
+map ctrl+a>p previous_tab
+map ctrl+a>l goto_tab -1
+# --cwd=current also adds the tab to the current session. --copy-env carries
+# DEV_SESSION, which claude-tmux-state reads to name the session without a
+# `kitten @` round trip on every tool call.
+map ctrl+a>c launch --type=tab --cwd=current --copy-env
+map ctrl+a>, set_tab_title
+map ctrl+a>& close_tab
+map ctrl+a>x close_window
+
+# Sessions. L is tmux's switch-client -l, the session you were last in.
+map ctrl+a>shift+l goto_session -1
+map ctrl+a>enter launch --type=overlay dev
+map ctrl+a>ctrl+j launch --type=overlay dev
+
+# Music, as a floating window over everything, toggled by the same key. This is
+# the quick-access-terminal kitten rather than an overlay: it floats centred
+# at a set size, which an overlay (always the full window) cannot.
+# The kitten keeps one instance, so a second press hides it, and pressing it
+# inside the popup works too, because the popup is a kitty reading this file.
+#
+# No `music` session is needed, unlike tmux. gmuse's engine is a daemon, so the
+# popup is just a view. `q` quits the view and the music plays on.
+#
+# music_popup.py sizes it as tmux did, 90%x85% of the window it opens over,
+# and says why a fixed size failed. It also sets hide_on_focus_loss, so
+# clicking back into kitty dismisses it as a modal popup would, and hides
+# this file's tab bar, which would otherwise draw a status line in the player.
+map ctrl+a>ctrl+p kitten music_popup.py
+
+# Copy mode. tmux's vi copy mode has no kitty equivalent; this opens the
+# scrollback in the pager, and a mouse selection copies (copy_on_select above).
+map ctrl+a>[ show_scrollback
+map ctrl+a>shift+p paste_from_clipboard
+
+map ctrl+a>r load_config_file
+{{- end }}

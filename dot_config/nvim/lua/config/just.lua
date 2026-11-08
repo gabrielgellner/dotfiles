@@ -1,4 +1,5 @@
--- Run just recipes from nvim, into the tmux console window.
+-- Run just recipes from nvim, into the tmux console window (or kitty's, when
+-- kitty is the multiplexer; see in_kitty below).
 --
 -- Why this exists: just-lsp (plugins/lsp.lua) is analysis only — completion,
 -- definitions, rename, diagnostics. LSP has no notion of "execute a task", so
@@ -62,6 +63,83 @@ local function session()
   return (ok and out ~= "") and out or nil
 end
 
+---Directory to resolve the justfile from: the buffer's own, so a recipe run
+---from a file opened outside nvim's cwd still finds its project's justfile.
+---@return string
+local function context_dir()
+  local name = vim.api.nvim_buf_get_name(0)
+  if name ~= "" and vim.bo.buftype == "" then
+    return vim.fn.fnamemodify(name, ":p:h")
+  end
+  return vim.fn.getcwd()
+end
+
+---kitty as the multiplexer (mux.conf). Same rule as ~/bin/dev-mux, minus its
+---DEV_MUX override, which only matters when choosing what to launch.
+---@return boolean
+local function in_kitty()
+  return (vim.env.TMUX or "") == "" and (vim.env.KITTY_WINDOW_ID or "") ~= "" and (vim.env.KITTY_LISTEN_ON or "") ~= ""
+end
+
+---Run a `kitten @` remote-control command.
+---@param args string[]
+---@return boolean ok, string stdout
+local function kitten(args)
+  local cmd = { "kitten", "@" }
+  vim.list_extend(cmd, args)
+  local res = vim.system(cmd, { text = true }):wait()
+  return res.code == 0, vim.trim(res.stdout or "")
+end
+
+---kitty's console windows in this session, in tab order: the windows
+---new-session tagged `dev_role=console`. `session:.` is the active session,
+---which is this nvim's whenever a key here is what ran the recipe.
+---@return { id: integer, at_prompt: boolean }[]
+local function kitty_consoles()
+  local ok, out = kitten({ "ls", "--match", "session:. and var:dev_role=console" })
+  if not ok then
+    return {}
+  end
+  local decoded, data = pcall(vim.json.decode, out)
+  if not decoded then
+    return {}
+  end
+  local found = {}
+  for _, os_window in ipairs(data) do
+    for _, tab in ipairs(os_window.tabs) do
+      for _, w in ipairs(tab.windows) do
+        found[#found + 1] = { id = w.id, at_prompt = w.at_prompt == true }
+      end
+    end
+  end
+  return found
+end
+
+---Where a recipe goes under kitty: the first console at a shell prompt, else a
+---new console tab. `at_prompt` comes from kitty's shell integration, and is
+---what `pane_current_command` is for tmux: false while anything is running.
+---@return integer|nil window_id
+local function kitty_console()
+  for _, w in ipairs(kitty_consoles()) do
+    if w.at_prompt then
+      return w.id
+    end
+  end
+  -- --keep-focus so focus stays in nvim; --add-to-session . puts it in the
+  -- session of the window that asked, which is this nvim's.
+  local ok, out = kitten({
+    "launch",
+    "--type=tab",
+    "--keep-focus",
+    "--cwd=" .. context_dir(),
+    "--tab-title=console",
+    "--var=dev_role=console",
+    "--env=DEV_SESSION=" .. (vim.env.DEV_SESSION or ""),
+    "--add-to-session=.",
+  })
+  return ok and tonumber(out) or nil
+end
+
 ---First console window sitting at a prompt.
 ---@param sess string
 ---@return string|nil target
@@ -98,16 +176,6 @@ local function new_console(sess, cwd)
   return (ok and out ~= "") and out or nil
 end
 
----Directory to resolve the justfile from: the buffer's own, so a recipe run
----from a file opened outside nvim's cwd still finds its project's justfile.
----@return string
-local function context_dir()
-  local name = vim.api.nvim_buf_get_name(0)
-  if name ~= "" and vim.bo.buftype == "" then
-    return vim.fn.fnamemodify(name, ":p:h")
-  end
-  return vim.fn.getcwd()
-end
 
 ---Every public recipe in the justfile above the current buffer.
 ---Module recipes are not included — `--dump` nests them under `modules`, and
@@ -264,9 +332,29 @@ local function dispatch(cmdline, opts)
   opts = opts or {}
   M.last = cmdline
 
+  if in_kitty() then
+    local id = kitty_console()
+    if not id then
+      vim.notify("just: could not find or open a console window", vim.log.levels.ERROR)
+      return
+    end
+    -- \x15 is C-u, as below.
+    local ok = kitten({ "send-text", "--match", "id:" .. id, "\x15" .. cmdline .. "\r" })
+    if not ok then
+      vim.notify("just: send-text to kitty window " .. id .. " failed", vim.log.levels.ERROR)
+      return
+    end
+    if opts.focus then
+      kitten({ "focus-window", "--match", "id:" .. id })
+    else
+      vim.notify(("%s → console (kitty window %d)"):format(cmdline, id))
+    end
+    return
+  end
+
   local sess = session()
   if not sess then
-    -- Outside tmux there's no console window to own the output, so it goes in a
+    -- Outside tmux and kitty there's no console window to own the output, so it goes in a
     -- float instead.
     --
     -- `interactive = false`, and it matters. In snacks that flag is a shortcut

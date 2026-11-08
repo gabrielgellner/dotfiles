@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# new-session - create a tmux session laid out for a project, then go to it.
+# new-session - create a tmux (or kitty) session laid out for a project, then go
+# to it.
 #
 # Called by `dev` when it finds no session for the chosen project, and usable
 # by hand: new-session <name> <dir>
@@ -10,6 +11,47 @@ DIR=$2
 if [[ -z "$SESSION" || -z "$DIR" ]]; then
   echo "usage: new-session <session-name> <directory>" >&2
   exit 2
+fi
+
+# kitty: the session is a kitty session (0.43+), created from a session file
+# rather than built up one command at a time. Same layout as the tmux branch —
+# nvim, console, console — with `nvim` typed into the first shell rather than
+# run as its command, so quitting nvim leaves a shell there, as in tmux.
+#
+# The file is rewritten on every call, so it always names the directory `dev`
+# just resolved, and lives in $XDG_STATE_HOME: it is generated state, not
+# config. kitty names the session after the file, so the basename is the
+# session name, dots included (FoodWebs.jl.kitty-session is FoodWebs.jl).
+# goto_session on a session that is already open switches to it and creates
+# nothing, so this is also how `dev` switches.
+#
+# Each window is tagged two ways: --env DEV_SESSION, which claude-tmux-state
+# reads, and --var dev_role, which just.lua and slime match to find a console.
+if [[ "$(dev-mux)" == kitty ]]; then
+  dir="${XDG_STATE_HOME:-$HOME/.local/state}/dev/kitty-sessions"
+  file="$dir/$SESSION.kitty-session"
+  mkdir -p "$dir"
+
+  # A match is a regex: escape the name so FoodWebs.jl's dot is a dot.
+  re=$(printf '%s' "$SESSION" | sed 's/[][\\.*^$+?(){}|]/\\&/g')
+  existed=0
+  kitten @ ls --match "session:^$re\$" >/dev/null 2>&1 && existed=1
+
+  {
+    echo "# Written by ~/bin/new-session, and rewritten each time it runs."
+    for tab in nvim console console; do
+      echo "new_tab $tab"
+      echo "cd $DIR"
+      echo "launch --env DEV_SESSION=$SESSION --var dev_role=${tab/nvim/editor}"
+    done
+    echo "focus_tab 0"
+  } >"$file"
+
+  kitten @ action goto_session "$file" || exit 1
+  if ((!existed)); then
+    kitten @ send-text --match "session:^$re\$ and var:dev_role=editor" $'nvim\r'
+  fi
+  exit 0
 fi
 
 # Every -t below is "=$SESSION". tmux resolves a target by exact match, then

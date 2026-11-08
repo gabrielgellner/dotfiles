@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# dev-mux - which multiplexer `dev` and new-session should drive: prints
+# `tmux` or `kitty`.
+#
+#   1. $DEV_MUX, if set, wins: `DEV_MUX=tmux dev` forces tmux from inside kitty.
+#   2. Inside tmux, tmux. A tmux started inside kitty keeps working as it did.
+#   3. Inside a kitty that has remote control on, kitty. KITTY_LISTEN_ON is set
+#      in a child only when kitty.conf has `listen_on`, which only mux.conf
+#      provides, so this is "the kitty that is meant to be the multiplexer",
+#      not merely "a kitty".
+#   4. Otherwise tmux, which is every machine without mux.conf: the work VM in
+#      xterm, Omarchy, and the laptop in any other terminal.
+#
+# Rules 2-4 are written inline in claude-tmux-state (which runs on every tool
+# call and should not fork for it), config/just.lua and plugins/quarto.lua.
+# Change them in all four. Those skip rule 1 on purpose: DEV_MUX picks what to
+# *launch*, and once inside, $TMUX or $KITTY_LISTEN_ON already says which it was.
+
+if [[ -n "${DEV_MUX:-}" ]]; then
+  printf '%s\n' "$DEV_MUX"
+elif [[ -n "${TMUX:-}" ]]; then
+  echo tmux
+elif [[ -n "${KITTY_WINDOW_ID:-}" && -n "${KITTY_LISTEN_ON:-}" ]]; then
+  echo kitty
+else
+  echo tmux
+fi

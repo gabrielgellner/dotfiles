@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dev - fuzzy-pick an active tmux session or project from ~/dev
+# dev - fuzzy-pick an active tmux (or kitty) session or project from ~/dev
 
 # Every tmux -t target below is written "=$name". The leading = forces an exact
 # match: without it tmux tries exact, then *prefix*, then fnmatch, so with a
@@ -98,7 +98,54 @@ is_utility() {
   return 1
 }
 
+# kitty's version of the list below, from `kitten @ ls`: every session with a
+# window open, newest first by the most recent last_focused_at among its
+# windows, the current one last. Parsed by kitty's own Python (`kitty +runpy`,
+# 19ms with the ls), since there is no jq here and kitty is certainly present.
+#
+# "Current" is the session of the tab this script runs in. From the ctrl+a
+# popup that tab holds the overlay, which belongs to no session, so the answer
+# comes from the window it covers. is_self marks the overlay: kitty matches
+# the request to the window by KITTY_WINDOW_ID, which fzf's reload inherits.
+#
+# All of it inside a function, imports included: `kitty +runpy` execs with
+# separate globals and locals, so names bound at top level are invisible to any
+# nested scope. The generator and the lambda could not see `current` or `last`,
+# and a function could not see a top-level `import json` (NameError, both
+# measured); either way the list came back empty.
+KITTY_SESSIONS_PY='
+def main():
+    import json, sys
+    last, current = {}, ""
+    for os_window in json.load(sys.stdin):
+        for tab in os_window["tabs"]:
+            here = any(w.get("is_self") for w in tab["windows"])
+            for w in tab["windows"]:
+                name = w.get("session_name") or ""
+                if not name:
+                    continue
+                last[name] = max(last.get(name, 0), w.get("last_focused_at") or 0)
+                if here and not current:
+                    current = name
+    order = sorted((n for n in last if n != current), key=lambda n: -last[n])
+    print("\n".join(order + ([current] if current else [])))
+
+main()
+'
+
+active_sessions_kitty() {
+  local n
+  kitten @ ls 2>/dev/null | kitty +runpy "$KITTY_SESSIONS_PY" 2>/dev/null |
+    while IFS= read -r n; do
+      [[ -n "$n" ]] && ! is_utility "$n" && printf '%s\n' "$n"
+    done
+}
+
 active_sessions() {
+  if [[ "$MUX" == kitty ]]; then
+    active_sessions_kitty
+    return
+  fi
   local current="" names n
   [[ -n "$TMUX" ]] && current=$(tmux display-message -p '#{session_name}' 2>/dev/null)
 
@@ -200,12 +247,41 @@ list_items() {
   done
 }
 
+MUX=$(dev-mux)
+
 if [[ "${1}" == "--list" ]]; then
   list_items
   exit 0
 fi
 
+# ctrl-x under kitty: close every tab of session $2. Not kitty's close_session
+# action, which asks "Close session?" whenever anything is running there (nvim,
+# always), and asks in a window over this picker while fzf has already
+# reloaded the list — measured. tmux's kill-session never asked, and
+# remote control's close-tab does not either. The name is a regex in a match,
+# so it is escaped here rather than inside the fzf binding.
+#
+# Killing the session you are in goes to the previous one first, which is what
+# `detach-on-destroy off` gave tmux. Without it kitty fell back to the tab
+# belonging to no session, the shell it opened at startup (measured).
+if [[ "${1}" == "--kill" ]]; then
+  re=$(printf '%s' "$2" | sed 's/[][\\.*^$+?(){}|]/\\&/g')
+  if kitten @ ls --match "session:. and session:^$re\$" >/dev/null 2>&1; then
+    kitten @ action goto_session -1 2>/dev/null
+  fi
+  kitten @ close-tab --match "session:^$re\$" 2>/dev/null
+  exit 0
+fi
+
 SELF="$0"
+
+# Under kitty the kill is `dev --kill`, above. fzf single-quotes {-1}, and
+# nothing here starts with `=`, so zsh leaves it alone.
+if [[ "$MUX" == kitty ]]; then
+  kill_cmd="$SELF --kill {-1}"
+else
+  kill_cmd="tmux kill-session -t \\={-1}: 2>/dev/null"
+fi
 
 # --nth=-1 and --tiebreak=index are what put active sessions first when you
 # type.
@@ -240,13 +316,19 @@ choice=$(
     --layout=reverse \
     --border=rounded \
     --header='ctrl-x: kill session' \
-    --bind="ctrl-x:execute-silent(tmux kill-session -t \={-1}: 2>/dev/null)+reload($SELF --list)" \
+    --bind="ctrl-x:execute-silent($kill_cmd)+reload($SELF --list)" \
     --info=inline
 ) || exit 0
 
 # The last field, which is exactly what fzf handed ctrl-x as `{-1}`. Stripping the `● ` prefix alone stopped working once a Claude marker
 # could sit between it and the name.
 name="${choice##* }"
+
+# kitty: new-session both creates and switches, since goto_session on an open
+# session only goes there.
+if [[ "$MUX" == kitty ]]; then
+  exec new-session "$name" "$(resolve_dir "$name")"
+fi
 
 if tmux has-session -t "=$name:" 2>/dev/null; then
   if [[ -n "$TMUX" ]]; then
