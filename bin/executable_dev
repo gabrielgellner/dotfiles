@@ -169,9 +169,11 @@ active_sessions() {
   fi
 }
 
-# Is $1 one of the newline-separated names in $2?
+# Is $1 one of the newline-separated names in $2? In bash rather than grep: it
+# runs once per project, and a fork each was most of `dev --list` — 80ms
+# against 25ms (33 projects, under kitty), enough to watch the list fill in.
 is_active() {
-  [[ -n "$2" ]] && printf '%s\n' "$2" | grep -qxF -- "$1"
+  [[ $'\n'"$2"$'\n' == *$'\n'"$1"$'\n'* ]]
 }
 
 # Claude's state in session $1, as a coloured marker, or empty.
@@ -306,8 +308,13 @@ fi
 # Note the flags below are one backslash-continued command: a comment placed
 # between them is joined *into* the command rather than ignored, and `bash -n`
 # does not object. That silently swallowed these two flags on the first attempt.
+#
+# The list is built before fzf starts rather than piped in, so it is drawn once,
+# whole. Streamed, fzf showed the sessions first and the projects a moment
+# later, which in kitty's full-window overlay read as the list refreshing.
+items=$(list_items)
 choice=$(
-  list_items | fzf \
+  printf '%s\n' "$items" | fzf \
     --prompt="dev > " \
     --ansi \
     --nth=-1 \
