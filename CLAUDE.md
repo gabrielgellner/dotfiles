@@ -1054,6 +1054,13 @@ though its kitty could: tmux runs inside kitty there, and every `ctrl+a>…` map
 would take tmux's prefix first. The same is true of a tmux started by hand
 inside the laptop's kitty.
 
+**What kitty runs gets launchd's bare PATH**, not the login shell's. An overlay
+or a window takes mux.conf's `env PATH=` line; a background `launch` takes
+nothing, so it stays `/Applications/kitty.app/Contents/MacOS:/usr/bin:/bin:…`.
+Without that line `launch --type=overlay dev` found no fzf and closed before
+it was seen. An early harness said otherwise because it was started with
+`open`, which hands the new kitty the *caller's* environment.
+
 **What decides kitty or tmux** is `~/bin/dev-mux`: `$DEV_MUX` wins, then `$TMUX`
 means tmux, then `$KITTY_WINDOW_ID` *and* `$KITTY_LISTEN_ON` mean kitty, else
 tmux. `KITTY_LISTEN_ON` is only set in a child when `listen_on` is configured,
@@ -1089,11 +1096,19 @@ told apart for free. `claude-tmux-state`, `config/just.lua` and
 - **The status line is `tab_bar.py`**, the tmux layout and colours, running the
   same two scripts and translating their `#[fg=…]` markup. Four things were
   found by measuring rather than reading:
-  - the scripts run on a worker thread, because the tab bar is drawn on the
-    thread that handles typing;
-  - the subprocess env is `kitty.child.default_env()`: kitty's own process has
-    launchd's bare PATH (`/usr/bin:/bin:/usr/sbin:/sbin`) and no gmuse, while
-    its windows get the login shell's;
+  - the scripts must not block the thread that draws the tab bar, which is the
+    one that handles typing — and must not run on a **worker thread** either.
+    The first version did, and in the real kitty its worker hung inside its
+    first subprocess: 1543 ticks later it was still alive, with no child
+    process and no Python frame, and the Claude counters never appeared, while
+    the harness had worked. Now the main-thread timer starts them with `Popen`
+    into temp files and collects them on a later tick (3s kill), which ran 53
+    ticks without one carrying over. A probe kitten (`kitten @ kitten x.py`,
+    `no_ui`) runs inside the live kitty and is how this was seen — the module's
+    globals are on `tab_bar.draw_func.__globals__`;
+  - the PATH is spelled out: kitty's own process has launchd's bare
+    `/usr/bin:/bin:/usr/sbin:/sbin`, and so does `kitty.child.default_env()`
+    and anything it starts outside a window;
   - `mark_tab_bar_dirty` alone did not redraw a kitty that was behind other
     windows, so the tick calls `update_tab_bar_data`; and a 5s tick drew each
     result one tick late (~9s behind a state change), so it ticks every second,
@@ -1101,7 +1116,12 @@ told apart for free. `claude-tmux-state`, `config/just.lua` and
   - the active tab arrives italic (`active_tab_font_style`), and under the
     `dev` overlay `active_session_name` is empty, so the left side falls back
     to the tab's own `session_name`.
-  `tab_bar.py` is imported once; `load_config_file` does not reload it.
+  `tab_bar.py` is imported once; `load_config_file` does not reload it, and a
+change needs a new kitty. Without restarting (which ends every session), the
+file was swapped into the running kitty by a kitten that removes the old timer,
+`exec`s the new source into `draw_func.__globals__` and reassigns `draw_func`.
+After a `load_config_file` those globals are kitty's own `kitty.tab_bar`
+module; the only names shared with it are the identical objects it imports.
 - **Claude's counters**: `claude-tmux-status --panes-stdin` takes "pid session"
   lines in place of `tmux list-panes`, built from kitty's windows. The window's
   pid is a login process one above the shell (a claude's parent was 13676, the
@@ -1130,7 +1150,10 @@ then re-shows instead of hiding. A real Claude driving the hooks end to end
 was not run either; the hook script was driven with payloads in a kitty window.
 
 **Testing kitty here needs its own instance, and its own tmux server.** Start
-kitty directly (`open` discards its stderr, where tab-bar exceptions go) with
+kitty directly under `env -i` with only HOME, USER, SHELL, TMPDIR and the bare
+PATH, as the Dock gives it — `open` both discards its stderr, where tab-bar
+exceptions go, and passes on the caller's environment, which hid both bugs
+above. Give it
 `KITTY_CONFIG_DIRECTORY` pointing at a rendered copy, `--listen-on` on a short
 `/tmp` socket (macOS caps a socket path at 104 bytes; the scratchpad is longer),
 `XDG_STATE_HOME` scratch for both kitty and its windows, and `-u TMUX` with a

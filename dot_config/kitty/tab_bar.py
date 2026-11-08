@@ -11,10 +11,17 @@
 # one source.
 #
 # kitty draws the tab bar on its main thread, the one that also handles typing,
-# so the scripts must never run inside draw_tab: claude-tmux-status forks ps,
-# and a slow gmuse socket would freeze the terminal. A repeating timer starts
-# them on a worker thread every 5s (tmux's status-interval) and redraws when
-# what they printed, or the minute, has changed.
+# so nothing here may block: claude-tmux-status forks ps, and a slow gmuse
+# socket would freeze the terminal. A repeating timer starts the scripts every
+# 5s (tmux's status-interval) without waiting for them, collects what they
+# wrote on a later tick, and redraws when that, or the minute, has changed.
+#
+# No thread. The first version ran the scripts on a worker thread, and in the
+# real kitty that worker hung inside its first subprocess and never returned:
+# 1543 ticks later it was still "alive", with no child process and no Python
+# frame, and the Claude counters never appeared (read from the running kitty
+# with a probe kitten). Spawning from the main thread and polling is how kitty
+# itself runs things.
 #
 # Not ported: tmux's activity and bell styles. Both were set in dot_tmux.conf,
 # but every part of the window format sets its own fg and bg, which overrides
@@ -23,11 +30,10 @@
 import os
 import re
 import subprocess
-import threading
+import tempfile
 import time
 
 from kitty.boss import Boss
-from kitty.child import default_env
 from kitty.fast_data_types import Screen, add_timer, get_boss, wcswidth
 from kitty.tab_bar import DrawData, ExtraData, TabBarData, as_rgb
 
@@ -52,43 +58,61 @@ STATUS_SCRIPTS = (
     ("gmuse", [os.path.expanduser("~/bin/gmuse-tmux-status")]),
     ("claude", [os.path.expanduser("~/bin/claude-tmux-status"), "--panes-stdin"]),
 )
+# A script still running after this long is killed and reads as blank.
+TIMEOUT = 3.0
 
 _status = {"gmuse": "", "claude": ""}
-_worker = None
+_running: dict[str, tuple[subprocess.Popen, float]] = {}
 _timer = None
 _ticks = 0
 _drawn: tuple[str, str, str] | None = None
+_out_dir = tempfile.mkdtemp(prefix="kitty-tab-bar-")
 
-# kitty's own process has launchd's bare PATH. default_env() is what kitty
-# gives its windows, read from the login shell, so the scripts find gmuse in
-# ~/.local/bin as they do from tmux.
-_env = None
+# kitty's own process has launchd's bare PATH (/usr/bin:/bin:/usr/sbin:/sbin),
+# and so does anything it starts outside a window — kitty.child.default_env()
+# gave the same, measured in the running kitty. So the PATH the scripts need is
+# spelled out: gmuse is in ~/.local/bin.
+_env = {
+    **os.environ,
+    "PATH": ":".join(
+        [os.path.expanduser("~/.local/bin"), os.path.expanduser("~/bin"), "/opt/homebrew/bin", os.environ.get("PATH", "")]
+    ),
+}
 
 
-def _run_scripts(panes: str) -> None:
-    global _env
-    if _env is None:
-        _env = {**os.environ, **default_env()}
-    for key, cmd in STATUS_SCRIPTS:
+def _start(key: str, cmd: list[str], stdin_text: str) -> None:
+    out = os.path.join(_out_dir, key)
+    inp = os.path.join(_out_dir, key + ".in")
+    with open(inp, "w") as fh:
+        fh.write(stdin_text)
+    with open(inp) as stdin, open(out, "w") as stdout:
+        proc = subprocess.Popen(
+            cmd, stdin=stdin, stdout=stdout, stderr=subprocess.DEVNULL, env=_env, start_new_session=True
+        )
+    _running[key] = (proc, time.monotonic())
+
+
+def _collect() -> None:
+    for key, (proc, started) in list(_running.items()):
+        if proc.poll() is None:
+            if time.monotonic() - started > TIMEOUT:
+                proc.kill()
+                proc.poll()
+                del _running[key]
+                _status[key] = ""
+            continue
+        del _running[key]
         try:
-            res = subprocess.run(
-                cmd,
-                input=panes if key == "claude" else "",
-                capture_output=True,
-                text=True,
-                timeout=3,
-                env=_env,
-            )
-            _status[key] = res.stdout
-        except Exception:
+            with open(os.path.join(_out_dir, key)) as fh:
+                _status[key] = fh.read()
+        except OSError:
             _status[key] = ""
 
 
 def _panes(boss: Boss) -> str:
     # What claude-tmux-status gets from `tmux list-panes` under tmux: each
     # window's shell pid and the session it belongs to, which the script walks
-    # up to from every running claude. Read here because only the main
-    # thread may touch the boss.
+    # up to from every running claude.
     lines = []
     for w in boss.all_windows:
         name = w.created_in_session_name
@@ -99,17 +123,22 @@ def _panes(boss: Boss) -> str:
 
 
 def _tick(timer_id: int | None) -> None:
-    global _worker, _ticks, _drawn
+    global _ticks, _drawn
     boss = get_boss()
-    if _ticks % RUN_EVERY == 0 and (_worker is None or not _worker.is_alive()):
-        _worker = threading.Thread(target=_run_scripts, args=(_panes(boss),), daemon=True)
-        _worker.start()
+    _collect()
+    if _ticks % RUN_EVERY == 0:
+        panes = _panes(boss)
+        for key, cmd in STATUS_SCRIPTS:
+            if key not in _running:
+                try:
+                    _start(key, cmd, panes if key == "claude" else "")
+                except OSError:
+                    _status[key] = ""
     _ticks += 1
-    # The worker finishes after the tick that started it, so redrawing only on
+    # A script finishes after the tick that started it, so redrawing only on
     # the 5s beat drew each result one beat late — measured up to ~9s behind a
     # state change, and the clock with it. Checking every second and redrawing
-    # on any change keeps it within a second of the scripts, which run on
-    # tmux's 5s.
+    # on any change keeps it within a second of the scripts.
     shown = (_status["gmuse"], _status["claude"], time.strftime("%H:%M"))
     if shown == _drawn:
         return

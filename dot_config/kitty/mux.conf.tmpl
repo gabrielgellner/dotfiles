@@ -21,6 +21,15 @@
 allow_remote_control socket-only
 listen_on unix:${TMPDIR}kitty
 
+# The PATH for what kitty runs directly: the dev overlay below, and anything
+# else launched without a shell. kitty started from the Dock has launchd's
+# bare /usr/bin:/bin:/usr/sbin:/sbin, so `launch --type=overlay dev` found
+# no fzf, exited, and the overlay closed before it was seen (measured: with
+# this line the overlay finds both fzf and dev). Shells are unaffected, since
+# dot_zshenv and dot_zshrc build their own PATH; a background launch ignores
+# `env` altogether, which is why tab_bar.py sets its own.
+env PATH=${HOME}/.local/bin:${HOME}/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}
+
 # ── Sessions as tmux sessions ───────────────────────────────────────────────
 # A kitty session (0.43+) is a set of tabs created from one session file.
 # new-session writes one per project, so a project's tabs are one session, as
