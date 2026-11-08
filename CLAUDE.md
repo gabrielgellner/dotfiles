@@ -1144,10 +1144,13 @@ module; the only names shared with it are the identical objects it imports.
   loads. Both measured: a busy console was skipped, then both busy opened tab 11
   in the session with nvim's tab left active.
 
-**Not measured**: the popup's toggle from a real keypress. From a test harness
-the panel never takes focus while another app is frontmost, and its toggle
-then re-shows instead of hiding. A real Claude driving the hooks end to end
-was not run either; the hook script was driven with payloads in a kitty window.
+**Confirmed in use** (2026-11-08), the two things a harness could not show.
+The popup toggles from a real `ctrl+a ctrl+p`, open and hidden again: from a
+harness the panel never takes focus while another app is frontmost, and its
+toggle then re-shows instead of hiding. And real Claudes in kitty sessions
+drive the counters — the live bar read `⣿ 1 (0) ⣤ 0 ⣀ 1` for one working in
+`vimtracker` and one idle in `dotfiles`, read from the running kitty by the
+probe kitten.
 
 **Testing kitty here needs its own instance, and its own tmux server.** Start
 kitty directly under `env -i` with only HOME, USER, SHELL, TMPDIR and the bare
