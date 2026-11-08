@@ -1,6 +1,105 @@
 # Changelog
 
 All notable changes to this dotfiles repository are documented here.
+## [v2.1.0] — 2026-11-08
+
+### Features
+
+- Use kitty as the multiplexer on macOS
+
+- Allow passthrough globally
+
+- Install plv and gmuse
+
+- Subpixel antialiasing on Omarchy
+
+- The bar's text at 14px instead of 12
+
+- No window transparency on Omarchy
+
+- Centre a lone window at 4:3 on the ultrawide
+
+- Install chezmoi itself
+
+- A Catppuccin Frappé theme for the desktop
+
+- Caps Lock as Control and the BenQ at 100Hz, on Omarchy
+
+- Install with pacman on Omarchy, never brew
+
+- Load plugins from pacman's paths when there is no brew
+
+- Use the Wayland clipboard under Omarchy
+
+- Tell the Omarchy desktop apart from the RDP machine
+
+- Quarto and Typst authoring
+
+- Julia support with JETLS, treesitter and Runic
+
+- Show sessions parked on background work as active
+
+- C-p opens atuin, LS_COLORS from vivid, drop fzf's shell keys
+
+- Attach files by picking them in yazi
+
+- , files a message, label and archive in one key
+
+- Notify when Proton Mail Bridge stops, and when syncs keep failing
+
+
+### Bug Fixes
+
+- Give launched commands a PATH and drop the tab bar's thread
+
+- Gmuse needs cmake to build
+
+- Make ~/.tmux.conf win, and list dotfiles once in dev
+
+- Leave fontconfig to `omarchy font set` on Omarchy
+
+- Point puppeteer at Chromium on Omarchy
+
+- Remove codelldb's bare mktemp file after the download
+
+- End session targets in a colon so .jl projects resolve
+
+- Put the quarto cask's binary on PATH
+
+- Stop btop rewriting its tracked config on quit
+
+
+### Refactoring
+
+- Stop adding site-functions to fpath twice
+
+- Drop broot, yazi covers it
+
+
+### Documentation
+
+- Record the popup toggle and live counters as confirmed
+
+- Why listen_on stays off under Omarchy
+
+- The Omarchy desktop, and how the three machines are told apart
+
+- The clipboard note names Omarchy's wl-copy
+
+- The thread keys hold in notmuch searches too
+
+
+### Chores
+
+- Capture egm plugin from the live settings
+
+- Install quarto on Linux from the release .deb
+
+- Install R
+
+- Install via juliaup, note JETLS unicode completion
+
+
 ## [v2.0.0] — 2026-10-25
 
 ### Features
