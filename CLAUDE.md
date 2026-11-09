@@ -1143,6 +1143,18 @@ module; the only names shared with it are the identical objects it imports.
   despite the bare PATH (checked from a probe kitten). In a harness: `?`
   search, `V j <leader>y` put both lines on the clipboard and closed the
   overlay; `g` showed only the last command's output.
+- **Claude is a tab** (`config/claude_kitty.lua`, a custom `terminal.provider`
+  for claudecode.nvim, used only under kitty). The plugin's `external` provider
+  could not find a running Claude again, so its toggle stopped the job and the
+  next one started a second Claude; this one finds the tab by
+  `var:dev_role=claude` in `session:.` each time. The plugin's env goes on
+  with `--env`, so Claude connects to nvim's server as the float's did
+  (`is_claude_connected()` true). On `User ClaudeCodeDiffOpened` it focuses
+  nvim's window and on `ClaudeCodeDiffClosed` Claude's again; a diff only
+  opens outside auto mode. Measured in a harness, three diffs. Once, the state
+  file read `working` after Stop had written `idle`, with Claude at its prompt;
+  two repeats (focus-following off, then on) ended `idle` and stayed so, so
+  it is recorded rather than explained.
 - **just.lua** finds consoles by `var:dev_role=console and session:.` and takes
   the first with `at_prompt` (kitty shell integration, the `pane_current_command`
   of this side); none free opens a console tab with `--keep-focus

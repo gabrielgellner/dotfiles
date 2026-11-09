@@ -26,6 +26,13 @@
 
 local augroup = vim.api.nvim_create_augroup("claudecode_ui", { clear = true })
 
+-- Under kitty as the multiplexer, Claude is a tab rather than this float — see
+-- config/claude_kitty.lua. The rule is ~/bin/dev-mux's, inlined as just.lua
+-- does: not inside tmux, and a kitty with listen_on set.
+local in_kitty = (vim.env.TMUX or "") == ""
+  and (vim.env.KITTY_WINDOW_ID or "") ~= ""
+  and (vim.env.KITTY_LISTEN_ON or "") ~= ""
+
 -- The window showing the in-editor Claude terminal, if one is on this tabpage.
 local function claude_win()
   local ok, terminal = pcall(require, "claudecode.terminal")
@@ -187,6 +194,10 @@ return {
   event = "VeryLazy",
 
   init = function()
+    if in_kitty then
+      require("config.claude_kitty").follow_diffs()
+    end
+
     -- A full-screen float is opaque, so focus moving out of it without the
     -- window going away would leave you typing into a buffer you can't see.
     -- Hide it instead. This is the same hide the plugin's own toggle performs,
@@ -287,7 +298,9 @@ return {
     -- auto_start = true is what writes the lock file; leaving it on is what
     -- makes the tmux-side CLI able to find this editor at all.
     terminal = {
-      provider = "snacks",
+      -- A kitty tab under kitty, the float everywhere else; everything below
+      -- in this table is the float's and is unused by the kitty provider.
+      provider = in_kitty and require("config.claude_kitty") or "snacks",
       -- Don't startinsert on focus. Otherwise re-entering the terminal snaps
       -- Claude to its prompt, so a scroll position never survives a trip out to
       -- a buffer and back. Costs an `i` before typing a prompt.
@@ -388,7 +401,9 @@ return {
     {
       "<leader>aw",
       function()
-        if require("claudecode.terminal").get_active_terminal_bufnr() then
+        local running = in_kitty and require("config.claude_kitty").running()
+          or require("claudecode.terminal").get_active_terminal_bufnr()
+        if running then
           vim.notify("Claude is already running; use /chrome inside it to enable Chrome", vim.log.levels.WARN)
           return
         end

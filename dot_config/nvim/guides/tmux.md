@@ -178,6 +178,7 @@ keep tmux.
 | `prefix + g`     | the last command's output, in nvim            |
 | `prefix + P`     | paste                                         |
 | `prefix + r`     | reload kitty's config                         |
+| `C-/`            | in Claude's tab: back to nvim — see [Claude Code](claude.md) |
 
 What is different:
 

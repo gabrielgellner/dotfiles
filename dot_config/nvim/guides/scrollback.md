@@ -89,6 +89,11 @@ the command, `<S-CR>`, edit at the prompt.
 - **`y` and `<leader>y` are not the same key with and without a prefix.** One
   stays open with a paste window, the other closes. If the overlay did not go
   away, you pressed the first.
+- **Over nvim it is one screen.** nvim draws on the terminal's alternate
+  screen, which keeps no history, so `prefix + [` on an nvim window — a Claude
+  *float* included — shows only what is visible (measured: 41 lines of a
+  42-row window). Use it on Claude's own tab, where a 120-line answer was all
+  there; inside nvim, `<C-x>` and scrolling the terminal buffer is the way.
 - **It is a snapshot.** What is shown is the scrollback at the moment you
   pressed `prefix + [`; output arriving afterwards is not added. Quit and
   reopen to see it.

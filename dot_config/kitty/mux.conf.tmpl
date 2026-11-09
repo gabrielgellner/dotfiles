@@ -111,6 +111,11 @@ map ctrl+a>shift+p paste_from_clipboard
 
 map ctrl+a>r load_config_file
 
+# Claude's tab (nvim/lua/config/claude_kitty.lua). <C-/> in nvim goes to it, so
+# the same key in it goes back to tab 1, which new-session makes nvim's. A key
+# pressed in Claude's tab never reaches nvim, so this one is kitty's.
+map --when-focus-on var:dev_role=claude ctrl+slash goto_tab 1
+
 # Ctrl-[ as Esc, everywhere. It is the same byte only in the legacy encoding.
 # nvim (0.12) and Claude Code turn on kitty's keyboard protocol when they see
 # kitty, and then Ctrl-[ arrives as its own key, CSI 91;5u, which neither

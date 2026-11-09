@@ -36,6 +36,32 @@ about which byte `Ctrl-/` sends.
 `<leader>aa` / `<leader>ax` are the pair worth learning: Claude's edits arrive
 as a diff you accept or reject, rather than being written under you.
 
+### Under kitty: a tab, not a float
+
+On the laptop Claude is **its own kitty tab** in the project's session, not
+the float (`config/claude_kitty.lua`). The same keys drive it:
+
+| Key                    | Does under kitty                                   |
+| ---------------------- | -------------------------------------------------- |
+| `<C-/>` in nvim        | go to Claude's tab, starting Claude if it is not running |
+| `<C-/>` in Claude      | back to nvim (tab 1) — kitty's map, not nvim's     |
+| `<leader>as`, `ab`     | send, then go to Claude's tab (not yet tried)      |
+| `<leader>aa`, `ax`     | accept / reject, then back to Claude's tab         |
+
+**A diff comes to you.** Claude proposes an edit while you are watching its
+tab, so when the diff opens kitty switches to nvim, and once it is accepted or
+rejected it switches back. Measured in a throwaway kitty: diff opened, focus on
+nvim within 4s of the prompt; `<leader>aa` applied the edit and Claude's tab
+was focused again. In **auto mode** Claude edits without asking, so no diff
+opens and nothing moves.
+
+It is still the IDE connection doing the work — Claude is started with the
+same `CLAUDE_CODE_SSE_PORT` the float got, and connects to this nvim on its
+own. What changes is only where its screen lives: kitty scrollback, so
+`prefix + [` copies out of it in nvim ([Scrollback](scrollback.md)).
+`q`uitting Claude closes its tab, and `<C-/>` starts a fresh one.
+`<leader>az` (width) means nothing here.
+
 ## The state feedback loop
 
 This is the part that is not obvious, and it is why a run finishing in another
