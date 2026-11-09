@@ -66,7 +66,7 @@ over RDP, and an Omarchy desktop. Three mechanisms:
 - **`.chezmoiignore`** is a template, so a path can be skipped per machine.
   `.config/i3`, `.config/i3status`, `.config/xterm` and `.xsession` apply on
   the VM only, `.config/hypr` and `.config/omarchy` on Omarchy only,
-  `.config/karabiner` on macOS only, and `bin/mkv2mp4` everywhere but the VM.
+  `.config/karabiner` and `.config/ghostty` on macOS only, and `bin/mkv2mp4` everywhere but the VM.
   Paths there are *target* names (`.config/i3`), not source names
   (`dot_config/i3`).
 - **`.chezmoi.toml.tmpl`** defines a `role`, asked once per machine by
@@ -220,6 +220,7 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
 | `dot_config/kitty/mux.conf.tmpl`   | `~/.config/kitty/mux.conf` | kitty as the multiplexer, macOS only — see kitty below       |
 | `dot_config/kitty/tab_bar.py`      | `~/.config/kitty/tab_bar.py` | tmux's status line, drawn by kitty — same section           |
 | `dot_config/kitty/music_popup.py`  | `~/.config/kitty/music_popup.py` | The gmuse popup under kitty — same section              |
+| `dot_config/ghostty/config.ghostty` | `~/.config/ghostty/config.ghostty` | Ghostty dressed as kitty, for testing vimtracker; macOS only |
 | `dot_config/xterm/XTerm`           | `~/.config/xterm/XTerm`   | The Linux machine's terminal; Linux only — see below          |
 | `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, vim counts, marks, keymap audit — see below |
 | `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; RDP VM only                             |

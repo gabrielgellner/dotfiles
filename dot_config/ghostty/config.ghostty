@@ -1,0 +1,68 @@
+# Ghostty, macOS only, for testing vimtracker in a second terminal (its README
+# names kitty and Ghostty). Not a daily terminal: kitty is that, and this file
+# only makes Ghostty look like it, so a difference on screen is a difference in
+# the terminal rather than in the colours or the font.
+#
+# Each line below mirrors a setting of kitty's, named alongside. Nothing from
+# mux.conf beyond copy-on-select: there is no tab bar, prefix or remote control
+# here, because nothing here drives Ghostty.
+#
+# Ghostty also reads ~/Library/Application Support/com.mitchellh.ghostty/
+# config.ghostty, after this file. It wrote a template there on first launch
+# that is all comments, so it changes nothing; a setting added there would win.
+
+# kitty.conf: font_family, and font_size from font.conf. Both are CoreText
+# points on macOS, so the same 14 is the same size.
+font-family = FiraCode Nerd Font Mono
+font-size = 14
+
+# catppuccin-frappe.conf, copied value for value rather than Ghostty's built-in
+# "Catppuccin Frappe", so the two cannot drift apart: the vendored kitty file
+# is pinned to a commit, and Ghostty's themes move with Ghostty.
+background = #303446
+foreground = #c6d0f5
+cursor-color = #f2d5cf
+cursor-text = #303446
+selection-background = #f2d5cf
+selection-foreground = #303446
+palette = 0=#51576d
+palette = 1=#e78284
+palette = 2=#a6d189
+palette = 3=#e5c890
+palette = 4=#8caaee
+palette = 5=#f4b8e4
+palette = 6=#81c8be
+palette = 7=#b5bfe2
+palette = 8=#626880
+palette = 9=#e78284
+palette = 10=#a6d189
+palette = 11=#e5c890
+palette = 12=#8caaee
+palette = 13=#f4b8e4
+palette = 14=#81c8be
+palette = 15=#a5adce
+
+# kitty draws the grid from the window's edge (window_padding_width 0);
+# Ghostty's default is 2 points all round.
+window-padding-x = 0
+window-padding-y = 0
+
+# macos_titlebar_color system: the plain system title bar. Ghostty's default,
+# transparent, tints it with the background colour.
+macos-titlebar-style = native
+
+# macos_option_as_alt yes. vimtracker's Option keys (Option-1, Option-s) need it.
+macos-option-as-alt = true
+
+# copy_on_select clipboard, from mux.conf.
+copy-on-select = clipboard
+
+# vimtracker's Cmd-h/j/k/l, which kitty.conf hands over only while vimtracker's
+# window has focus. Ghostty has no such condition, so these are free in every
+# window — fine for a terminal kept for the tracker. Ghostty binds super+k
+# (clear_screen) and super+j (scroll_to_selection) by default; h and l are
+# unbound here for symmetry.
+keybind = super+h=unbind
+keybind = super+j=unbind
+keybind = super+k=unbind
+keybind = super+l=unbind
