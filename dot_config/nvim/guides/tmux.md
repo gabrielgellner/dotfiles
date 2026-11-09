@@ -156,8 +156,9 @@ that the attach silently does not take.
 ## On the laptop: kitty instead of tmux
 
 On macOS, **kitty is the multiplexer** and tmux does not run. The same keys
-work: `C-a` is still the prefix, a project is still a session with
-`1 nvim 2 console 3 console`, and the bar at the bottom is this one, redrawn by
+work: `C-a` is still the prefix, a project is still a session — though of
+`1 nvim 2 console`, one console fewer, since Claude's own tab lands third
+when `<C-/>` opens it ([Claude Code](claude.md)) — and the bar at the bottom is this one, redrawn by
 `~/.config/kitty/tab_bar.py`. `dev` and `new-session` see they are in kitty
 (`~/bin/dev-mux`) and drive kitty sessions instead. The work VM and Omarchy
 keep tmux.

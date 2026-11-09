@@ -3,7 +3,7 @@
 # Loaded by `tab_bar_style custom` in mux.conf. The same layout and Frappé
 # colours as tmux's bar, read off dot_tmux.conf:
 #
-#     " <session> " [1 nvim] [2 console] [3 console]    ♪ … ⣿ 0 (0) ⣤ 0 ⣀ 1 󰁾 29% Sun 08 Nov 21:48
+#     " <session> " [1 nvim] [2 console] [3 claude]    ♪ … ⣿ 0 (0) ⣤ 0 ⣀ 1 󰁾 29% Sun 08 Nov 21:48
 #
 # The right side is the same two scripts tmux runs from status-right, unchanged
 # apart from one flag. They print tmux's #[fg=…] markup, which is translated

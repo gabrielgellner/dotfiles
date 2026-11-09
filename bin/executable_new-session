@@ -14,9 +14,12 @@ if [[ -z "$SESSION" || -z "$DIR" ]]; then
 fi
 
 # kitty: the session is a kitty session (0.43+), created from a session file
-# rather than built up one command at a time. Same layout as the tmux branch —
-# nvim, console, console — with `nvim` typed into the first shell rather than
-# run as its command, so quitting nvim leaves a shell there, as in tmux.
+# rather than built up one command at a time. One console fewer than the tmux
+# branch — nvim, console — because here Claude is a tab of its own
+# (nvim/lua/config/claude_kitty.lua), which then lands third; just.lua opens
+# another console tab when the one is busy. `nvim` is typed into the first
+# shell rather than run as its command, so quitting nvim leaves a shell there,
+# as in tmux.
 #
 # The file is rewritten on every call, so it always names the directory `dev`
 # just resolved, and lives in $XDG_STATE_HOME: it is generated state, not
@@ -39,7 +42,7 @@ if [[ "$(dev-mux)" == kitty ]]; then
 
   {
     echo "# Written by ~/bin/new-session, and rewritten each time it runs."
-    for tab in nvim console console; do
+    for tab in nvim console; do
       echo "new_tab $tab"
       echo "cd $DIR"
       echo "launch --env DEV_SESSION=$SESSION --var dev_role=${tab/nvim/editor}"

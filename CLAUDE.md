@@ -1071,8 +1071,9 @@ told apart for free. `claude-tmux-state`, `config/just.lua` and
 **The mapping onto kitty**, all measured on 0.50.0 in a throwaway instance:
 
 - **Sessions are kitty sessions** (0.43+). `new-session` writes
-  `$XDG_STATE_HOME/dev/kitty-sessions/<name>.kitty-session` (nvim, console,
-  console; `nvim` typed into the first shell, as tmux did) and runs
+  `$XDG_STATE_HOME/dev/kitty-sessions/<name>.kitty-session` (nvim and one
+  console — Claude's tab becomes the third; `nvim` typed into the first shell,
+  as tmux did) and runs
   `kitten @ action goto_session` on it. The session is named after the file,
   dots included (`Foo.jl`); a second goto on an open session switches and
   creates nothing, so the same call is the switch. Each window carries
