@@ -3,7 +3,7 @@
 # Loaded by `tab_bar_style custom` in mux.conf. The same layout and Frappé
 # colours as tmux's bar, read off dot_tmux.conf:
 #
-#     " <session> " [1 nvim] [2 console] [3 console]    ♪ … ⣿ 0 (0) ⣤ 0 ⣀ 1 Sun 08 Nov 21:48
+#     " <session> " [1 nvim] [2 console] [3 console]    ♪ … ⣿ 0 (0) ⣤ 0 ⣀ 1 󰁾 29% Sun 08 Nov 21:48
 #
 # The right side is the same two scripts tmux runs from status-right, unchanged
 # apart from one flag. They print tmux's #[fg=…] markup, which is translated
@@ -22,6 +22,12 @@
 # frame, and the Claude counters never appeared (read from the running kitty
 # with a probe kitten). Spawning from the main thread and polling is how kitty
 # itself runs things.
+#
+# The battery is the one part tmux never had: this bar only runs on the laptop.
+# It is `pmset -g batt`, run and collected like the scripts and parsed here, and
+# prints nothing on a Mac with no battery. Red at BATTERY_LOW or below while on
+# battery; Apple documents no threshold for its own menu-bar icon, so 10% is a
+# choice, not a copy.
 #
 # Not ported: tmux's activity and bell styles. Both were set in dot_tmux.conf,
 # but every part of the window format sets its own fg and bg, which overrides
@@ -46,6 +52,10 @@ TITLE_BG = 0x414559
 TITLE_BG_ACTIVE = 0x51576D
 DATE = 0x737994
 CLOCK = 0x949CBB
+BATTERY = 0x949CBB
+BATTERY_AC = 0xA6D189  # green: on the charger
+BATTERY_LOW_FG = 0xE78284  # red
+BATTERY_LOW = 10
 
 # tmux's status-left-length.
 SESSION_MAX = 30
@@ -57,15 +67,16 @@ RUN_EVERY = 5
 STATUS_SCRIPTS = (
     ("gmuse", [os.path.expanduser("~/bin/gmuse-tmux-status")]),
     ("claude", [os.path.expanduser("~/bin/claude-tmux-status"), "--panes-stdin"]),
+    ("battery", ["/usr/bin/pmset", "-g", "batt"]),
 )
 # A script still running after this long is killed and reads as blank.
 TIMEOUT = 3.0
 
-_status = {"gmuse": "", "claude": ""}
+_status = {"gmuse": "", "claude": "", "battery": ""}
 _running: dict[str, tuple[subprocess.Popen, float]] = {}
 _timer = None
 _ticks = 0
-_drawn: tuple[str, str, str] | None = None
+_drawn: tuple[str, str, str, str] | None = None
 _out_dir = tempfile.mkdtemp(prefix="kitty-tab-bar-")
 
 # kitty's own process has launchd's bare PATH (/usr/bin:/bin:/usr/sbin:/sbin),
@@ -139,7 +150,7 @@ def _tick(timer_id: int | None) -> None:
     # the 5s beat drew each result one beat late — measured up to ~9s behind a
     # state change, and the clock with it. Checking every second and redrawing
     # on any change keeps it within a second of the scripts.
-    shown = (_status["gmuse"], _status["claude"], time.strftime("%H:%M"))
+    shown = (_status["gmuse"], _status["claude"], _status["battery"], time.strftime("%H:%M"))
     if shown == _drawn:
         return
     _drawn = shown
@@ -180,6 +191,33 @@ def _parse(markup: str) -> list[tuple[int | None, bool, str]]:
     return [(f, b, t.replace("##", "#")) for f, b, t in runs if t]
 
 
+_PMSET = re.compile(r"(\d+)%;\s*([^;]+);")
+
+
+def _battery(pmset: str) -> list[tuple[int | None, bool, str]]:
+    """`pmset -g batt` as runs: a level glyph and the percent, or nothing.
+
+    The first line names the power source ("Now drawing from 'AC Power'" or
+    "'Battery Power'"); the battery line reads "29%; discharging; 1:25
+    remaining", or "charging", "charged", "AC attached; not charging" — the
+    last at the 80% charge limit, still on AC.
+    """
+    m = _PMSET.search(pmset)
+    if not m:
+        return []
+    pct = int(m.group(1))
+    on_ac = "'AC Power'" in pmset
+    if on_ac:
+        glyph, fg = "\U000f0084", BATTERY_AC  # battery-charging
+    elif pct <= BATTERY_LOW:
+        glyph, fg = "\U000f0083", BATTERY_LOW_FG  # battery-alert
+    else:
+        # battery-10 … battery-90 are U+F007A…U+F0082, full is U+F0079.
+        tens = min(max(round(pct / 10), 1), 10)
+        glyph, fg = chr(0xF0079 if tens == 10 else 0xF007A + tens - 1), BATTERY
+    return [(fg, pct <= BATTERY_LOW and not on_ac, f"{glyph} {pct}% ")]
+
+
 def _draw(screen: Screen, text: str, fg: int, bg: int, bold: bool = False) -> None:
     screen.cursor.fg = as_rgb(fg)
     screen.cursor.bg = as_rgb(bg)
@@ -198,10 +236,12 @@ def _draw_right(screen: Screen, start: int) -> None:
     clock = [(DATE, False, time.strftime("%a %d %b ")), (CLOCK, False, time.strftime("%H:%M "))]
     claude = _parse(_status["claude"])
     gmuse = _parse(_status["gmuse"])
-    # When it does not all fit, gmuse goes first, then Claude: the same order
-    # of importance as their placement, leftmost being least urgent.
+    battery = _battery(_status["battery"])
+    # When it does not all fit, gmuse goes first, then Claude, then the
+    # battery: the same order of importance as their placement, leftmost being
+    # least urgent.
     room = screen.columns - start - 1
-    for runs in (gmuse + claude + clock, claude + clock, clock):
+    for runs in (gmuse + claude + battery + clock, claude + battery + clock, battery + clock, clock):
         if _width(runs) <= room:
             break
     else:

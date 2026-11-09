@@ -192,6 +192,10 @@ What is different:
 - **A tmux started inside kitty here loses its prefix**: kitty takes `C-a`
   first. `DEV_MUX=tmux dev` still drives tmux, from a terminal that is not
   kitty.
+- **The bar has a battery**, between Claude's counters and the date: grey
+  with a level glyph on battery, green with a charging glyph on the charger,
+  and red with an alert glyph at 10% or below on battery. It is `pmset`, so a
+  Mac without a battery shows nothing. tmux's bar has no equivalent.
 - `tab_bar.py` is only read when kitty starts, so a change to it needs a new
   kitty; `prefix + r` reloads everything else.
 

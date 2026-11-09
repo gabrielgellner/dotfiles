@@ -1122,6 +1122,13 @@ file was swapped into the running kitty by a kitten that removes the old timer,
 `exec`s the new source into `draw_func.__globals__` and reassigns `draw_func`.
 After a `load_config_file` those globals are kitty's own `kitty.tab_bar`
 module; the only names shared with it are the identical objects it imports.
+- **The battery** is the one thing the bar has that tmux's did not:
+  `pmset -g batt`, started and collected like the two scripts, parsed in
+  `_battery`. Red at `BATTERY_LOW` (10) or below on battery, green on AC
+  (including "not charging" at the 80% limit), nothing without a battery.
+  Apple documents no threshold for its own icon turning red, so 10% is a
+  choice. Each state was checked against `_battery` with fixture text; the
+  live bar drew `󰁼 29%` in the clock's grey.
 - **Claude's counters**: `claude-tmux-status --panes-stdin` takes "pid session"
   lines in place of `tmux list-panes`, built from kitty's windows. The window's
   pid is a login process one above the shell (a claude's parent was 13676, the
