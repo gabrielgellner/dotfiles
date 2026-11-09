@@ -16,6 +16,11 @@
 font-family = FiraCode Nerd Font Mono
 font-size = 14
 
+# kitty darkens text on macOS (text_composition_strategy's default, platform),
+# and Ghostty's strokes came out visibly slighter beside it. Thickening is
+# Ghostty's nearest knob; font-thicken-strength (0-255, default 255) tunes it.
+font-thicken = true
+
 # catppuccin-frappe.conf, copied value for value rather than Ghostty's built-in
 # "Catppuccin Frappe", so the two cannot drift apart: the vendored kitty file
 # is pinned to a commit, and Ghostty's themes move with Ghostty.
