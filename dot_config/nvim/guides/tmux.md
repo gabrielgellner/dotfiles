@@ -174,15 +174,18 @@ keep tmux.
 | `prefix + L`     | the session you were last in                  |
 | `prefix + ,`     | rename the tab                                |
 | `prefix + & / x` | close the tab / the window                    |
-| `prefix + [`     | scrollback in the pager (there is no copy mode) |
+| `prefix + [`     | the scrollback, in nvim (kitty-scrollback.nvim) |
+| `prefix + g`     | the last command's output, in nvim            |
 | `prefix + P`     | paste                                         |
 | `prefix + r`     | reload kitty's config                         |
 
 What is different:
 
 - **There is no detach.** Quitting kitty ends every session in it.
-- **No vi copy mode.** A mouse selection goes straight to the clipboard, as
-  tmux's drag did; `prefix + [` opens the scrollback in the pager.
+- **Copy mode is nvim.** `prefix + [` opens the window's scrollback in an
+  nvim overlay, with your config: search, select, and `<leader>y` yanks to the
+  clipboard and closes it; `<S-CR>` pastes the selection back into the window
+  instead. A mouse selection still goes straight to the clipboard.
 - **ctrl-x in `dev` asks nothing**, as tmux's kill-session did, even with nvim
   running. Killing the session you are in moves you to the previous one.
 - **A tmux started inside kitty here loses its prefix**: kitty takes `C-a`
@@ -194,5 +197,6 @@ What is different:
 ## See also
 
 - [Claude Code](claude.md) — what writes the `⣿ ⣤ ⣀` counters
+- [Scrollback in nvim](scrollback.md) — `prefix + [` under kitty, in full
 - [Music](music.md) — the gmuse popup this shares its shape with
 - [Floats](floats.md) — the nvim-side equivalent of a popup over your work

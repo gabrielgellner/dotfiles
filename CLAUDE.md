@@ -1137,6 +1137,12 @@ module; the only names shared with it are the identical objects it imports.
   through `kitten @ action`). Run as a *remote* `kitten @ launch`, it copies the
   calling process's env instead, which is how a test window once picked up the
   harness shell's `$TMUX`.
+- **Copy mode is kitty-scrollback.nvim** (`ctrl+a>[`, and `ctrl+a>g` for the
+  last command's output). Its kitten is run from lazy's checkout, named in
+  mux.conf by full path. kitty's own `which` finds nvim in `/opt/homebrew/bin`
+  despite the bare PATH (checked from a probe kitten). In a harness: `?`
+  search, `V j <leader>y` put both lines on the clipboard and closed the
+  overlay; `g` showed only the last command's output.
 - **just.lua** finds consoles by `var:dev_role=console and session:.` and takes
   the first with `at_prompt` (kitty shell integration, the `pane_current_command`
   of this side); none free opens a console tab with `--keep-focus
@@ -1180,7 +1186,7 @@ Lazy.nvim-based setup with modules under `dot_config/nvim/lua/`:
   `scratch`, `markdown_checkbox`, `markdown_outline`, `rules_lookup`.
 - `plugins/` — one file per plugin or plugin group, lazy-loaded.
 - `guides/` — hand-written markdown reference cards, opened with `<leader>?`.
-  Twenty-six of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
+  Twenty-seven of them, indexed at the end of `keymaps.md`; `gf` or `<CR>` follows a
   link between them, and `<C-g>` in the picker switches from matching titles to
   grepping their contents.
 

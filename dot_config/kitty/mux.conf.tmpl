@@ -98,9 +98,15 @@ map ctrl+a>ctrl+j launch --type=overlay dev
 # this file's tab bar, which would otherwise draw a status line in the player.
 map ctrl+a>ctrl+p kitten music_popup.py
 
-# Copy mode. tmux's vi copy mode has no kitty equivalent; this opens the
-# scrollback in the pager, and a mouse selection copies (copy_on_select above).
-map ctrl+a>[ show_scrollback
+# Copy mode: the window's scrollback opened in nvim, by kitty-scrollback.nvim
+# (nvim/lua/plugins/kitty-scrollback.lua), whose kitten lives in lazy's
+# checkout. Motions, / and a yank that reaches the clipboard; <leader>y yanks
+# and closes, <S-CR> pastes a selection back into the window. g is the last
+# command's output only, from shell integration. A mouse selection still copies
+# on its own (copy_on_select above).
+action_alias kitty_scrollback_nvim kitten {{ .chezmoi.homeDir }}/.local/share/nvim/lazy/kitty-scrollback.nvim/python/kitty_scrollback_nvim.py
+map ctrl+a>[ kitty_scrollback_nvim
+map ctrl+a>g kitty_scrollback_nvim --config ksb_builtin_last_cmd_output
 map ctrl+a>shift+p paste_from_clipboard
 
 map ctrl+a>r load_config_file

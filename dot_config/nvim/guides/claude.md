@@ -152,3 +152,4 @@ confusing rather than obvious.
 - [Floats](floats.md) — the window it lives in, and `<C-x>`
 - [Tmux](tmux.md) — where `⣿ ⣤ ⣀` is rendered
 - [Shell](shell.md) — `dot_zshenv`, where the alt-screen variable is set
+- [Scrollback in nvim](scrollback.md) — copying out of Claude in its own kitty window
