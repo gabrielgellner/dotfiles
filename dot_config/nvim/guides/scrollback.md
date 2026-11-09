@@ -18,8 +18,11 @@ is set in `dot_zshenv` — the same reason `<C-x>` can scroll it in the float
 | ------------ | ----------------------------------------------------- |
 | `prefix + [` | the whole scrollback, cursor at the bottom            |
 | `prefix + g` | only the **last command's** output                    |
-| `q`          | quit, back to the window as it was                    |
-| `<C-c>`      | quit, from any mode                                   |
+| `q`          | quit, back to the window as it was — in the paste window, closes only that |
+| `<C-c>`      | quit everything, from any mode, paste window or not   |
+
+Neither pastes anything; only `:w`, `<S-CR>` and `<C-CR>` do. A yank is still
+on the clipboard after you quit.
 
 `prefix + g` uses kitty's shell integration to know where the last command's
 output starts and ends, so it is the one for "copy that error" in a console
@@ -63,6 +66,7 @@ it like any buffer, then send it:
 | `<C-CR>`            | paste it **and press Enter**             |
 | `g?`                | hide or show the footer                  |
 | `q`                 | close the paste window, keep scrolling   |
+| `<C-c>`             | close it and the overlay, pasting nothing |
 
 `<C-CR>` *runs* what it sends (by the plugin's own table; not tried here).
 `:w` and `<S-CR>` were tried and never do, which makes them the safe habit.
