@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# tmux-scrollback - a tmux pane's history, opened in nvim: `prefix + [`.
+#
+# The tmux counterpart of kitty-scrollback.nvim on the laptop (kitty/mux.conf):
+# everything the pane has printed, in a real nvim with the whole config, for
+# motions, search and a yank that reaches the clipboard. dot_tmux.conf runs
+# this inside a display-popup over the pane, so quitting nvim is back where you
+# were. The keys inside are nvim/lua/config/scrollback.lua's.
+#
+#   tmux-scrollback <pane-id>
+#
+# Captured as plain text with -J, which joins lines the terminal wrapped, so a
+# long line is yanked as the one line it was. That is chosen over colour: -e
+# would keep the escapes, but showing them needs a terminal buffer, and that
+# hard-wraps at the popup's width and puts a newline into every long yank.
+# -J also keeps the trailing spaces of every row, so those are stripped, and
+# with them the blank rows below the prompt in a pane that is not yet full.
+
+set -euo pipefail
+
+pane=${1:?usage: tmux-scrollback <pane-id>}
+
+file=$(mktemp "${TMPDIR:-/tmp}/tmux-scrollback.XXXXXX")
+trap 'rm -f "$file"' EXIT
+
+tmux capture-pane -p -J -S - -t "$pane" |
+  sed 's/[[:space:]]*$//' |
+  awk '{ lines[NR] = $0; if ($0 != "") last = NR } END { for (i = 1; i <= last; i++) print lines[i] }' \
+    >"$file"
+
+# Not exec: the trap has to outlive nvim to remove the file.
+nvim -R "$file" -c "lua require('config.scrollback').attach('$pane')"

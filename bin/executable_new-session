@@ -76,8 +76,9 @@ else
   # first window is the editor
   tmux rename-window -t "=$SESSION:1" nvim
 
-  # two consoles, for a build and something else
-  tmux new-window -t "=$SESSION:" -n console -c "$DIR"
+  # One console, as in the kitty branch above and for the same reason: Claude
+  # is a window of its own here too (nvim/lua/config/claude_tmux.lua), and
+  # lands third. just.lua opens another console when this one is busy.
   tmux new-window -t "=$SESSION:" -n console -c "$DIR"
 
   tmux send-keys -t "=$SESSION:nvim" "nvim" Enter

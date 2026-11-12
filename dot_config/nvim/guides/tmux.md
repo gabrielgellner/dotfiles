@@ -47,14 +47,16 @@ was meant every time.
 
 ```
 1 nvim      # nvim, already running
-2 console   # a build
-3 console   # something else
+2 console   # a build, a test run
+3 claude    # once <C-/> has started it
 ```
 
-Two consoles rather than one because a build and a test run want different
-windows. They also hold output that outlives nvim: the `<leader>j…` recipes
-(`jj` pick, `jt` test, `jb` build) `send-keys` into window 2 exactly as if you
-had typed it there, falling through to window 3 when 2 is busy. That is why
+One console, and Claude in a window of its own: `<C-/>` in nvim starts it or
+goes to it, and `<C-/>` there comes back to window 1
+([Claude Code](claude.md)). The console holds output that outlives nvim: the
+`<leader>j…` recipes (`jj` pick, `jt` test, `jb` build) `send-keys` into the
+first window *named* `console` that is sitting at a prompt, exactly as if you
+had typed it there, and open another console when none is free. That is why
 `history-limit` is 50000 rather than tmux's default 2000 — one verbose test run
 can exceed the default and scroll away the output that was deliberately routed
 there.
@@ -62,18 +64,22 @@ there.
 Running `new-session` again on a session that already exists **goes to it**
 rather than laying it out a second time. That is the obvious mistake to make,
 and the early version renamed the live window, typed `nvim` into it and appended
-two more consoles.
+more consoles.
 
 ## Copying
 
 | Key                  | Does                                 |
 | -------------------- | ------------------------------------ |
-| `prefix + [`         | enter copy mode                      |
+| `prefix + [`         | the pane's history, **in nvim**      |
+| `prefix + PageUp`    | tmux's own copy mode (the wheel too) |
 | `v`                  | begin selection (vi keys)            |
 | `y` or `Enter`       | copy to the **system** clipboard     |
 | drag with the mouse  | copies on release                    |
 | `prefix + P`         | paste from the system clipboard      |
 
+`prefix + [` is the one to reach for: the real editor over everything the pane
+has printed, `<leader>y` to copy and close — [Scrollback in nvim](scrollback.md)
+has its keys. The rows under it are tmux's copy mode, which is still there:
 `mode-keys vi`, so movement in copy mode is `hjkl`, `/` searches, `gg`/`G`
 jump. The clipboard command is chosen once at load — `pbcopy` on macOS,
 `wl-copy` under Omarchy's Wayland, `xclip` on the RDP machine — so `y` means
@@ -157,7 +163,7 @@ that the attach silently does not take.
 
 On macOS, **kitty is the multiplexer** and tmux does not run. The same keys
 work: `C-a` is still the prefix, a project is still a session — though of
-`1 nvim 2 console`, one console fewer, since Claude's own tab lands third
+`1 nvim 2 console`, with Claude's own tab landing third
 when `<C-/>` opens it ([Claude Code](claude.md)) — and the bar at the bottom is this one, redrawn by
 `~/.config/kitty/tab_bar.py`. `dev` and `new-session` see they are in kitty
 (`~/bin/dev-mux`) and drive kitty sessions instead. The work VM and Omarchy
@@ -203,6 +209,6 @@ What is different:
 ## See also
 
 - [Claude Code](claude.md) — what writes the `⣿ ⣤ ⣀` counters
-- [Scrollback in nvim](scrollback.md) — `prefix + [` under kitty, in full
+- [Scrollback in nvim](scrollback.md) — `prefix + [`, under kitty and tmux, in full
 - [Music](music.md) — the gmuse popup this shares its shape with
 - [Floats](floats.md) — the nvim-side equivalent of a popup over your work

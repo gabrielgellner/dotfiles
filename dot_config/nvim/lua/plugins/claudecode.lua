@@ -33,6 +33,12 @@ local in_kitty = (vim.env.TMUX or "") == ""
   and (vim.env.KITTY_WINDOW_ID or "") ~= ""
   and (vim.env.KITTY_LISTEN_ON or "") ~= ""
 
+-- Under tmux it is a window of its own for the same reason, through
+-- config/claude_tmux.lua. `external` is whichever of the two applies; the
+-- float is left for an nvim started outside both.
+local in_tmux = (vim.env.TMUX or "") ~= ""
+local external = in_kitty and "config.claude_kitty" or in_tmux and "config.claude_tmux" or nil
+
 -- The window showing the in-editor Claude terminal, if one is on this tabpage.
 local function claude_win()
   local ok, terminal = pcall(require, "claudecode.terminal")
@@ -194,8 +200,8 @@ return {
   event = "VeryLazy",
 
   init = function()
-    if in_kitty then
-      require("config.claude_kitty").follow_diffs()
+    if external then
+      require(external).follow_diffs()
     end
 
     -- A full-screen float is opaque, so focus moving out of it without the
@@ -298,9 +304,10 @@ return {
     -- auto_start = true is what writes the lock file; leaving it on is what
     -- makes the tmux-side CLI able to find this editor at all.
     terminal = {
-      -- A kitty tab under kitty, the float everywhere else; everything below
-      -- in this table is the float's and is unused by the kitty provider.
-      provider = in_kitty and require("config.claude_kitty") or "snacks",
+      -- A kitty tab under kitty, a tmux window under tmux, the float anywhere
+      -- else; everything below in this table is the float's and is unused by
+      -- the other two.
+      provider = external and require(external) or "snacks",
       -- Don't startinsert on focus. Otherwise re-entering the terminal snaps
       -- Claude to its prompt, so a scroll position never survives a trip out to
       -- a buffer and back. Costs an `i` before typing a prompt.
@@ -401,7 +408,7 @@ return {
     {
       "<leader>aw",
       function()
-        local running = in_kitty and require("config.claude_kitty").running()
+        local running = external and require(external).running()
           or require("claudecode.terminal").get_active_terminal_bufnr()
         if running then
           vim.notify("Claude is already running; use /chrome inside it to enable Chrome", vim.log.levels.WARN)

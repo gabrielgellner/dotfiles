@@ -206,7 +206,8 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
 | `dot_zshrc`                        | `~/.zshrc`                | Zsh config: completions, fzf, zoxide, starship, aliases       |
 | `dot_tmux.conf`                    | `~/.tmux.conf`            | Tmux: Ctrl-A prefix, vi keys, catppuccin frappe               |
 | `bin/executable_dev`               | `~/bin/dev`               | fzf-based tmux session/project switcher                       |
-| `bin/executable_new-session`       | `~/bin/new-session`       | Creates tmux sessions with nvim + console windows             |
+| `bin/executable_new-session`       | `~/bin/new-session`       | Creates a tmux (or kitty) session: nvim and one console       |
+| `bin/executable_tmux-scrollback`   | `~/bin/tmux-scrollback`   | `prefix + [` under tmux: a pane's history in nvim — see below  |
 | `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
 | `bin/executable_claude-tmux-state` | `~/bin/claude-tmux-state` | Records Claude's state per tmux session — see its section below |
 | `bin/executable_claude-tmux-status`| `~/bin/claude-tmux-status`| Summarises those states for the status bar — same section      |
@@ -1194,6 +1195,47 @@ into a Claude prompt. Wait for a new shell's prompt before sending it keys.
 Nothing can be screenshotted without Screen Recording, so the bar is read back
 by dumping `screen.line(0).as_ansi()` from a patched copy of `tab_bar.py`, and
 popup visibility from `CGWindowListCopyWindowInfo` (onscreen, layer 100).
+
+## Claude's Window and the Scrollback, under tmux
+
+The kitty setup's three habits exist under tmux too (2026-11-12), so the work
+VM in xterm behaves like the laptop: `new-session` builds `1 nvim 2 console`,
+Claude is a window of its own rather than the nvim float
+(`nvim/lua/config/claude_tmux.lua`, the tmux twin of `claude_kitty.lua`), and
+`prefix + [` opens the pane's history in nvim (`~/bin/tmux-scrollback` with
+`nvim/lua/config/scrollback.lua`). The float remains for an nvim outside both
+multiplexers. All of it was driven in a throwaway server (`tmux -L`), with
+`DISPLAY` pointed at a scratch `Xvnc :99` so the clipboard checks did not
+touch the real one. What that turned up:
+
+- **`send-keys` does not exercise a key binding.** It writes to the pane, past
+  the key tables, so the root-table `C-_` binding looked dead. A binding needs
+  a real client: attach the test server inside a pane of a *second* throwaway
+  server and send the key to that pane.
+- **tmux 3.2a does not expand formats in `display-popup`'s command.** Bound
+  directly, the script received the literal `#{pane_id}`, failed, and the
+  popup closed unseen. The binding goes through `run-shell`, which expands
+  them, and names the client with `-c`.
+- **Consoles are found by window name, not index.** `just.lua` used windows 2
+  and 3; with Claude third that would have counted it. Measured: a recipe went
+  to window 2 when idle, and opened a new `console` when it was busy.
+- **Claude's window is tagged, not named**: the window option
+  `@dev_role claude`, which `list-windows` reads back and the `C-_` binding
+  tests. `<C-/>` from nvim started a real Claude there with
+  `CLAUDE_CODE_SSE_PORT` in its environment; the IDE connection itself, and
+  accepting a live diff, were not exercised.
+- **The scrollback is plain text on purpose.** `capture-pane -J` joins wrapped
+  lines (a 407-character line came back as one), which a coloured terminal
+  buffer would hard-wrap. `<leader>y`, `<leader>yy`, `<leader>y{motion}` each
+  put the text on the clipboard and closed; visual `<CR>` left the selection
+  at the pane's prompt, not run.
+
+kitty itself stays off the VM, re-measured the same day with 0.50.0 unpacked
+in `~/.local/kitty.app`: 230.7 Mpx of damage in 10s for the one-cell spinner,
+every frame the full 1920x1054, at 170% of a core — against 238.8 Mpx and 62%
+for the 0.21.2 apt build and 12.1 Mpx at 0.0% for xterm on the same harness.
+`sync_to_monitor no` and `repaint_delay 100` moved neither number. tmux was
+in none of those runs, so dropping it is not the fix.
 
 ## Neovim Configuration Architecture
 

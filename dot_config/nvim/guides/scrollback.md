@@ -114,8 +114,40 @@ named by its path inside lazy's checkout, and the kitten opens a fresh `nvim`
 as an overlay and fires `User KittyScrollbackLaunch`, the event
 `lua/plugins/kitty-scrollback.lua` loads on. So it costs your normal nvim
 nothing — and if lazy's copy of the plugin goes, the key goes with it until
-`:Lazy restore` puts it back. Laptop only: the VM and Omarchy still
-have tmux's copy mode.
+`:Lazy restore` puts it back.
+
+## Under tmux
+
+Where tmux is the multiplexer the key is the same and the idea is the same,
+but it is a small script rather than the plugin: `prefix + [` runs
+`~/bin/tmux-scrollback`, which captures the pane's history and opens it in
+nvim in a popup over the pane. The keys are a subset, set in
+`lua/config/scrollback.lua`:
+
+| From   | Key                 | Does                                        |
+| ------ | ------------------- | ------------------------------------------- |
+| visual | `<leader>y`         | copy to the clipboard **and close**         |
+| normal | `<leader>yy`        | copy the line, and close                    |
+| normal | `<leader>y{motion}` | copy what the motion covers, and close      |
+| visual | `<CR>`              | paste the selection into the pane, not run, and close |
+| normal | `y…`                | copy, stay open                             |
+| normal | `q`                 | quit                                        |
+
+What differs from kitty:
+
+- **No colour.** It is the plain text, and that is the trade for long lines
+  coming back whole: a line the terminal wrapped is one line here (a
+  407-character line yanked as 407), where keeping the colours would have
+  put a newline at every wrap.
+- **No `prefix + g`.** tmux 3.2a keeps no record of where a command's output
+  starts. `?❯` finds the previous prompt.
+- **No paste window.** A plain `y` just yanks; `<CR>` on a selection is the
+  one way to send text back, and it is `<CR>` because tmux gives nvim the
+  same byte for `<S-CR>`.
+- **A border.** tmux 3.2a cannot draw a popup without one, so the text is one
+  cell in from where it was.
+
+tmux's own copy mode is still there on the mouse wheel and `prefix + PageUp`.
 
 ## See also
 

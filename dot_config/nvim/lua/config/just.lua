@@ -6,16 +6,16 @@
 -- running a recipe is ours to build.
 --
 -- Where output goes: bin/new-session opens every project as `1=nvim,
--- 2=console, 3=console` (windows, each with one pane — `base-index 1`), so a
--- recipe is sent to window 2 with `send-keys`, exactly as if it had been typed
--- there by hand. That keeps the output where it's always been: still on screen
--- after nvim is closed, scrollable with the usual tmux keys, and part of the
--- shell history. Focus stays in nvim — `M.pick({ focus = true })` is the
--- opt-in for watching a long run.
+-- 2=console` (windows, each with one pane — `base-index 1`), so a recipe is
+-- sent to the first window named `console` with `send-keys`, exactly as if it
+-- had been typed there by hand. That keeps the output where it's always been:
+-- still on screen after nvim is closed, scrollable with the usual tmux keys,
+-- and part of the shell history. Focus stays in nvim —
+-- `M.pick({ focus = true })` is the opt-in for watching a long run.
 --
 -- Two things make the send safe rather than a blind keystroke dump:
---   * the window must exist — `has-session -t sess:2` validates the *window*,
---     exiting 1 with "can't find window" when it's gone;
+--   * the window must exist — consoles are looked up by name each time, so
+--     one that has been closed is simply not a candidate;
 --   * its pane must be sitting at a shell prompt (`pane_current_command`), or
 --     the keystrokes would be typed into whatever is running there — a pager, a
 --     REPL, htop. A busy window is skipped for the next candidate, and if none
@@ -29,8 +29,10 @@
 
 local M = {}
 
--- Console windows from bin/new-session, in preference order.
-local CONSOLE_WINDOWS = { 2, 3 }
+-- The name bin/new-session and new_console below give a console window.
+-- Consoles are found by it rather than by index: Claude's window sits among
+-- them (config/claude_tmux.lua), and an index would count it.
+local CONSOLE_NAME = "console"
 
 -- A pane running one of these is at a prompt and safe to type into.
 local SHELLS = { zsh = true, bash = true, sh = true, fish = true }
@@ -144,9 +146,14 @@ end
 ---@param sess string
 ---@return string|nil target
 local function idle_console(sess)
-  for _, idx in ipairs(CONSOLE_WINDOWS) do
-    local target = ("%s:%d"):format(sess, idx)
-    if tmux({ "has-session", "-t", target }) then
+  local listed, out = tmux({ "list-windows", "-t", sess .. ":", "-F", "#{window_index} #{window_name}" })
+  if not listed then
+    return nil
+  end
+  for line in out:gmatch("[^\n]+") do
+    local idx, name = line:match("^(%d+) (.*)$")
+    if name == CONSOLE_NAME then
+      local target = ("%s:%s"):format(sess, idx)
       local ok, cmd = tmux({ "display-message", "-p", "-t", target, "#{pane_current_command}" })
       if ok and SHELLS[cmd] then
         return target
@@ -166,7 +173,7 @@ local function new_console(sess, cwd)
     "-t",
     sess,
     "-n",
-    "console",
+    CONSOLE_NAME,
     "-c",
     cwd,
     "-P",

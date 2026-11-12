@@ -62,6 +62,33 @@ own. What changes is only where its screen lives: kitty scrollback, so
 `q`uitting Claude closes its tab, and `<C-/>` starts a fresh one.
 `<leader>az` (width) means nothing here.
 
+### Under tmux: a window, not a float
+
+The same again where tmux is the multiplexer (the work VM, and a tmux started
+by hand): Claude is **its own tmux window** in the project's session
+(`config/claude_tmux.lua`), third after `nvim` and `console`. The float is
+left for an nvim started outside both tmux and kitty.
+
+| Key                    | Does under tmux                                    |
+| ---------------------- | -------------------------------------------------- |
+| `<C-/>` in nvim        | go to Claude's window, starting Claude if it is not running |
+| `<C-/>` in Claude      | back to nvim (window 1) — tmux's binding, not nvim's |
+| `<leader>aa`, `ax`     | accept / reject, then back to Claude's window      |
+
+The window is found by a tag (`@dev_role claude`), not its name, so
+`prefix + ,` can rename it. A diff comes to you here as well, with one
+difference from kitty: only if Claude's window was the one on screen when it
+opened. A diff arriving while you are already in nvim moves nothing, and
+resolving it leaves you there.
+
+Measured in a throwaway tmux server with a real client attached: `<C-/>` from
+nvim started Claude in window 3 with `CLAUDE_CODE_SSE_PORT` in its
+environment; pressed there it returned to window 1, and in the console it
+reached the program untouched. The diff round trip was driven with the
+plugin's events rather than a real edit, so `<leader>aa` on a live diff is
+not yet tried. `prefix + [` in Claude's window is its whole output in nvim
+([Scrollback](scrollback.md)).
+
 ## The state feedback loop
 
 This is the part that is not obvious, and it is why a run finishing in another
