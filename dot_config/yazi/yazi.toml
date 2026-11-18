@@ -1,0 +1,18 @@
+# Only what differs from yazi's preset; [open] prepend_rules merges ahead of
+# the preset's rules rather than replacing them.
+
+[opener]
+# Audio plays in the terminal rather than in Music.app, which yazi's own `play`
+# opener reaches through `open` on macOS. `block` hands mpv the terminal, so
+# space pauses, arrows seek and q comes back to yazi. --no-audio-display stops
+# embedded cover art opening a window. %s is every selected file, which mpv
+# takes as a playlist (< and > move through it).
+listen = [
+	{ run = "mpv --no-audio-display %s", block = true, desc = "Listen (mpv)", for = "unix" },
+]
+
+[open]
+# `play` stays second, so `O` still offers the system player.
+prepend_rules = [
+	{ mime = "audio/*", use = [ "listen", "play", "reveal" ] },
+]

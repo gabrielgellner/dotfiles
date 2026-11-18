@@ -223,7 +223,7 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
 | `dot_config/kitty/music_popup.py`  | `~/.config/kitty/music_popup.py` | The gmuse popup under kitty — same section              |
 | `dot_config/ghostty/config.ghostty` | `~/.config/ghostty/config.ghostty` | Ghostty dressed as kitty, for testing vimtracker; macOS only |
 | `dot_config/xterm/XTerm`           | `~/.config/xterm/XTerm`   | The Linux machine's terminal; Linux only — see below          |
-| `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, vim counts, marks, keymap audit — see below |
+| `dot_config/yazi/`                 | `~/.config/yazi/`         | yazi: pins, theme, vim counts, marks, keymap audit, mpv for audio — see below |
 | `executable_dot_xsession`          | `~/.xsession`             | Starts i3 under xrdp; RDP VM only                             |
 | `dot_config/hypr/`                 | `~/.config/hypr/`         | Omarchy: input and monitor overrides only — see Omarchy above |
 | `dot_config/omarchy/themes/catppuccin-frappe/` | `~/.config/omarchy/themes/…` | Omarchy: the Frappé desktop theme — same section |
