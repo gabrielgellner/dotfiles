@@ -41,6 +41,9 @@ if [ -e "$state/bridge-down" ]; then
     notify "Proton Mail Bridge is back" "Mail is syncing again."
 fi
 
+# Labels come off messages newly in Trash first, so this sync carries them up
+# (see mail-trash-labels).
+"$HOME/bin/mail-trash-labels"
 out=$(mbsync -q proton 2>&1)
 rc=$?
 [ -n "$out" ] && printf '%s\n' "$out"

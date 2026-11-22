@@ -182,6 +182,10 @@ macro pager \Cj "<next-entry><display-toggle-weed><display-toggle-weed>" "next i
 macro pager \Ck "<previous-entry><display-toggle-weed><display-toggle-weed>" "previous in thread"
 macro pager d "<delete-message><display-toggle-weed><display-toggle-weed>" "trash"
 macro pager a "<save-message>+Archive<enter><display-toggle-weed><display-toggle-weed>" "archive"
+# d also takes the labels off, though nothing here says so: trashing keeps a
+# message's labels on Proton, so mail-sync runs ~/bin/mail-trash-labels, which
+# deletes the label copies of anything newly in Trash. Not a pipe from d —
+# running a command made NeoMutt redraw, and the screen flashed on every d.
 # Labels: + adds one (Tab completes after the prefix), - removes one by
 # handing the message to ~/bin/mail-unlabel, which finds its copies under
 # Labels/ and asks which to take off. Both work from any folder.

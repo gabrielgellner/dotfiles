@@ -239,6 +239,7 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
 | `bin/executable_mail-backup`       | `~/bin/mail-backup`       | encrypted restic backup of the maildir to the NAS — same section |
 | `bin/executable_mail-attachments`  | `~/bin/mail-attachments`  | copies attachments worth keeping to the NAS, by hand — same section |
 | `bin/executable_mail-unlabel`      | `~/bin/mail-unlabel`      | NeoMutt's `-`: takes one label off a message — same section |
+| `bin/executable_mail-trash-labels` | `~/bin/mail-trash-labels` | run by mail-sync: a trashed message loses its labels — same section |
 | `bin/executable_mail-image`, `bin/executable_mail-open` | `~/bin/…` | NeoMutt attachments: inline in kitty, or in their macOS app — same section |
 | `bin/executable_mail-attach-pick` | `~/bin/mail-attach-pick` | NeoMutt compose's `a`: attach files picked in yazi — same section |
 | `bin/executable_mail-contacts`     | `~/bin/mail-contacts`     | NeoMutt's address lookup (Ctrl-Y), from notmuch — same section |
@@ -716,6 +717,29 @@ Trash <id>` did it). `Remove None` keeps a vanished local folder from being
 propagated as a deletion; a mass delete of *files* would still sync — as
 orphaning in Inbox, and as a permanent delete in Trash (see below).
 
+**Trashing keeps a message's labels**, so `d` in the Inbox left it showing
+under `Labels/` and it had to be deleted a second time there — 32 of 729
+messages in Trash still had a label copy (2026-11-22). `d` inside a label
+folder drops only *that* label. So `mail-sync` runs `~/bin/mail-trash-labels`
+before mbsync: a message that arrived in Trash on the previous run and is
+still there has its `Labels/` copies deleted. Waiting a run means the move has
+synced before the labels come off, and a message taken back out of Trash in
+between keeps them; restored later, it comes back unlabelled. It covers
+anything trashed — NeoMutt, the app, the web, `D` by pattern — and its first
+run only records Trash. It skips a message whose Message-ID is also in a
+folder that keeps mail (Inbox, Archive, Sent, …), re-checking each run while it
+stays in Trash: Proton can hold two messages with one ID, and the 32 turned out
+to be 29 such pairs, every one also in Archive with the label belonging to the
+filed copy — stripping them would have unlabelled kept mail. The same check
+lets the label-folder case through, once the next sync drops the Inbox copy
+(tested with file moves on a scratch maildir). Measured
+on a scratch maildir with NeoMutt: `d` from the Inbox and pager `d` inside a
+label each ended in Trash with no label copies, `d` then `u` and a message
+moved back out of Trash kept theirs, and one already in Trash at the first run
+was untouched. It started as a `<pipe-message>` on `d`, which made the screen
+flash on every delete: NeoMutt leaves and redraws the screen for any external
+command. 0.03s a run, with Message-IDs cached by file name.
+
 **Emptying Trash in Proton races the sync.** Emptied while deletes made in
 NeoMutt were still on their way up, the two crossed: Proton dropped messages
 mbsync was mid-way through filing in Trash, and mbsync was left with 17 local
@@ -727,6 +751,14 @@ unloading the agent (`launchctl bootout gui/$(id -u)/local.mbsync-proton`),
 moving the stale local files aside, and `launchctl bootstrap` again; afterwards
 every folder's count matched Proton. So: `$` in NeoMutt, let a sync pass (2m),
 then empty Trash.
+
+**`Recovered Messages` is where that race lands.** Bridge files a copy there
+when an APPEND fails, and every batch in it (Oct 24–26, Nov 10, 19, 21) lines
+up with Trash being emptied within a sync of the deletes: in Bridge's log for
+Nov 21 08:06, expunges from Trash and moves into it shared one mbsync session,
+and each move failed with "failed to label messages: Message does not exist".
+So it holds copies of mail already deleted — on 2026-11-22, 30 duplicates of
+messages in Trash and 45 newsletters from the Oct 24 clean-up.
 
 **Deleting inside Trash is a permanent delete**, so Trash can be emptied from
 NeoMutt: `c +Trash`, `D ~A`, `$`. Measured on two throwaway messages added to

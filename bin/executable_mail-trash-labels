@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""Take the labels off messages that arrive in Trash, so one d is enough.
+
+A Proton label is a folder under Labels/ holding a copy of each labelled
+message, and trashing a message keeps its labels: d in the Inbox moved it to
+Trash and left it showing under Labels/ — 32 of 729 trashed messages, when this
+was written — so it had to be deleted again there. (d *inside* a label folder
+drops that one label, but no others.)
+
+mail-sync runs this before mbsync. It compares Trash with what it held on the
+previous run: a message that arrived then, and is still there now, has its
+copies under Labels/ deleted, which takes those labels off on Proton (measured;
+see CLAUDE.md, Mail). Waiting the one run means a sync has carried the move up
+before the labels come off, so the two never race in a single mbsync, and a
+message taken back out of Trash before then keeps its labels. It covers
+messages trashed anywhere — NeoMutt, the Proton app, the web.
+
+Not when the same Message-ID is in a folder that keeps mail (Inbox, Archive,
+Sent, …): Proton can hold two messages with one ID, and then the label copy may
+belong to the one kept. On 2026-11-22 all 29 trashed messages still labelled
+were that — each also in Archive — so unlabelling them would have unlabelled
+filed mail. Such a message is checked again every run while it stays in Trash,
+which is also what lets the common case through: d inside a label folder
+leaves the Inbox copy until the next sync drops it.
+
+It used to be fed by NeoMutt's d through <pipe-message>, but running any
+external command makes NeoMutt leave and redraw the screen, and d flashed.
+
+The first run only records what Trash holds, so nothing already there is
+touched. MAIL_ROOT overrides the maildir, for testing.
+"""
+import email.parser, glob, json, os, time
+
+root = os.environ.get("MAIL_ROOT", os.path.expanduser("~/.local/share/mail/proton"))
+state = os.path.join(os.environ.get("XDG_STATE_HOME", os.path.expanduser("~/.local/state")),
+                     "mail-trash-labels")
+seen_file = os.path.join(state, "trash.json")
+parser = email.parser.BytesHeaderParser()
+
+# Message-IDs by file name: a maildir file's content never changes, only the
+# flags after ":2,", so the cache keeps every scan after the first to stat calls.
+cache_file = os.path.join(state, "ids.json")
+try:
+    with open(cache_file) as f:
+        cache = json.load(f)
+except (OSError, ValueError):
+    cache = {}
+fresh_cache = {}
+
+def ids(pattern):
+    found = {}
+    for p in glob.glob(f"{root}/{pattern}/cur/*") + glob.glob(f"{root}/{pattern}/new/*"):
+        key = p.rsplit(":2,", 1)[0].replace("/new/", "/cur/")
+        mid = cache.get(key)
+        if mid is None:
+            try:
+                with open(p, "rb") as f:
+                    mid = (parser.parse(f).get("Message-ID") or "").strip()
+            except OSError:
+                continue            # renamed or removed under us; next run sees it
+        fresh_cache[key] = mid
+        if mid:
+            found.setdefault(mid, []).append(p)
+    return found
+
+trash = ids("Trash")
+os.makedirs(state, exist_ok=True)
+try:
+    with open(seen_file) as f:
+        prev = json.load(f)
+    before, arrived = set(prev["trash"]), set(prev["arrived"])
+except (OSError, ValueError, KeyError):
+    before, arrived = set(trash), set()     # first run: record, touch nothing
+
+due = arrived & set(trash)
+blocked = set()
+if due:
+    kept = set()
+    for d in glob.glob(f"{root}/*/"):
+        name = os.path.basename(d.rstrip("/"))
+        if name not in ("Trash", "Labels"):
+            kept |= set(ids(glob.escape(name)))
+    blocked = due & kept
+    for mid, paths in ids("Labels/*").items():
+        if mid not in due or mid in blocked:
+            continue
+        for p in paths:
+            try:
+                os.remove(p)
+            except FileNotFoundError:
+                continue
+            label = os.path.basename(os.path.dirname(os.path.dirname(p)))
+            print(f"{time.strftime('%Y-%m-%d %H:%M:%S')} trashed, so unlabelled {label}: {mid}")
+else:
+    fresh_cache.update({k: v for k, v in cache.items() if "/Trash/" not in k})
+
+for path, data in ((seen_file, {"trash": sorted(trash), "arrived": sorted((set(trash) - before) | blocked)}),
+                   (cache_file, fresh_cache)):
+    with open(path + ".tmp", "w") as f:
+        json.dump(data, f)
+    os.replace(path + ".tmp", path)
