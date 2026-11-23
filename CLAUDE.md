@@ -1475,7 +1475,10 @@ formula would have put a second, smaller racket beside the full one).
 `node`, and leans on a Google Chrome that nothing here installs.
 
 Language servers: `lua-language-server`, `bash-language-server`, `pyrefly`,
-`ruff`, `just-lsp`, `jetls`, `tinymist` — the seven `plugins/lsp.lua` enables. `jetls`
+`ruff`, `just-lsp`, `jetls`, `tinymist`, `yaml-language-server` — the eight
+`plugins/lsp.lua` enables. yamlls takes its schemas from SchemaStore.nvim, not
+the network, and leaves formatting to yamlfmt and style to yamllint, whose
+user config is `dot_config/yamllint/config`. `jetls`
 (JETLS.jl) and the formatter `runic` are Julia packages installed by
 `Pkg.Apps` into `~/.julia/bin`, which is why that directory is on PATH in
 `dot_zshenv` and `dot_zshrc`; neither has a formula. JETLS reports some

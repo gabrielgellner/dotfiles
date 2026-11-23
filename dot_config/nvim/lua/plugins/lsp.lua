@@ -1,6 +1,9 @@
 return {
   "neovim/nvim-lspconfig", -- still needed for server definitions/defaults
   event = { "BufReadPre", "BufNewFile" },
+  -- SchemaStore.nvim is a Lua copy of the schemastore.org catalog, for yamlls
+  -- below. It has no setup(); it is only ever required.
+  dependencies = { { "b0o/SchemaStore.nvim", lazy = true } },
   config = function()
     -- ── Capabilities ──────────────────────────────────────────────────────
     -- This asked cmp_nvim_lsp, which is not installed and will not be: the
@@ -203,6 +206,39 @@ return {
       capabilities = capabilities,
     })
     vim.lsp.enable("tinymist")
+
+    -- ── yamlls ────────────────────────────────────────────────────────────
+    -- redhat-developer/yaml-language-server (brew): validation, completion
+    -- and hover against a JSON schema chosen by file name (GitHub workflows,
+    -- docker-compose, .gitlab-ci.yml, pre-commit, …), from SchemaStore.nvim's
+    -- copy of the catalog. The server's own schemaStore fetch is switched off
+    -- (it needs a url to be blank too) so the catalog comes from one place,
+    -- pinned by lazy-lock.json, rather than the network at startup.
+    -- A file can pick a schema itself with a first-line modeline:
+    --   # yaml-language-server: $schema=<url or path>
+    --
+    -- Formatting stays with yamlfmt through conform (plugins/formatting.lua),
+    -- so format.enable is off. lspconfig's on_init forces formattingProvider
+    -- on whatever that says, but conform only falls back to an LSP when no
+    -- formatter is listed, and yaml has one. yamllint (plugins/lint.lua) is
+    -- kept for style rules — line length, truthy, indentation — which the
+    -- server does not check; both report a plain syntax error.
+    --
+    -- keyOrdering off: on, it flags every mapping not written in alphabetical
+    -- order, which no real config file is.
+    vim.lsp.config("yamlls", {
+      capabilities = capabilities,
+      settings = {
+        yaml = {
+          format = { enable = false },
+          keyOrdering = false,
+          validate = true,
+          schemaStore = { enable = false, url = "" },
+          schemas = require("schemastore").yaml.schemas(),
+        },
+      },
+    })
+    vim.lsp.enable("yamlls")
 
     -- ── lua_ls (for editing this config) ─────────────────────────────────
     vim.lsp.config("lua_ls", {

@@ -1,0 +1,20 @@
+# yamllint's user-level config, used only where a project has no .yamllint
+# of its own (yamllint looks for one in the working directory first).
+#
+# Starts from `default` and turns off or loosens the three rules that fire
+# on ordinary, correct files. Measured on a stock GitHub workflow, where the first two
+# warned on every file:
+#   document-start  wants a leading `---`, which almost no config file has.
+#   truthy          reads the key `on:` as a boolean, which is every workflow
+#                   file's trigger. check-keys false keeps the check on values.
+#   line-length     80 by default; 120 matches textwidth for prose here.
+# Syntax and schema errors are yaml-language-server's job (plugins/lsp.lua);
+# this is for style.
+extends: default
+
+rules:
+  document-start: disable
+  truthy:
+    check-keys: false
+  line-length:
+    max: 120

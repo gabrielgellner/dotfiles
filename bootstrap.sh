@@ -328,6 +328,10 @@ brew_install stylua
 # so the two go together; nvim's `sh` filetype covers bash and sh alike.
 brew_install bash-language-server
 
+# yaml. Schemas come from SchemaStore.nvim, so nothing else is needed;
+# formatting is yamlfmt and style linting yamllint, below.
+brew_install yaml-language-server
+
 # formatters
 brew_install prettier
 brew_install taplo taplo-cli
