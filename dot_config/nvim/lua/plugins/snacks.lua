@@ -267,7 +267,11 @@ return {
     },
     -- ── dashboard ────────────────────────────────────────────────────────────
     dashboard = {
-      enabled = true,
+      -- Not under kitty-scrollback.nvim, whose kitten starts nvim with no file
+      -- and sets KITTY_SCROLLBACK_NVIM. The dashboard was already drawn when the
+      -- plugin's launch ran (the first buffer's filetype read snacks_dashboard),
+      -- so ctrl+a>[ flashed the cat between the window and its scrollback.
+      enabled = vim.env.KITTY_SCROLLBACK_NVIM == nil,
       preset = {
         header = [[
   /\_/\    /\_/\
