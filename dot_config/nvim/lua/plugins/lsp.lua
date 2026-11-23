@@ -226,6 +226,16 @@ return {
     --
     -- keyOrdering off: on, it flags every mapping not written in alphabetical
     -- order, which no real config file is.
+    --
+    -- hhome recipe boxes (~/dev/half-homemaker) are added to the catalog:
+    -- `hhome schema --write` puts recipe.schema.json in the box root, so
+    -- recipes/*.yaml there get key completion, hover and validation. Only
+    -- when the workspace root actually has the file: mapped unconditionally,
+    -- every recipes/*.yaml in any other project opened with "Unable to load
+    -- schema ... No content" on line 1 (measured on a scratch repo). The
+    -- check is per client, in before_init, since root_dir is known there;
+    -- a box nested inside another repo (half-homemaker's own test fixture)
+    -- has the wrong root and gets no schema.
     vim.lsp.config("yamlls", {
       capabilities = capabilities,
       settings = {
@@ -237,6 +247,16 @@ return {
           schemas = require("schemastore").yaml.schemas(),
         },
       },
+      before_init = function(_, config)
+        local schema = config.root_dir and vim.fs.joinpath(config.root_dir, "recipe.schema.json")
+        if schema and vim.uv.fs_stat(schema) then
+          -- Edited in place, not replaced: the client has already taken its
+          -- reference to config.settings by now, so a new table here never
+          -- reached the server (measured). Each client's config is resolved
+          -- afresh, so this does not leak to the next project's client.
+          config.settings.yaml.schemas[schema] = "recipes/*.yaml"
+        end
+      end,
     })
     vim.lsp.enable("yamlls")
 

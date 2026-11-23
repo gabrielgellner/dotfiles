@@ -64,6 +64,25 @@ return {
     -- the .gitignore lookup. It is found upward from the file, not the cwd,
     -- for the same reason the guides below are matched on path.
     formatters = {
+      -- yamlfmt reads its config (.yamlfmt) only from the working directory,
+      -- and conform runs it with none set, so Neovim's cwd decided: opening a
+      -- file from anywhere but its project root silently formatted it with
+      -- yamlfmt's defaults instead. An hhome recipe box carries a .yamlfmt
+      -- (fold method text at 112, two spaces before comments); run from the
+      -- nearest directory above the file that has one, else the cwd as before.
+      -- The require is inside the function because this opts table is built
+      -- when lazy.nvim reads the spec, before conform itself has loaded.
+      yamlfmt = {
+        cwd = function(self, ctx)
+          return require("conform.util").root_file({
+            ".yamlfmt",
+            ".yamlfmt.yml",
+            ".yamlfmt.yaml",
+            "yamlfmt.yml",
+            "yamlfmt.yaml",
+          })(self, ctx)
+        end,
+      },
       prettier_markdown = {
         command = "prettier",
         args = function(_, ctx)
