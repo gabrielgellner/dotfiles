@@ -135,6 +135,15 @@ bin/mkv2mp4
 {{ end -}}
 
 {{/*
+  yazi.toml holds one thing, the opener that plays audio through mpv, and the
+  RDP machine is for work and has no mpv. bootstrap.sh gates mpv the same way.
+  Without this the VM's yazi would offer an opener that fails on every audio file.
+*/ -}}
+{{ if eq $desktop "xrdp" -}}
+.config/yazi/yazi.toml
+{{ end -}}
+
+{{/*
   Mail — NeoMutt to read it, himalaya for scripted access, mbsync and its
   launchd agent to mirror it — goes through Proton Mail Bridge on localhost,
   so it is only useful where Bridge runs. That is the

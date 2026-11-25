@@ -217,8 +217,12 @@ brew_install yazi
 # Arch's 7zip ships 7z/7za/7zr and no 7zz; yazi and compress both accept 7z.
 brew_install sevenzip 7zip
 # mpv is yazi's audio opener (dot_config/yazi/yazi.toml): Enter on an mp3 or a
-# wav plays it in the terminal rather than handing it to Music.app.
-brew_install mpv
+# wav plays it in the terminal rather than handing it to Music.app. Not on the
+# RDP machine, which is for work: .chezmoiignore skips yazi.toml there, so the
+# opener and its player arrive together or not at all, as mkv2mp4 and ffmpeg do.
+if $IS_MACOS || $IS_OMARCHY; then
+    brew_install mpv
+fi
 # LS_COLORS for eza and the completion list, generated in dot_zshrc
 brew_install vivid
 
@@ -705,7 +709,8 @@ for c in tmux nvim zk pyrefly just-lsp ruff fd fzf rg eza bat \
 done
 # brew's sevenzip is 7zz, Arch's 7zip is 7z; either one serves yazi.
 command -v 7zz &>/dev/null || command -v 7z &>/dev/null || missing+=("7zz")
-command -v mpv &>/dev/null || missing+=("mpv")
+# Gated to match its install, which follows where .chezmoiignore applies yazi.toml.
+{ $IS_MACOS || $IS_OMARCHY; } && { command -v mpv &>/dev/null || missing+=("mpv"); }
 
 # Gated to match the install above, which follows where .chezmoiignore
 # applies bin/mkv2mp4.
