@@ -689,6 +689,32 @@ if $IS_OMARCHY; then
     fi
 fi
 
+# ── linuxbrew's glibc and sssd users ──────────────────────────────────────────
+# The RDP machine's account is an AD user, found through sssd (`passwd: files
+# systemd sss`) and absent from /etc/passwd. Brew's binaries run on brew's own
+# glibc, which ships no libnss_sss, so to them that user does not exist: k9s
+# quit straight after "connectivity OK", logging only `Die getting user home
+# directory error="user: unknown userid ..."`, and brew's `getent passwd` came
+# back rc 2 where the system's answered (2026-11-24, after brew moved to
+# glibc 2.39_2). Linking the system's module in fixed both, measured; it is
+# built against the older system glibc (2.35), which 2.39 runs fine.
+#
+# The link lives inside brew's keg, so a glibc reinstall or upgrade drops it
+# and the failure returns silently — rerunning this script puts it back.
+_brew_glibc_lib=/home/linuxbrew/.linuxbrew/opt/glibc/lib
+_sys_nss_sss=/lib/x86_64-linux-gnu/libnss_sss.so.2
+if ! $IS_MACOS && ! $IS_OMARCHY && [[ -d "$_brew_glibc_lib" && -e "$_sys_nss_sss" ]] \
+    && grep -qE '^passwd:.*\bsss\b' /etc/nsswitch.conf; then
+    blue "\nChecking brew glibc can see sssd users..."
+    if [[ -e "$_brew_glibc_lib/libnss_sss.so.2" ]]; then
+        yellow "libnss_sss already linked into brew's glibc, skipping"
+    else
+        green "Linking libnss_sss into brew's glibc..."
+        ln -s "$_sys_nss_sss" "$_brew_glibc_lib/" || record_failure "glibc:libnss_sss"
+    fi
+fi
+unset _brew_glibc_lib _sys_nss_sss
+
 # ── Verify ────────────────────────────────────────────────────────────────────
 # The reason this exists: nothing else checks that bootstrap still provisions
 # what the config expects. tmux, zk, pyrefly and just-lsp had all drifted out of
