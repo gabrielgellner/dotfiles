@@ -292,6 +292,9 @@ brew_install websocat
 # inert here.
 if $IS_MACOS; then
     cask_install quarto
+elif $IS_OMARCHY; then
+    # Not in the official repos; the AUR's -bin package repackages the release.
+    ensure_command quarto quarto aur:quarto-cli-bin
 elif command -v quarto &>/dev/null; then
     yellow "  quarto already present ($(command -v quarto)), skipping"
 elif ! command -v apt-get &>/dev/null; then
@@ -431,7 +434,11 @@ blue "\nChecking Julia apps..."
 # 2026-10-30, `julia_cmd=` in ~/.julia/bin/jetls. Once juliaup drops that
 # version, jetls and runic point at nothing; re-run the two adds below
 # (julia_app_install skips them while the scripts exist, so by hand).
-ensure_command julia juliaup
+# On Arch there is no juliaup package (neither the repos nor the AUR), but
+# extra's `julia` is 1.13 and Pkg.Apps needs 1.12, so Omarchy takes that.
+# It is a fixed install under /usr, so the pinned-path caveat above does not
+# apply to it.
+ensure_command julia juliaup julia
 export PATH="$HOME/.julia/bin:$PATH"
 julia_app_install() {
     local app="$1" spec="$2"
