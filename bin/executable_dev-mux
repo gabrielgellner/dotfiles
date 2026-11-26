@@ -8,8 +8,8 @@
 #      in a child only when kitty.conf has `listen_on`, which only mux.conf
 #      provides, so this is "the kitty that is meant to be the multiplexer",
 #      not merely "a kitty".
-#   4. Otherwise tmux, which is every machine without mux.conf: the work VM in
-#      xterm, Omarchy, and the laptop in any other terminal.
+#   4. Otherwise tmux, which is every terminal without mux.conf: the work VM in
+#      xterm, and any other terminal on the laptop or Omarchy.
 #
 # Rules 2-4 are written inline in claude-tmux-state (which runs on every tool
 # call and should not fork for it), config/just.lua and plugins/quarto.lua.

@@ -1,25 +1,37 @@
 # kitty as the multiplexer, in place of tmux. Included by kitty.conf, which
 # cannot be a template itself (see font.conf for why), so the per-machine
-# switch lives here: the laptop gets the whole file, every other machine an
-# empty include.
+# switch lives here: the laptop and the Omarchy desktop get the whole file, the
+# work VM (xterm, no kitty) an empty include.
 #
-# Not on Omarchy, though its kitty could do this too: there tmux still runs
-# inside kitty, and every `map ctrl+a>…` below would take tmux's prefix before
-# tmux saw it. The same is true on the laptop for a tmux started by hand.
+# Don't run tmux inside a kitty that has this file: every `map ctrl+a>…` below
+# takes tmux's prefix before tmux sees it. A tmux started by hand still works
+# for everything else, and dev-mux still picks tmux inside it ($TMUX first).
 #
 # Turning this file on is also what switches `dev`, `new-session`, just.lua,
 # slime and the Claude hooks over to kitty. They test $KITTY_LISTEN_ON, which
 # kitty sets in a child only when `listen_on` below is in force, so a kitty
 # without this file still gets tmux. ~/bin/dev-mux holds the rule.
-{{ if eq (includeTemplate "desktop" .) "macos" -}}
-
+{{ $desktop := includeTemplate "desktop" . -}}
+{{ if ne $desktop "xrdp" }}
 # ── Remote control ──────────────────────────────────────────────────────────
 # `dev`, new-session and just.lua drive kitty through `kitten @`. socket-only
 # keeps it off the tty, so a program printing escape codes cannot drive it.
-# The socket is in $TMPDIR, the per-user private directory launchd sets for GUI
-# apps, rather than world-writable /tmp; kitty appends -<pid> to the path.
+# The socket is in a per-user private directory rather than world-writable
+# /tmp: $TMPDIR, which launchd sets for GUI apps, on macOS, and
+# $XDG_RUNTIME_DIR (/run/user/<uid>, 0700) on Omarchy, where TMPDIR is unset.
+# kitty appends -<pid> to the path, so each kitty process has its own socket.
+#
+# On Omarchy the name is the one omarchy-cmd-terminal-cwd looks for, so that
+# Super+Return opens in the focused tab's directory: it asks
+# $XDG_RUNTIME_DIR/omarchy-kitty-<pid> for `state:focused`, and without that
+# socket falls back to the newest child shell's cwd from /proc, which with
+# several tabs is whichever shell started last. kitty.conf has the history.
 allow_remote_control socket-only
+{{ if eq $desktop "macos" -}}
 listen_on unix:${TMPDIR}kitty
+{{- else -}}
+listen_on unix:${XDG_RUNTIME_DIR}/omarchy-kitty-{kitty_pid}
+{{- end }}
 
 # The PATH for what kitty runs directly: the dev overlay below, and anything
 # else launched without a shell. kitty started from the Dock has launchd's
@@ -27,8 +39,11 @@ listen_on unix:${TMPDIR}kitty
 # no fzf, exited, and the overlay closed before it was seen (measured: with
 # this line the overlay finds both fzf and dev). Shells are unaffected, since
 # dot_zshenv and dot_zshrc build their own PATH; a background launch ignores
-# `env` altogether, which is why tab_bar.py sets its own.
+# `env` altogether, which is why tab_bar.py sets its own. macOS only: Omarchy
+# starts kitty under uwsm, which hands it the login shell's whole PATH.
+{{- if eq $desktop "macos" }}
 env PATH=${HOME}/.local/bin:${HOME}/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}
+{{- end }}
 
 # ── Sessions as tmux sessions ───────────────────────────────────────────────
 # A kitty session (0.43+) is a set of tabs created from one session file.

@@ -220,7 +220,7 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
 | `dot_config/nvim/`                 | `~/.config/nvim/`         | Neovim config (lazy.nvim, Lua)                                |
 | `dot_config/kitty/kitty.conf`      | `~/.config/kitty/kitty.conf` | Kitty: 5 settings, a theme include, and a font-size include; rest is commented |
 | `dot_config/kitty/font.conf.tmpl`  | `~/.config/kitty/font.conf` | Font size per machine — see the caveat below                  |
-| `dot_config/kitty/mux.conf.tmpl`   | `~/.config/kitty/mux.conf` | kitty as the multiplexer, macOS only — see kitty below       |
+| `dot_config/kitty/mux.conf.tmpl`   | `~/.config/kitty/mux.conf` | kitty as the multiplexer, macOS and Omarchy — see kitty below |
 | `dot_config/kitty/tab_bar.py`      | `~/.config/kitty/tab_bar.py` | tmux's status line, drawn by kitty — same section           |
 | `dot_config/kitty/music_popup.py`  | `~/.config/kitty/music_popup.py` | The gmuse popup under kitty — same section              |
 | `dot_config/ghostty/config.ghostty` | `~/.config/ghostty/config.ghostty` | Ghostty dressed as kitty, for testing vimtracker; macOS only |
@@ -1080,15 +1080,41 @@ Driving this is the usual detached-tmux method, with one wrinkle: the first
 prompt twice. Sample the state file rather than the bar — content plus mtime, a
 few times a second — and the transitions read out directly.
 
-## kitty as the Multiplexer (macOS)
+## kitty as the Multiplexer (macOS and Omarchy)
 
-On the laptop **kitty replaces tmux** (2026-11-08); the work VM and Omarchy keep
-tmux. The switch is one include: `kitty.conf` ends with `include ./mux.conf`, and
-`mux.conf.tmpl` is the whole thing on macOS and empty elsewhere — a template
-because kitty.conf cannot be one (the font.conf reason). Not on Omarchy even
-though its kitty could: tmux runs inside kitty there, and every `ctrl+a>…` map
-would take tmux's prefix first. The same is true of a tmux started by hand
-inside the laptop's kitty.
+On the laptop **kitty replaces tmux** (2026-11-08), and on the Omarchy desktop
+since 2026-11-26; the work VM keeps tmux, in xterm. The switch is one include:
+`kitty.conf` ends with `include ./mux.conf`, and `mux.conf.tmpl` is the whole
+thing everywhere but the VM — a template because kitty.conf cannot be one (the
+font.conf reason). Don't start tmux inside such a kitty: every `ctrl+a>…` map
+takes tmux's prefix first.
+
+**On Omarchy**, measured in a throwaway kitty (0.49.2) on a hidden special
+workspace (`hyprctl eval "hl.exec_cmd('…', { workspace = 'special:x silent' })"`
+— Hyprland 0.56's lua config, where `hyprctl dispatch exec [rules] …` is a
+syntax error). Two lines differ from the laptop, both in mux.conf, and the
+battery is left out of `tab_bar.py` where there is no `pmset`:
+
+- **The socket is `$XDG_RUNTIME_DIR/omarchy-kitty-{kitty_pid}`**, Omarchy's own
+  name, because `omarchy-cmd-terminal-cwd` asks that socket for the focused
+  window's directory when Super+Return opens a terminal. Without it Omarchy
+  reads the newest child shell's cwd from /proc, which with tabs is whichever
+  shell started last. Measured: it answered the session's directory.
+- **No `env PATH=` line.** uwsm starts kitty with the login shell's whole PATH
+  (read from `/proc/<kitty>/environ`: mise, `~/bin`, `~/.local/bin`).
+- Checked to work: `dev-mux` says kitty in a window, `new-session` built
+  `nvim`/`console` tagged with their roles, `dev --list` marked it active, the
+  bar drew ` proj  1 nvim  2 console … Thu 26 Nov 12:36` in tmux's colours
+  (read from the tab bar's screen line by a probe kitten), copy mode opened
+  the history in nvim, and the music popup came up as a centred layer-shell
+  panel (`hyprctl layers`, namespace `kitty-quick-access`) and hid on the
+  second press (a screenshot). `claude-tmux-status --panes-stdin` and
+  `gmuse-tmux-status` both run unchanged on Linux.
+- **Each Super+Return is its own kitty process**, unlike cmd+n on the Mac, so
+  `dev` lists only the sessions in the kitty it runs in. Work from one kitty
+  window, as from one tmux client.
+- kitty logs `[PARSE ERROR] Escape codes to resize text area are not
+  supported` whenever nvim starts; nothing visible follows from it.
 
 **What kitty runs gets launchd's bare PATH**, not the login shell's. An overlay
 or a window takes mux.conf's `env PATH=` line; a background `launch` takes

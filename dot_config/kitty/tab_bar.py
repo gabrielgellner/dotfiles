@@ -23,11 +23,12 @@
 # with a probe kitten). Spawning from the main thread and polling is how kitty
 # itself runs things.
 #
-# The battery is the one part tmux never had: this bar only runs on the laptop.
-# It is `pmset -g batt`, run and collected like the scripts and parsed here, and
-# prints nothing on a Mac with no battery. Red at BATTERY_LOW or below while on
-# battery; Apple documents no threshold for its own menu-bar icon, so 10% is a
-# choice, not a copy.
+# The battery is the one part tmux never had. It is `pmset -g batt`, run and
+# collected like the scripts and parsed here, and prints nothing on a Mac with
+# no battery. Off the Mac there is no pmset, and the Omarchy desktop has no
+# battery, so it is left out of STATUS_SCRIPTS rather than failing every 5s.
+# Red at BATTERY_LOW or below while on battery; Apple documents no threshold
+# for its own menu-bar icon, so 10% is a choice, not a copy.
 #
 # Not ported: tmux's activity and bell styles. Both were set in dot_tmux.conf,
 # but every part of the window format sets its own fg and bg, which overrides
@@ -67,8 +68,9 @@ RUN_EVERY = 5
 STATUS_SCRIPTS = (
     ("gmuse", [os.path.expanduser("~/bin/gmuse-tmux-status")]),
     ("claude", [os.path.expanduser("~/bin/claude-tmux-status"), "--panes-stdin"]),
-    ("battery", ["/usr/bin/pmset", "-g", "batt"]),
 )
+if os.path.exists("/usr/bin/pmset"):
+    STATUS_SCRIPTS += (("battery", ["/usr/bin/pmset", "-g", "batt"]),)
 # A script still running after this long is killed and reads as blank.
 TIMEOUT = 3.0
 
@@ -79,7 +81,7 @@ _ticks = 0
 _drawn: tuple[str, str, str, str] | None = None
 _out_dir = tempfile.mkdtemp(prefix="kitty-tab-bar-")
 
-# kitty's own process has launchd's bare PATH (/usr/bin:/bin:/usr/sbin:/sbin),
+# On macOS kitty's own process has launchd's bare PATH (/usr/bin:/bin:/usr/sbin:/sbin),
 # and so does anything it starts outside a window — kitty.child.default_env()
 # gave the same, measured in the running kitty. So the PATH the scripts need is
 # spelled out: gmuse is in ~/.local/bin.
