@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Switch the BenQ EX3501R's input from the shell, over DDC/CI (MCCS feature
+# 0x60). The monitor advertises four inputs; three are wired:
+#
+#   desktop  DisplayPort-1  0x0f   this machine
+#   mini     HDMI-1         0x11   the Mac mini
+#   work     HDMI-2         0x12   the work computer
+#
+# Usage:
+#   monitor-input             show the current input
+#   monitor-input work        switch to it
+#
+# Switching away blanks this machine's screen, and the monitor can still be
+# switched back from here: it answers DDC while showing another input.
+
+set -euo pipefail
+
+if ! command -v ddcutil >/dev/null 2>&1; then
+  echo "error: ddcutil not found on PATH" >&2
+  exit 1
+fi
+
+case "${1:-}" in
+  "")
+    ddcutil getvcp 60
+    ;;
+  desktop) ddcutil setvcp 60 0x0f ;;
+  mini)    ddcutil setvcp 60 0x11 ;;
+  work)    ddcutil setvcp 60 0x12 ;;
+  *)
+    echo "usage: monitor-input [desktop|mini|work]" >&2
+    exit 1
+    ;;
+esac

@@ -65,7 +65,8 @@ over RDP, and an Omarchy desktop. Three mechanisms:
   is the VM) rather than prompted, so no machine needs `chezmoi init` re-run.
 - **`.chezmoiignore`** is a template, so a path can be skipped per machine.
   `.config/i3`, `.config/i3status`, `.config/xterm` and `.xsession` apply on
-  the VM only, `.config/hypr` and `.config/omarchy` on Omarchy only,
+  the VM only, `.config/hypr`, `.config/omarchy` and `bin/monitor-input` on
+  Omarchy only,
   `.config/karabiner` and `.config/ghostty` on macOS only, and `bin/mkv2mp4` everywhere but the VM.
   Paths there are *target* names (`.config/i3`), not source names
   (`dot_config/i3`).
@@ -209,6 +210,7 @@ session's NVIDIA variables; nothing here does), and one BenQ EX3501R at
 | `bin/executable_new-session`       | `~/bin/new-session`       | Creates a tmux (or kitty) session: nvim and one console       |
 | `bin/executable_tmux-scrollback`   | `~/bin/tmux-scrollback`   | `prefix + [` under tmux: a pane's history in nvim — see below  |
 | `bin/executable_mkv2mp4`           | `~/bin/mkv2mp4`           | Video remux helper                                            |
+| `bin/executable_monitor-input`     | `~/bin/monitor-input`     | Switches the BenQ's input over DDC/CI (ddcutil); Omarchy only |
 | `bin/executable_claude-tmux-state` | `~/bin/claude-tmux-state` | Records Claude's state per tmux session — see its section below |
 | `bin/executable_claude-tmux-status`| `~/bin/claude-tmux-status`| Summarises those states for the status bar — same section      |
 | `bin/executable_gmuse-tmux-status` | `~/bin/gmuse-tmux-status` | Asks the running gmuse what is playing, for the same bar       |

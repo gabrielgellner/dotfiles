@@ -715,6 +715,13 @@ if ! $IS_MACOS && ! $IS_OMARCHY && [[ -d "$_brew_glibc_lib" && -e "$_sys_nss_sss
 fi
 unset _brew_glibc_lib _sys_nss_sss
 
+# ── Omarchy: monitor input switching ──────────────────────────────────────────
+# bin/monitor-input talks DDC/CI to the BenQ through ddcutil. Measured on the
+# desktop: /dev/i2c-1 was usable without sudo and i2c-dev already loaded.
+if $IS_OMARCHY; then
+    pacman_install ddcutil
+fi
+
 # ── Verify ────────────────────────────────────────────────────────────────────
 # The reason this exists: nothing else checks that bootstrap still provisions
 # what the config expects. tmux, zk, pyrefly and just-lsp had all drifted out of
@@ -741,6 +748,7 @@ command -v 7zz &>/dev/null || command -v 7z &>/dev/null || missing+=("7zz")
 # Gated to match the install above, which follows where .chezmoiignore
 # applies bin/mkv2mp4.
 { $IS_MACOS || $IS_OMARCHY; } && { command -v ffmpeg &>/dev/null || missing+=("ffmpeg"); }
+$IS_OMARCHY && { command -v ddcutil &>/dev/null || missing+=("ddcutil"); }
 
 # quarto is installed on both now (cask, or the .deb), so it is checked on both.
 # A Linux machine without apt-get reports it here rather than passing silently.

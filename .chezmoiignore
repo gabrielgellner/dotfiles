@@ -144,6 +144,14 @@ bin/mkv2mp4
 {{ end -}}
 
 {{/*
+  monitor-input drives the Omarchy desktop's BenQ over DDC/CI; the other two
+  machines are not the ones plugged into it.
+*/ -}}
+{{ if ne $desktop "omarchy" -}}
+bin/monitor-input
+{{ end -}}
+
+{{/*
   Mail — NeoMutt to read it, himalaya for scripted access, mbsync and its
   launchd agent to mirror it — goes through Proton Mail Bridge on localhost,
   so it is only useful where Bridge runs. That is the
